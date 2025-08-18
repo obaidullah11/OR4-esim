@@ -1,14 +1,17 @@
 import { createContext, useContext, useReducer, useEffect, useCallback } from 'react'
-import { authService } from '../services/authService'
-import { tokenService } from '../services/tokenService'
+// BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
+// import { authService } from '../services/authService'
+// import { tokenService } from '../services/tokenService'
 
 const AuthContext = createContext()
 
 const initialState = {
   user: null,
-  token: tokenService.getAccessToken(),
+  // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
+  // token: tokenService.getAccessToken(),
+  token: null,
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: false, // Changed to false for demo mode
 }
 
 function authReducer(state, action) {
@@ -65,10 +68,12 @@ export function AuthProvider({ children }) {
 
   // Initialize authentication on mount
   useEffect(() => {
+    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
+    /*
     const initializeAuth = async () => {
       try {
         const tokenStatus = tokenService.hasValidTokens()
-        
+
         if (tokenStatus === 'valid') {
           // Tokens are valid, fetch user data
           const user = await authService.getCurrentUser()
@@ -94,15 +99,21 @@ export function AuthProvider({ children }) {
     }
 
     initializeAuth()
+    */
+
+    // Demo mode - no backend calls
+    dispatch({ type: 'SET_LOADING', payload: false })
   }, [])
 
   // Set up automatic token refresh
   useEffect(() => {
+    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
+    /*
     if (!state.isAuthenticated) return
 
     const checkTokenExpiry = async () => {
       const tokenStatus = tokenService.hasValidTokens()
-      
+
       if (tokenStatus === 'refresh_needed') {
         try {
           const newToken = await authService.refreshTokens()
@@ -118,27 +129,58 @@ export function AuthProvider({ children }) {
 
     // Check every 5 minutes
     const interval = setInterval(checkTokenExpiry, 5 * 60 * 1000)
-    
+
     return () => clearInterval(interval)
+    */
   }, [state.isAuthenticated])
 
   const login = async (credentials) => {
+    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
+    /*
     try {
       const response = await authService.login(credentials)
-      
+
       // Tokens are already stored by authService.login()
-      dispatch({ 
-        type: 'LOGIN_SUCCESS', 
-        payload: { user: response.user, token: response.token } 
+      dispatch({
+        type: 'LOGIN_SUCCESS',
+        payload: { user: response.user, token: response.token }
       })
-      
+
       return response
+    } catch (error) {
+      throw error
+    }
+    */
+
+    // Demo mode - simulate successful login
+    try {
+      const mockUser = {
+        id: 1,
+        email: credentials.email,
+        first_name: 'Demo',
+        last_name: 'User',
+        role: 'admin'
+      }
+
+      const mockResponse = {
+        user: mockUser,
+        token: 'demo-token-123'
+      }
+
+      dispatch({
+        type: 'LOGIN_SUCCESS',
+        payload: { user: mockUser, token: 'demo-token-123' }
+      })
+
+      return mockResponse
     } catch (error) {
       throw error
     }
   }
 
   const logout = async () => {
+    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
+    /*
     try {
       await authService.logout()
       dispatch({ type: 'LOGOUT' })
@@ -147,10 +189,16 @@ export function AuthProvider({ children }) {
       // Even if logout fails, clear local state
       dispatch({ type: 'LOGOUT' })
     }
+    */
+
+    // Demo mode - simple logout
+    dispatch({ type: 'LOGOUT' })
   }
 
   // Utility functions for token management
   const refreshTokens = useCallback(async () => {
+    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
+    /*
     try {
       const newToken = await authService.refreshTokens()
       dispatch({ type: 'TOKEN_REFRESHED', payload: newToken })
@@ -160,14 +208,26 @@ export function AuthProvider({ children }) {
       dispatch({ type: 'TOKEN_EXPIRED' })
       throw error
     }
+    */
+
+    // Demo mode - return mock token
+    return 'demo-refreshed-token'
   }, [])
 
   const checkTokenValidity = useCallback(() => {
-    return authService.checkTokenValidity()
+    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
+    // return authService.checkTokenValidity()
+
+    // Demo mode - always return valid
+    return 'valid'
   }, [])
 
   const getTokenExpiryInfo = useCallback(() => {
-    return authService.getTokenExpiryInfo()
+    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
+    // return authService.getTokenExpiryInfo()
+
+    // Demo mode - return mock info
+    return { valid: true, message: 'Demo mode - no real tokens' }
   }, [])
 
   const value = {

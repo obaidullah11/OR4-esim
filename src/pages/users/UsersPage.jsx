@@ -28,7 +28,8 @@ import {
   MessageSquare,
   History
 } from 'lucide-react'
-import UserDetailsModal from '../../components/users/UserDetailsModal'
+// TEMPORARILY COMMENTED OUT - Modal causing issues
+// import UserDetailsModal from '../../components/users/UserDetailsModal'
 
 // Sample user data
 const sampleUsers = [
@@ -197,7 +198,10 @@ function UsersPage() {
   // Handler functions
   const handleViewUser = (user) => {
     setSelectedUser(user)
-    setShowDetailsModal(true)
+    // TEMPORARILY COMMENTED OUT - Modal causing issues
+    // setShowDetailsModal(true)
+    console.log('View user:', user.name)
+    alert(`Viewing user: ${user.name} (Demo mode)`)
   }
 
   const handleBlockUser = (userId) => {
@@ -511,7 +515,8 @@ function UsersPage() {
         )}
       </div>
 
-      {/* User Details Modal */}
+      {/* User Details Modal - TEMPORARILY COMMENTED OUT */}
+      {/*
       {showDetailsModal && selectedUser && (
         <UserDetailsModal
           user={selectedUser}
@@ -524,6 +529,7 @@ function UsersPage() {
           onSuspendUser={handleSuspendUser}
         />
       )}
+      */}
     </div>
   )
 }

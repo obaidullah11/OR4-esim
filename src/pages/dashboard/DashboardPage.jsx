@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTheme } from '../../context/ThemeContext'
-import { dashboardService } from '../../services/apiService'
+// BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
+// import { dashboardService } from '../../services/apiService'
 import {
   Users,
   UserCheck,
@@ -149,10 +150,12 @@ function DashboardPage() {
   const [lastUpdated, setLastUpdated] = useState(null)
 
   const fetchDashboardData = async () => {
+    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
+    /*
     try {
       setLoading(true)
       setError(null)
-      
+
       // Try to get authenticated dashboard first, fallback to test dashboard
       let data
       try {
@@ -161,11 +164,48 @@ function DashboardPage() {
         console.log('Auth failed, using test dashboard:', authError.message)
         data = await dashboardService.getTestAdminDashboard()
       }
-      
+
       setDashboardData(data)
       setLastUpdated(new Date())
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error)
+      setError(error.message)
+    } finally {
+      setLoading(false)
+    }
+    */
+
+    // Demo mode - use mock data
+    try {
+      setLoading(true)
+      setError(null)
+
+      // Mock dashboard data
+      const mockData = {
+        total_users: 1250,
+        active_users: 980,
+        total_orders: 3420,
+        total_revenue: 125000.50,
+        monthly_growth: 12.5,
+        recent_orders: [
+          { id: 1, customer: 'John Doe', amount: 299.99, status: 'completed', date: '2024-01-15' },
+          { id: 2, customer: 'Jane Smith', amount: 199.99, status: 'pending', date: '2024-01-14' },
+          { id: 3, customer: 'Bob Johnson', amount: 399.99, status: 'completed', date: '2024-01-13' }
+        ],
+        sales_trends: [
+          { month: 'Jan', sales: 12000 },
+          { month: 'Feb', sales: 15000 },
+          { month: 'Mar', sales: 18000 },
+          { month: 'Apr', sales: 22000 },
+          { month: 'May', sales: 25000 },
+          { month: 'Jun', sales: 28000 }
+        ]
+      }
+
+      setDashboardData(mockData)
+      setLastUpdated(new Date())
+    } catch (error) {
+      console.error('Failed to load mock dashboard data:', error)
       setError(error.message)
     } finally {
       setLoading(false)

@@ -27,7 +27,8 @@ import ResellerDetailsModal from '../../components/resellers/ResellerDetailsModa
 import DeleteConfirmationModal from '../../components/resellers/DeleteConfirmationModal'
 import SuspensionReasonModal from '../../components/resellers/SuspensionReasonModal'
 import Tooltip from '../../components/common/Tooltip'
-import { resellerService } from '../../services/resellerService'
+// BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
+// import { resellerService } from '../../services/resellerService'
 import toast from 'react-hot-toast'
 
 // Sample reseller data
@@ -219,16 +220,18 @@ function ResellersPage() {
 
   // Fetch resellers from API
   const fetchResellers = async (params = {}) => {
+    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
+    /*
     try {
       setLoading(true)
-      
+
       const response = await resellerService.getAllResellers({
         page: params.page || pagination.page,
         limit: params.limit || pagination.limit,
         search: params.search || searchTerm,
         ordering: params.ordering || '-created_at'
       })
-      
+
       if (response.success) {
         const formattedResellers = resellerService.formatResellersList(response.data.results)
         setResellers(formattedResellers)
@@ -241,6 +244,17 @@ function ResellersPage() {
       toast.error('Failed to load resellers')
       // Fallback to sample data
       setResellers(sampleResellers)
+    } finally {
+      setLoading(false)
+    }
+    */
+
+    // Demo mode - use sample data
+    try {
+      setLoading(true)
+      setResellers(sampleResellers)
+    } catch (error) {
+      console.error('Failed to load sample resellers:', error)
     } finally {
       setLoading(false)
     }
@@ -329,11 +343,13 @@ function ResellersPage() {
 
   const handleConfirmSuspension = async (reason) => {
     if (!selectedResellerForSuspension) return
-    
+
+    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
+    /*
     try {
       setIsSuspending(true)
       const response = await resellerService.suspendReseller(selectedResellerForSuspension.id, reason)
-      
+
       if (response.success) {
         toast.success('Reseller suspended successfully')
         setShowSuspensionModal(false)
@@ -351,6 +367,19 @@ function ResellersPage() {
     } finally {
       setIsSuspending(false)
     }
+    */
+
+    // Demo mode - simulate suspension
+    try {
+      setIsSuspending(true)
+      toast.success('Reseller suspended successfully (Demo)')
+      setShowSuspensionModal(false)
+      setSelectedResellerForSuspension(null)
+      setShowDetailsModal(false)
+      setSelectedReseller(null)
+    } finally {
+      setIsSuspending(false)
+    }
   }
 
   const handleCancelSuspension = () => {
@@ -359,9 +388,11 @@ function ResellersPage() {
   }
 
   const handleActivateReseller = async (reseller) => {
+    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
+    /*
     try {
       const response = await resellerService.activateReseller(reseller.id)
-      
+
       if (response.success) {
         toast.success('Reseller activated successfully')
         // Close details modal and refresh list
@@ -375,6 +406,12 @@ function ResellersPage() {
       console.error('❌ Failed to activate reseller:', error)
       toast.error('Failed to activate reseller')
     }
+    */
+
+    // Demo mode - simulate activation
+    toast.success('Reseller activated successfully (Demo)')
+    setShowDetailsModal(false)
+    setSelectedReseller(null)
   }
 
   const handleDeleteReseller = (reseller) => {
@@ -384,14 +421,16 @@ function ResellersPage() {
 
   const handleConfirmDelete = async () => {
     if (!selectedResellerForDelete) return
-    
+
+    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
+    /*
     try {
       setIsDeleting(true)
       console.log('🗑️ Deleting reseller:', selectedResellerForDelete.id)
-      
+
       const response = await resellerService.deleteReseller(selectedResellerForDelete.id)
       console.log('📥 Delete response:', response)
-      
+
       if (response.success) {
         toast.success('Reseller deleted successfully')
         setShowDeleteModal(false)
@@ -408,6 +447,17 @@ function ResellersPage() {
         status: error.status
       })
       toast.error('Failed to delete reseller')
+    } finally {
+      setIsDeleting(false)
+    }
+    */
+
+    // Demo mode - simulate deletion
+    try {
+      setIsDeleting(true)
+      toast.success('Reseller deleted successfully (Demo)')
+      setShowDeleteModal(false)
+      setSelectedResellerForDelete(null)
     } finally {
       setIsDeleting(false)
     }

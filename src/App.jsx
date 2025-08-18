@@ -1,26 +1,21 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider } from './context/ThemeContext'
-import { AuthProvider, useAuth } from './context/AuthContext'
+import { AuthProvider } from './context/AuthContext'
 import { Toaster } from 'react-hot-toast'
 
-// Import the actual page components
+// Import the real pages
 import LoginPage from './pages/auth/LoginPage'
-import SignupPage from './pages/auth/SignupPage'
-import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
-import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import ResellersPage from './pages/resellers/ResellersPage'
-import UsersPage from './pages/users/UsersPage'
+import UsersPageSimple from './pages/users/UsersPageSimple'
+import OrdersPage from './pages/orders/OrdersPage'
+import TransactionsPage from './pages/payments/TransactionsPage'
+import ReportsPage from './pages/reports/ReportsPage'
+import SettingsPage from './pages/settings/SettingsPageClean'
 import DockSidebar from './components/common/DockSidebar/DockSidebar'
 
-// Layout component for authenticated pages
+// Layout component for pages with navigation
 function DashboardLayout({ children }) {
-  const { logout } = useAuth()
-
-  const handleLogout = () => {
-    logout()
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -28,7 +23,7 @@ function DashboardLayout({ children }) {
         <div className="flex items-center justify-between px-6 py-4">
           <h1 className="text-xl font-semibold text-gray-900">SIM Admin Panel</h1>
           <button
-            onClick={handleLogout}
+            onClick={() => window.location.href = '/'}
             className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors"
           >
             Logout
@@ -47,101 +42,103 @@ function DashboardLayout({ children }) {
   )
 }
 
-// Protected Route Component
-function ProtectedRoute({ children }) {
-  const { isAuthenticated, isLoading } = useAuth()
+// Simple test components for remaining pages
+const TestLogin = () => (
+  <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+    <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+      <h1 className="text-2xl font-bold text-gray-900 mb-4">Login Page</h1>
+      <p className="text-gray-600 mb-4">This is the login page test.</p>
+      <button
+        onClick={() => window.location.href = '/dashboard'}
+        className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+      >
+        Go to Dashboard (Test)
+      </button>
+    </div>
+  </div>
+)
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+const TestDashboard = () => (
+  <div className="min-h-screen bg-gray-100 p-6">
+    <div className="max-w-6xl mx-auto">
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">Dashboard</h1>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold">Total Users</h3>
+          <p className="text-3xl font-bold text-blue-600">1,234</p>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold">Active Orders</h3>
+          <p className="text-3xl font-bold text-green-600">567</p>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold">Revenue</h3>
+          <p className="text-3xl font-bold text-purple-600">$89,012</p>
         </div>
       </div>
-    )
-  }
+      <div className="mt-6">
+        <nav className="flex space-x-4">
+          <a href="/resellers" className="text-blue-600 hover:text-blue-800">Resellers</a>
+          <a href="/users" className="text-blue-600 hover:text-blue-800">Users</a>
+          <a href="/orders" className="text-blue-600 hover:text-blue-800">Orders</a>
+          <a href="/" className="text-red-600 hover:text-red-800">Back to Login</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+)
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
-  }
-
-  return <DashboardLayout>{children}</DashboardLayout>
-}
-
-// Dashboard Page Wrapper
-function DashboardPageWrapper() {
-  return (
-    <ProtectedRoute>
-      <DashboardPage />
-    </ProtectedRoute>
-  )
-}
-
-// Resellers Page Wrapper
-function ResellersPageWrapper() {
-  return (
-    <ProtectedRoute>
-      <ResellersPage />
-    </ProtectedRoute>
-  )
-}
-
-// Users Page Wrapper
-function UsersPageWrapper() {
-  return (
-    <ProtectedRoute>
-      <UsersPage />
-    </ProtectedRoute>
-  )
-}
+const TestPage = ({ title }) => (
+  <div className="min-h-screen bg-gray-100 p-6">
+    <div className="max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">{title}</h1>
+      <div className="bg-white p-6 rounded-lg shadow">
+        <p className="text-gray-600 mb-4">This is the {title.toLowerCase()} page.</p>
+        <nav className="flex space-x-4">
+          <a href="/dashboard" className="text-blue-600 hover:text-blue-800">Dashboard</a>
+          <a href="/resellers" className="text-blue-600 hover:text-blue-800">Resellers</a>
+          <a href="/users" className="text-blue-600 hover:text-blue-800">Users</a>
+          <a href="/orders" className="text-blue-600 hover:text-blue-800">Orders</a>
+          <a href="/" className="text-red-600 hover:text-red-800">Back to Login</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+)
 
 function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
         <Router>
-          <div className="min-h-screen">
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/signup" element={<SignupPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
-              <Route path="/dashboard" element={<DashboardPageWrapper />} />
-              <Route path="/resellers" element={<ResellersPageWrapper />} />
-              <Route path="/users" element={<UsersPageWrapper />} />
-              <Route path="/" element={<Navigate to="/login" replace />} />
-              <Route path="*" element={<Navigate to="/login" replace />} />
-            </Routes>
-            <Toaster 
-              position="top-right" 
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: '#363636',
-                  color: '#fff',
-                },
-                success: {
-                  duration: 4000,
-                  iconTheme: {
-                    primary: '#10b981',
-                    secondary: '#fff',
-                  },
-                },
-                error: {
-                  duration: 4000,
-                  iconTheme: {
-                    primary: '#ef4444',
-                    secondary: '#fff',
-                  },
-                },
-              }}
-            />
-          </div>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/dashboard" element={<DashboardLayout><DashboardPage /></DashboardLayout>} />
+            <Route path="/resellers" element={<DashboardLayout><ResellersPage /></DashboardLayout>} />
+            <Route path="/users" element={<DashboardLayout><UsersPageSimple /></DashboardLayout>} />
+            <Route path="/orders" element={<DashboardLayout><OrdersPage /></DashboardLayout>} />
+            <Route path="/transactions" element={<DashboardLayout><TransactionsPage /></DashboardLayout>} />
+            <Route path="/reports" element={<DashboardLayout><ReportsPage /></DashboardLayout>} />
+            <Route path="/settings" element={<DashboardLayout><SettingsPage /></DashboardLayout>} />
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#363636',
+                color: '#fff',
+              },
+            }}
+          />
         </Router>
       </AuthProvider>
     </ThemeProvider>
   )
 }
+
+
 
 export default App
