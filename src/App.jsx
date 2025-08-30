@@ -9,6 +9,7 @@ import { USER_ROLES } from './utils/auth'
 
 // Import the real pages
 import LoginPage from './pages/auth/LoginPage'
+import SignupPage from './pages/auth/SignupPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import ResellersPage from './pages/resellers/ResellersPage'
 import UsersPageSimple from './pages/users/UsersPageSimple'
@@ -169,6 +170,7 @@ function App() {
         <Router>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
             
             {/* Admin Dashboard Routes - Protected for Admin users only */}
             <Route path="/dashboard" element={

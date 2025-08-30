@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTheme } from '../../context/ThemeContext'
-import { Phone, ChevronDown, Check } from 'lucide-react'
+import { Phone, ChevronDown, Check, Search, X } from 'lucide-react'
 import { countries } from '../../data/countries'
 
 // Helper function to get example phone numbers
@@ -48,9 +48,18 @@ const PhoneInput = ({
 }) => {
   const { resolvedTheme } = useTheme()
   const [isOpen, setIsOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
   const dropdownRef = useRef(null)
+  const searchInputRef = useRef(null)
 
   const selectedCountry = countries.find(country => country.code === countryCode) || countries[0]
+
+  // Filter countries based on search term
+  const filteredCountries = countries.filter(country => 
+    country.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    country.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    country.phoneCode.includes(searchTerm)
+  )
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -77,10 +86,37 @@ const PhoneInput = ({
   const handleCountrySelect = (country) => {
     onCountryChange(country.code)
     setIsOpen(false)
+    setSearchTerm('')
   }
 
   const handleToggle = () => {
     setIsOpen(!isOpen)
+    if (!isOpen) {
+      setSearchTerm('')
+      // Focus search input when opening
+      setTimeout(() => {
+        if (searchInputRef.current) {
+          searchInputRef.current.focus()
+        }
+      }, 100)
+    }
+  }
+
+  const clearSearch = () => {
+    setSearchTerm('')
+    if (searchInputRef.current) {
+      searchInputRef.current.focus()
+    }
+  }
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      setIsOpen(false)
+      setSearchTerm('')
+    } else if (e.key === 'Enter' && filteredCountries.length === 1) {
+      handleCountrySelect(filteredCountries[0])
+    }
   }
   const handlePhoneNumberChange = (e) => {
     // Remove any non-numeric characters except spaces, dashes, and parentheses
@@ -121,11 +157,11 @@ const PhoneInput = ({
             />
           </button>
 
-          {/* Country Code Dropdown - Simple List */}
+          {/* Country Code Dropdown - With Search */}
           {isOpen && (
             <div className={`
               absolute top-full left-0 mt-1 bg-card border border-border
-              rounded-lg shadow-xl z-[9999] w-80 max-h-80 overflow-hidden
+              rounded-lg shadow-xl z-[9999] w-80 max-h-96 overflow-hidden
               ${resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-white'}
             `} style={{ position: 'absolute', zIndex: 9999 }}>
               {/* Header */}
@@ -134,9 +170,40 @@ const PhoneInput = ({
                 <p className="text-xs text-muted-foreground">Choose your country for phone number</p>
               </div>
 
+              {/* Search Input */}
+              <div className="px-4 py-3 border-b border-border">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Search country or code..."
+                    className="w-full pl-10 pr-10 py-2 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                  {searchTerm && (
+                    <button
+                      type="button"
+                      onClick={clearSearch}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
               {/* Countries List - Scrollable */}
               <div className="max-h-60 overflow-y-auto">
-                {countries.map((country) => (
+                {filteredCountries.length === 0 ? (
+                  <div className="px-4 py-8 text-center">
+                    <p className="text-muted-foreground">No countries found</p>
+                    <p className="text-xs text-muted-foreground mt-1">Try a different search term</p>
+                  </div>
+                ) : (
+                  filteredCountries.map((country) => (
                   <button
                     key={country.code}
                     type="button"
@@ -160,7 +227,8 @@ const PhoneInput = ({
                       <Check className="h-4 w-4 text-primary ml-2" />
                     )}
                   </button>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           )}

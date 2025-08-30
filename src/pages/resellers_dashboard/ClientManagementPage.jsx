@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTheme } from '../../context/ThemeContext'
 import { useNavigate } from 'react-router-dom'
+import ConfirmationModal from '../../components/common/ConfirmationModal'
 import {
   Users,
   UserPlus,
@@ -244,6 +245,8 @@ function ClientManagementPage() {
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [sortBy, setSortBy] = useState('joinDate')
   const [sortOrder, setSortOrder] = useState('desc')
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [selectedClientForDelete, setSelectedClientForDelete] = useState(null)
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 20,
@@ -342,24 +345,32 @@ function ClientManagementPage() {
     navigate('/reseller-dashboard/assign-esim', { state: { selectedClient: client } })
   }
 
-  const handleDeleteClient = async (client) => {
-    if (window.confirm(`Are you sure you want to delete ${client.fullName}?`)) {
-      try {
-        const response = await clientService.deleteClient(client.id)
+  const handleDeleteClient = (client) => {
+    setSelectedClientForDelete(client)
+    setShowDeleteModal(true)
+  }
 
-        if (response.success) {
-          // Remove from local state
-          setClients(prev => prev.filter(c => c.id !== client.id))
-          toast.success('Client deleted successfully')
-          console.log('✅ Client deleted:', client.fullName)
-        } else {
-          toast.error(response.error || 'Failed to delete client')
-          console.error('❌ Failed to delete client:', response.error)
-        }
-      } catch (error) {
-        console.error('Failed to delete client:', error)
-        toast.error('Failed to delete client')
+  const confirmDeleteClient = async () => {
+    if (!selectedClientForDelete) return
+
+    try {
+      const response = await clientService.deleteClient(selectedClientForDelete.id)
+
+      if (response.success) {
+        // Remove from local state
+        setClients(prev => prev.filter(c => c.id !== selectedClientForDelete.id))
+        toast.success('Client deleted successfully')
+        console.log('✅ Client deleted:', selectedClientForDelete.fullName)
+      } else {
+        toast.error(response.error || 'Failed to delete client')
+        console.error('❌ Failed to delete client:', response.error)
       }
+    } catch (error) {
+      console.error('Failed to delete client:', error)
+      toast.error('Failed to delete client')
+    } finally {
+      setShowDeleteModal(false)
+      setSelectedClientForDelete(null)
     }
   }
 
@@ -685,6 +696,21 @@ function ClientManagementPage() {
         client={selectedClient}
         onEdit={handleEditClient}
         onAssignEsim={handleAssignEsim}
+      />
+
+      {/* Delete Client Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false)
+          setSelectedClientForDelete(null)
+        }}
+        onConfirm={confirmDeleteClient}
+        title="Delete Client"
+        message={`Are you sure you want to delete ${selectedClientForDelete?.fullName}? This action cannot be undone and will permanently remove all client data including their eSIM history.`}
+        type="danger"
+        confirmText="Delete Client"
+        cancelText="Cancel"
       />
     </div>
   )

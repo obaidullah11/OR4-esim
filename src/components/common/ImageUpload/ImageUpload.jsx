@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { Camera, Image, X, Upload } from 'lucide-react'
 import { cn } from '../../../lib/utils'
+import toast from 'react-hot-toast'
 
 function ImageUpload({ 
   onImageSelect, 
@@ -21,13 +22,13 @@ function ImageUpload({
 
     // Validate file type
     if (!acceptedTypes.includes(file.type)) {
-      alert('Please select a valid image file (JPEG, PNG, or GIF)')
+      toast.error('Please select a valid image file (JPEG, PNG, or GIF)')
       return
     }
 
     // Validate file size
     if (file.size > maxSize) {
-      alert(`File size must be less than ${Math.round(maxSize / (1024 * 1024))}MB`)
+      toast.error(`File size must be less than ${Math.round(maxSize / (1024 * 1024))}MB`)
       return
     }
 

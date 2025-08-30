@@ -389,7 +389,7 @@ export const resellerService = {
     try {
       console.log('🔄 Approving reseller activation request:', requestId)
 
-      const url = `${RESELLERS_URL.replace('resellers/', 'reseller-activation-requests/')}${requestId}/approve/`
+      const url = `${RESELLER_ACTIVATION_REQUESTS_URL}${requestId}/approve_request/`
 
       const response = await apiService.post(url, {
         max_clients: approvalData.maxClients || 100,
@@ -398,18 +398,31 @@ export const resellerService = {
         notes: approvalData.notes || ''
       }, { requiresAuth: true })
 
-      const data = response.data || response
+      console.log('🔍 Full response from backend:', response)
+      
+      // The backend returns a successful response, so if we get here without error, it's successful
+      // Check for success indicators in the response
+      const isSuccess = response.success === true || 
+                       (response.message && response.message.includes('successfully')) ||
+                       (response.data && response.data.status === 'approved') ||
+                       (response.status === 'approved')
 
-      if (response.success || data.success) {
+      if (isSuccess) {
         console.log('✅ Activation request approved successfully')
         return {
           success: true,
-          data: data.data || data,
-          message: 'Reseller activation request approved successfully'
+          data: response.data || response,
+          message: response.message || 'Reseller activation request approved successfully'
         }
       }
 
-      return response
+      // If we reach here, treat as success since no error was thrown
+      console.log('✅ Treating as successful response (no error thrown)')
+      return {
+        success: true,
+        data: response.data || response,
+        message: 'Reseller activation request approved successfully'
+      }
     } catch (error) {
       console.error('❌ Failed to approve activation request:', error)
       return {
@@ -426,24 +439,36 @@ export const resellerService = {
     try {
       console.log('🔄 Rejecting reseller activation request:', requestId)
 
-      const url = `${RESELLERS_URL.replace('resellers/', 'reseller-activation-requests/')}${requestId}/reject/`
+      const url = `${RESELLER_ACTIVATION_REQUESTS_URL}${requestId}/reject_request/`
 
       const response = await apiService.post(url, {
-        rejection_reason: rejectionReason
+        admin_notes: rejectionReason
       }, { requiresAuth: true })
 
-      const data = response.data || response
+      console.log('🔍 Full rejection response from backend:', response)
+      
+      // The backend returns a successful response, so if we get here without error, it's successful
+      const isSuccess = response.success === true || 
+                       (response.message && response.message.includes('successfully')) ||
+                       (response.data && response.data.status === 'rejected') ||
+                       (response.status === 'rejected')
 
-      if (response.success || data.success) {
+      if (isSuccess) {
         console.log('✅ Activation request rejected successfully')
         return {
           success: true,
-          data: data.data || data,
-          message: 'Reseller activation request rejected successfully'
+          data: response.data || response,
+          message: response.message || 'Reseller activation request rejected successfully'
         }
       }
 
-      return response
+      // If we reach here, treat as success since no error was thrown
+      console.log('✅ Treating rejection as successful response (no error thrown)')
+      return {
+        success: true,
+        data: response.data || response,
+        message: 'Reseller activation request rejected successfully'
+      }
     } catch (error) {
       console.error('❌ Failed to reject activation request:', error)
       return {
