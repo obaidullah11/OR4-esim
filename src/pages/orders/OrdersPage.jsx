@@ -706,7 +706,7 @@ function OrdersPage() {
                   {columns.map((column) => (
                     <td key={column.key} className="p-4">
                       {column.render(order)}
-                    </td>
+                  </td>
                   ))}
                 </tr>
               ))
@@ -727,10 +727,10 @@ function OrdersPage() {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-foreground">Order Details</h2>
-                  <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-muted-foreground">
                     {selectedOrder.order_number || `ORD-${selectedOrder.id}`}
-                  </p>
-                </div>
+                      </p>
+                    </div>
               </div>
               <button
                 onClick={() => setShowDetailsModal(false)}
@@ -753,15 +753,15 @@ function OrdersPage() {
                     <div>
                       <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Order Number</label>
                       <p className="text-sm font-medium text-foreground">{selectedOrder.order_number || `ORD-${selectedOrder.id}`}</p>
-                    </div>
+                          </div>
                     <div>
                       <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Status</label>
                       <div className="mt-1">{getStatusBadge(selectedOrder.status)}</div>
-                    </div>
+                        </div>
                     <div>
                       <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Type</label>
                       <div className="mt-1">{getOrderTypeBadge(selectedOrder.order_type)}</div>
-                    </div>
+                      </div>
                     <div>
                       <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Source</label>
                       <div className="mt-1">{getOrderSourceBadge(selectedOrder.order_source)}</div>
@@ -775,9 +775,9 @@ function OrdersPage() {
                         <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Delivered</label>
                         <p className="text-sm text-foreground">{formatDateTime(selectedOrder.delivered_at)}</p>
                       </div>
-                    )}
-                  </div>
-                </div>
+                        )}
+                      </div>
+                        </div>
 
                 {/* Customer Information */}
                 <div className="bg-muted/20 border border-border rounded-lg p-4">
@@ -789,15 +789,15 @@ function OrdersPage() {
                     <div>
                       <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Name</label>
                       <p className="text-sm font-medium text-foreground">{selectedOrder.client?.full_name || 'Unknown Customer'}</p>
-                    </div>
+                      </div>
                     <div>
                       <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Email</label>
                       <p className="text-sm text-foreground">{selectedOrder.client?.email || 'No email'}</p>
-                    </div>
+                      </div>
                     <div>
                       <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Phone</label>
                       <p className="text-sm text-foreground">{selectedOrder.client?.phone_number || 'No phone'}</p>
-                    </div>
+                      </div>
                     {selectedOrder.reseller && (
                       <div>
                         <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Reseller</label>

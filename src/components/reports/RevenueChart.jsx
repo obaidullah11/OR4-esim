@@ -97,7 +97,7 @@ const RevenueChart = ({ data, theme }) => {
               {/* Month Label */}
               <div className="mt-2 text-center">
                 <p className="text-xs text-muted-foreground">
-                  {item.month.split(' ')[0]}
+                  {item.month && typeof item.month === 'string' ? item.month.split(' ')[0] : item.month || 'N/A'}
                 </p>
               </div>
             </div>

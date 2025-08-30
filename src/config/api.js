@@ -73,6 +73,25 @@ export const API_ENDPOINTS = {
   REPORTS: {
     DASHBOARD: 'api/v1/reports/dashboard/',
     DASHBOARD_TEST: 'api/v1/reports/dashboard/test/',
+    ANALYTICS: 'api/v1/reports/reports/analytics_report/',
+    EXPORT: 'api/v1/reports/reports/export/',
+
+    // Updated export endpoints to match working backend
+    EXPORT_OVERVIEW_PDF: 'api/v1/reports/reports/export_overview_pdf/',
+    EXPORT_REVENUE_PDF: 'api/v1/reports/reports/export_revenue_pdf/',
+    EXPORT_USERS_PDF: 'api/v1/reports/reports/export_users_pdf/',
+    EXPORT_PACKAGES_PDF: 'api/v1/reports/reports/export_packages_pdf/',
+    EXPORT_NETWORKS_PDF: 'api/v1/reports/reports/export_networks_pdf/',
+    EXPORT_TRANSACTIONS_PDF: 'api/v1/reports/reports/export_transactions_pdf/',
+    EXPORT_FINANCIAL: 'api/v1/reports/reports/export_financial/',
+    
+    // Data endpoints
+    FINANCIAL_REPORT: 'api/v1/reports/reports/financial_report/',
+    USER_REPORT: 'api/v1/reports/reports/user_report/',
+    REVENUE_REPORT: 'api/v1/reports/reports/revenue_report/',
+    USER_GROWTH_REPORT: 'api/v1/reports/reports/user_growth_report/',
+    SALES_REPORT: 'api/v1/reports/reports/sales_report/',
+    SYSTEM_PERFORMANCE: 'api/v1/reports/performance-metrics/system_performance/',
     SALES: 'api/v1/reports/sales/',
     USERS: 'api/v1/reports/users/',
     RESELLERS: 'api/v1/reports/resellers/',

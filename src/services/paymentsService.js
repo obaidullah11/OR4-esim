@@ -464,11 +464,11 @@ export const paymentsService = {
     }).format(amount)
   },
 
-  // Generate invoice for a payment
+    // Generate invoice for a payment
   async generateInvoice(paymentId) {
     try {
       const url = replaceUrlParams(buildApiUrl(API_ENDPOINTS.PAYMENTS.GENERATE_INVOICE), { id: paymentId })
-      
+
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -487,6 +487,160 @@ export const paymentsService = {
       console.error('❌ Failed to generate invoice:', error)
       throw error
     }
+  },
+
+  // Export payments to PDF
+  async exportPayments(params = {}) {
+    try {
+      const queryParams = new URLSearchParams()
+      
+      if (params.status) queryParams.append('status', params.status)
+      if (params.payment_type) queryParams.append('payment_type', params.payment_type)
+      if (params.date_from) queryParams.append('date_from', params.date_from)
+      if (params.date_to) queryParams.append('date_to', params.date_to)
+      
+      const url = queryParams.toString() ? 
+        `${buildApiUrl(API_ENDPOINTS.PAYMENTS.EXPORT)}?${queryParams.toString()}` : 
+        buildApiUrl(API_ENDPOINTS.PAYMENTS.EXPORT)
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to export payments')
+      }
+
+      // Handle PDF download
+      const blob = await response.blob()
+      const downloadUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      link.download = `Transactions_Report_${new Date().toISOString().split('T')[0]}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(downloadUrl)
+
+      return { success: true }
+    } catch (error) {
+      console.error('❌ Failed to export payments:', error)
+      throw error
+    }
+  },
+
+  // Delete payment record
+  async deletePayment(paymentId) {
+    try {
+      const url = replaceUrlParams(buildApiUrl(API_ENDPOINTS.PAYMENTS.DELETE), { id: paymentId })
+      const response = await apiService.delete(url, { requiresAuth: true })
+      
+      return {
+        success: true,
+        data: response.data || response
+      }
+    } catch (error) {
+      console.error('❌ Failed to delete payment:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to delete payment'
+      }
+    }
+  },
+
+  // Format payments list for frontend display
+  formatPaymentsList(payments) {
+    return payments.map(payment => ({
+      id: payment.id,
+      transactionId: payment.transaction_id || `PAY-${payment.id}`,
+      orderId: payment.order?.order_number || null,
+      type: 'payment',
+      source: payment.order?.order_source || 'direct',
+      customer: {
+        name: this.getCustomerName(payment),
+        email: this.getCustomerEmail(payment),
+        phone: this.getCustomerPhone(payment),
+        type: payment.order?.reseller ? 'Reseller' : 'App User',
+        reseller: payment.order?.reseller ? this.getResellerName(payment) : null
+      },
+      amount: parseFloat(payment.amount || 0),
+      currency: payment.currency || 'USD',
+      paymentMethod: this.formatPaymentMethod(payment.payment_method),
+      paymentGateway: payment.payment_type === 'stripe' ? 'Stripe' : 'Manual',
+      status: payment.status,
+      description: this.getPaymentDescription(payment),
+      createdAt: payment.created_at,
+      processedAt: payment.completed_at,
+      gatewayResponse: payment.gateway_response || {},
+      fees: parseFloat(payment.reseller_markup_amount || 0),
+      netAmount: parseFloat(payment.amount || 0) - parseFloat(payment.reseller_markup_amount || 0),
+      invoiceNumber: payment.invoice_number,
+      requiresApproval: payment.status === 'manual_approval'
+    }))
+  },
+
+  // Helper methods for formatting
+  getCustomerName(payment) {
+    if (payment.order?.client?.full_name) {
+      return payment.order.client.full_name
+    }
+    if (payment.order?.client?.user) {
+      const user = payment.order.client.user
+      return `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email || 'Unknown'
+    }
+    return payment.customer_name || 'Unknown Customer'
+  },
+
+  getCustomerEmail(payment) {
+    if (payment.order?.client?.email) {
+      return payment.order.client.email
+    }
+    if (payment.order?.client?.user?.email) {
+      return payment.order.client.user.email
+    }
+    return 'No email'
+  },
+
+  getCustomerPhone(payment) {
+    if (payment.order?.client?.phone_number) {
+      return payment.order.client.phone_number
+    }
+    if (payment.order?.client?.user?.phone_number) {
+      return payment.order.client.user.phone_number
+    }
+    return 'No phone'
+  },
+
+  getResellerName(payment) {
+    if (payment.order?.reseller?.user) {
+      const user = payment.order.reseller.user
+      return `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email || 'Unknown Reseller'
+    }
+    return payment.reseller_name || 'Unknown Reseller'
+  },
+
+  formatPaymentMethod(method) {
+    const methodMap = {
+      'stripe': 'Credit Card',
+      'credit_card': 'Credit Card',
+      'debit_card': 'Debit Card',
+      'bank_transfer': 'Bank Transfer',
+      'digital_wallet': 'Digital Wallet',
+      'cash': 'Cash',
+      'crypto': 'Cryptocurrency'
+    }
+    return methodMap[method] || method?.replace('_', ' ')?.replace(/\b\w/g, l => l.toUpperCase()) || 'Unknown'
+  },
+
+  getPaymentDescription(payment) {
+    if (payment.order?.product_name) {
+      return `${payment.order.product_name} Payment`
+    }
+    return payment.bundle_name || 'eSIM Service Payment'
   }
 }
 

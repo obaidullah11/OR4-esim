@@ -26,9 +26,14 @@ const TablePagination = ({
   const getPageNumbers = () => {
     const pages = []
     const maxVisiblePages = 5
+    // Calculate actual pages that have data - ignore backend totalPages
+    const actualTotalPages = Math.ceil(total / limit)
+    const maxPages = actualTotalPages // Only use calculated pages
     
-    if (totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= totalPages; i++) {
+    if (maxPages === 0) return [] // No data, no pages
+    
+    if (maxPages <= maxVisiblePages) {
+      for (let i = 1; i <= maxPages; i++) {
         pages.push(i)
       }
     } else {
@@ -36,8 +41,8 @@ const TablePagination = ({
         for (let i = 1; i <= maxVisiblePages; i++) {
           pages.push(i)
         }
-      } else if (page >= totalPages - 2) {
-        for (let i = totalPages - maxVisiblePages + 1; i <= totalPages; i++) {
+      } else if (page >= maxPages - 2) {
+        for (let i = maxPages - maxVisiblePages + 1; i <= maxPages; i++) {
           pages.push(i)
         }
       } else {
@@ -108,7 +113,7 @@ const TablePagination = ({
           
           <button
             onClick={() => handlePageChange(page + 1)}
-            disabled={page >= totalPages || loading}
+            disabled={page >= Math.ceil(total / limit) || loading}
             className="px-3 py-2 text-sm font-medium text-muted-foreground bg-background border border-border rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Next
@@ -117,7 +122,7 @@ const TablePagination = ({
         
         {showPageInfo && (
           <div className="text-sm text-muted-foreground">
-            Page {page} of {totalPages}
+            Page {page} of {Math.ceil(total / limit)}
           </div>
         )}
       </div>

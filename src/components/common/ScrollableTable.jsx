@@ -61,38 +61,53 @@ const ScrollableTable = ({
             </button>
             
             <div className="flex items-center space-x-1">
-              {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                let pageNum
-                if (pagination.totalPages <= 5) {
-                  pageNum = i + 1
-                } else if (pagination.page <= 3) {
-                  pageNum = i + 1
-                } else if (pagination.page >= pagination.totalPages - 2) {
-                  pageNum = pagination.totalPages - 4 + i
-                } else {
-                  pageNum = pagination.page - 2 + i
+              {(() => {
+                // Calculate actual pages that have data
+                const actualTotalPages = Math.ceil(pagination.total / pagination.limit)
+                const maxPages = actualTotalPages // Only use actual pages, ignore backend totalPages
+                
+                if (maxPages === 0) return null // No data, no pagination
+                
+                const maxVisiblePages = 5
+                let startPage = 1
+                let endPage = maxPages
+                
+                if (maxPages > maxVisiblePages) {
+                  if (pagination.page <= 3) {
+                    endPage = maxVisiblePages
+                  } else if (pagination.page >= maxPages - 2) {
+                    startPage = maxPages - maxVisiblePages + 1
+                  } else {
+                    startPage = pagination.page - 2
+                    endPage = pagination.page + 2
+                  }
                 }
                 
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => onPageChange(pageNum)}
-                    disabled={loading}
-                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 ${
-                      pagination.page === pageNum
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground bg-background border border-border hover:bg-muted'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                )
-              })}
+                const pages = []
+                for (let i = startPage; i <= endPage; i++) {
+                  pages.push(
+                    <button
+                      key={i}
+                      onClick={() => onPageChange(i)}
+                      disabled={loading}
+                      className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 ${
+                        pagination.page === i
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-muted-foreground bg-background border border-border hover:bg-muted'
+                      }`}
+                    >
+                      {i}
+                    </button>
+                  )
+                }
+                
+                return pages
+              })()}
             </div>
             
             <button
               onClick={() => onPageChange(pagination.page + 1)}
-              disabled={pagination.page >= pagination.totalPages || loading}
+              disabled={pagination.page >= Math.ceil(pagination.total / pagination.limit) || loading}
               className="px-3 py-2 text-sm font-medium text-muted-foreground bg-background border border-border rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Next
@@ -101,7 +116,7 @@ const ScrollableTable = ({
           
           {showPageInfo && (
             <div className="text-sm text-muted-foreground">
-              Page {pagination.page} of {pagination.totalPages}
+              Page {pagination.page} of {Math.ceil(pagination.total / pagination.limit)}
             </div>
           )}
         </div>
