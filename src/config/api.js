@@ -35,6 +35,8 @@ export const API_ENDPOINTS = {
     CREATE: 'api/v1/accounts/users/',
     UPDATE: 'api/v1/accounts/users/{id}/',
     DELETE: 'api/v1/accounts/users/{id}/',
+    PROFILE: 'api/v1/accounts/user-profiles/{id}/',
+    PROFILE_UPDATE: 'api/v1/accounts/user-profiles/{id}/',
   },
   RESELLERS: {
     LIST: 'api/v1/resellers/resellers/',
@@ -51,17 +53,22 @@ export const API_ENDPOINTS = {
     ACTIVATION_REQUESTS: 'api/v1/resellers/reseller-activation-requests/',
   },
   ORDERS: {
-    LIST: 'api/v1/orders/',
-    DETAIL: 'api/v1/orders/{id}/',
-    CREATE: 'api/v1/orders/',
-    UPDATE: 'api/v1/orders/{id}/',
-    DELETE: 'api/v1/orders/{id}/',
+    LIST: 'api/v1/orders/orders/',
+    DETAIL: 'api/v1/orders/orders/{id}/',
+    CREATE: 'api/v1/orders/orders/',
+    UPDATE: 'api/v1/orders/orders/{id}/',
+    DELETE: 'api/v1/orders/orders/{id}/',
+    EXPORT: 'api/v1/orders/orders/export_pdf/',
+    NOTIFICATIONS: 'api/v1/orders/order-notifications/',
   },
   PAYMENTS: {
-    LIST: 'api/v1/payments/',
-    DETAIL: 'api/v1/payments/{id}/',
-    CREATE: 'api/v1/payments/',
-    UPDATE: 'api/v1/payments/{id}/',
+    LIST: 'api/v1/payments/payments/',
+    DETAIL: 'api/v1/payments/payments/{id}/',
+    CREATE: 'api/v1/payments/payments/',
+    UPDATE: 'api/v1/payments/payments/{id}/',
+    DELETE: 'api/v1/payments/payments/{id}/',
+    GENERATE_INVOICE: 'api/v1/payments/payments/{id}/generate_invoice/',
+    EXPORT: 'api/v1/payments/payments/export_pdf/',
   },
   REPORTS: {
     DASHBOARD: 'api/v1/reports/dashboard/',
@@ -118,6 +125,11 @@ export const API_ENDPOINTS = {
     CLIENT_VALIDATE: 'api/v1/traveroam/client/validate/',
     ANALYTICS: 'api/v1/traveroam/analytics/',
     BULK_OPERATIONS: 'api/v1/traveroam/bulk/',
+  },
+  UTILS: {
+    DETECT_COUNTRY: 'api/v1/utils/detect-country/',
+    SEND_EMAIL: 'api/v1/esim/reseller/esims/send_email/',
+    ASSIGN_ESIM_TO_CLIENT: 'api/v1/esim/reseller/clients/{id}/assign_esim/',
   }
 }
 

@@ -108,7 +108,7 @@ function ReportsPage() {
   const [reportType, setReportType] = useState('overview')
   const [showExportModal, setShowExportModal] = useState(false)
   const [selectedMetric, setSelectedMetric] = useState('revenue')
-  const [analyticsData, setAnalyticsData] = useState(sampleAnalytics)
+  const [analyticsData, setAnalyticsData] = useState({})
   const [loading, setLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState(null)
 
@@ -171,16 +171,16 @@ function ReportsPage() {
         setAnalyticsData(formattedData)
         setLastUpdated(new Date())
       } else {
-        // Fallback to sample data if API fails
-        console.error('API failed, using sample data:', response.error)
-        toast.error('Failed to load analytics - using sample data')
-        setAnalyticsData(sampleAnalytics)
+        // No fallback to sample data - show error
+        console.error('API failed to load analytics:', response.error)
+        toast.error('Failed to load analytics from server')
+        setAnalyticsData({})
       }
     } catch (error) {
       console.error('Failed to fetch analytics:', error)
-      toast.error('Failed to load analytics - using sample data')
-      // Fallback to sample data
-      setAnalyticsData(sampleAnalytics)
+      toast.error('Failed to load analytics from server')
+      // No fallback to sample data - show error
+      setAnalyticsData({})
     } finally {
       setLoading(false)
     }

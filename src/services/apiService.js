@@ -77,7 +77,7 @@ class ApiService {
     } = options
 
     // Construct full URL - if url doesn't start with http, prepend BASE_URL
-    const fullUrl = url.startsWith('http') ? url : `${BASE_URL}${url}`
+    const fullUrl = url.startsWith('http') ? url : `${BASE_URL}/${url}`
 
     let requestHeaders
     if (requiresAuth) {

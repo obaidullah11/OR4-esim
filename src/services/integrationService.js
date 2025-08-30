@@ -2,7 +2,7 @@ import { clientService } from './clientService'
 import { esimService } from './esimService'
 import { traveRoamService } from './traveRoamService'
 import { apiService } from './apiService'
-import { buildApiUrl } from '../config/api'
+import { buildApiUrl, API_ENDPOINTS } from '../config/api'
 
 /**
  * Integration Service - Unified interface for all backend API integrations
@@ -372,7 +372,7 @@ export const integrationService = {
 
       // Use a generic email endpoint - this would need to be implemented in the backend
       const response = await apiService.post(
-        buildApiUrl('api/v1/esim/reseller/esims/send_email/'),
+        buildApiUrl(API_ENDPOINTS.UTILS.SEND_EMAIL),
         payload,
         { requiresAuth: true }
       )
@@ -399,7 +399,7 @@ export const integrationService = {
   async detectCountryFromPhone(phoneNumber, validateEsim = false) {
     try {
       const response = await apiService.post(
-        buildApiUrl('api/v1/utils/detect-country/'),
+        buildApiUrl(API_ENDPOINTS.UTILS.DETECT_COUNTRY),
         {
           phone_number: phoneNumber,
           validate_esim: validateEsim

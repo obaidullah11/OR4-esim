@@ -230,7 +230,7 @@ function ApiTestPage() {
   // Clear all results
   const clearResults = () => {
     setTestResults({})
-    toast.info('Test results cleared')
+    toast.success('Test results cleared')
   }
 
   // Get test status

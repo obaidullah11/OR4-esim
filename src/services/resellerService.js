@@ -319,12 +319,12 @@ export const resellerService = {
       simLimit: reseller.max_sims || reseller.maxSims || reseller.simLimit,
       creditLimit: reseller.credit_limit || reseller.creditLimit,
       location: reseller.user?.country_code || reseller.countryOfRegistration,
-      // Frontend display fields with defaults
-      revenue: reseller.revenue || reseller.total_revenue || 0,
-      clients: reseller.total_clients || reseller.clients || 0,
-      simUsed: reseller.sim_used || reseller.simUsed || 0,
-      creditUsed: reseller.credit_used || reseller.creditUsed || 0,
-      lastActivity: reseller.last_activity || reseller.lastActivity || 'Just now'
+      // Frontend display fields using actual API values
+      revenue: parseFloat(reseller.current_credit || 0), // Use current_credit as revenue
+      clients: reseller.total_clients || 0,
+      simUsed: reseller.total_orders || 0, // Use total_orders as SIM usage
+      creditUsed: parseFloat(reseller.current_credit || 0),
+      lastActivity: reseller.user?.last_login || reseller.updated_at || 'Never'
     }
   },
 

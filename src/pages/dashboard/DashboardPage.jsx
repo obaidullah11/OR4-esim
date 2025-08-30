@@ -283,7 +283,7 @@ function DashboardPage() {
           <div className="space-y-4">
             {dashboardData?.latestActivities?.length > 0 ? (
               dashboardData.latestActivities.map((activity, index) => (
-                <div key={activity.id || index} className="flex items-center space-x-4 p-3 rounded-lg bg-muted/50">
+                <div key={`activity-${activity.id || index}-${activity.timestamp || Date.now()}`} className="flex items-center space-x-4 p-3 rounded-lg bg-muted/50">
                   <div className={`p-2 rounded-full ${
                     activity.type === 'user' ? 'bg-blue-500/10 text-blue-500' :
                     activity.type === 'order' ? 'bg-green-500/10 text-green-500' :

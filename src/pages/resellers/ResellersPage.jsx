@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useTheme } from '../../context/ThemeContext'
+import ScrollableTable from '../../components/common/ScrollableTable'
+import { ResellersEmptyState } from '../../components/common/EmptyState'
+import { ResellersLoadingState } from '../../components/common/LoadingState'
 import {
   Plus,
   Search,
@@ -24,13 +27,70 @@ import {
 } from 'lucide-react'
 import AddEditResellerModal from '../../components/resellers/AddEditResellerModal'
 import ResellerDetailsModal from '../../components/resellers/ResellerDetailsModal'
-import DeleteConfirmationModal from '../../components/resellers/DeleteConfirmationModal'
 import SuspensionReasonModal from '../../components/resellers/SuspensionReasonModal'
 import ConfirmationModal from '../../components/common/ConfirmationModal'
 import Tooltip from '../../components/common/Tooltip'
 // BACKEND INTEGRATION ACTIVATED
 import { resellerService } from '../../services/resellerService'
 import toast from 'react-hot-toast'
+
+// Date formatting utilities
+const formatDateTime = (dateString) => {
+  if (!dateString || dateString === 'N/A' || dateString === 'Never') {
+    return 'N/A'
+  }
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) {
+      return 'N/A'
+    }
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    }) + ' at ' + date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    })
+  } catch (error) {
+    return 'N/A'
+  }
+}
+
+const formatDate = (dateString) => {
+  if (!dateString || dateString === 'N/A' || dateString === 'Never') {
+    return 'N/A'
+  }
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) {
+      return 'N/A'
+    }
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
+  } catch (error) {
+    return 'N/A'
+  }
+}
+
+// Phone formatting utility
+const formatPhoneNumber = (phoneNumber) => {
+  if (!phoneNumber || phoneNumber === 'N/A') {
+    return 'No phone'
+  }
+  
+  // If phone already has country code, return as is
+  if (phoneNumber.startsWith('+')) {
+    return phoneNumber
+  }
+  
+  // If it's just numbers, assume it needs formatting
+  return phoneNumber
+}
 
 // Sample reseller data
 const sampleResellers = [
@@ -211,12 +271,12 @@ function ResellersPage() {
   const [selectedResellerForSuspension, setSelectedResellerForSuspension] = useState(null)
   const [isSuspending, setIsSuspending] = useState(false)
   const [activeTab, setActiveTab] = useState('resellers')
-  const [resellerRequests, setResellerRequests] = useState(sampleResellerRequests)
+  const [resellerRequests, setResellerRequests] = useState([])
   const [showRejectModal, setShowRejectModal] = useState(false)
   const [selectedRequestForRejection, setSelectedRequestForRejection] = useState(null)
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 20,
+    limit: 10,
     total: 0,
     totalPages: 0
   })
@@ -239,14 +299,15 @@ function ResellersPage() {
         setResellers(formattedResellers)
         setPagination(response.data.pagination)
       } else {
-        // Fallback to sample data if API fails
-        setResellers(sampleResellers)
+        // No fallback to sample data - show error
+        console.error('API failed to load resellers:', response.error)
+        toast.error('Failed to load resellers from server')
+        setResellers([])
       }
     } catch (error) {
       console.error('Failed to fetch resellers:', error)
-      toast.error('Failed to load resellers - using sample data')
-      // Fallback to sample data
-      setResellers(sampleResellers)
+      toast.error('Failed to load resellers from server')
+      setResellers([])
     } finally {
       setLoading(false)
     }
@@ -264,14 +325,15 @@ function ResellersPage() {
         setResellerRequests(formattedRequests)
         console.log('✅ Activation requests loaded:', formattedRequests.length)
       } else {
-        // Fallback to sample data if API fails
-        setResellerRequests(sampleResellerRequests)
-        console.warn('Using sample activation requests data')
+        // No fallback to sample data - show error
+        console.error('API failed to load activation requests:', response.error)
+        toast.error('Failed to load activation requests from server')
+        setResellerRequests([])
       }
     } catch (error) {
       console.error('Failed to fetch activation requests:', error)
-      // Fallback to sample data on error
-      setResellerRequests(sampleResellerRequests)
+      toast.error('Failed to load activation requests from server')
+      setResellerRequests([])
     }
   }
 
@@ -425,7 +487,6 @@ function ResellersPage() {
   const handleConfirmDelete = async () => {
     if (!selectedResellerForDelete) return
 
-    // BACKEND INTEGRATION ACTIVATED
     try {
       setIsDeleting(true)
       console.log('🗑️ Deleting reseller:', selectedResellerForDelete.id)
@@ -434,26 +495,46 @@ function ResellersPage() {
       console.log('📥 Delete response:', response)
 
       if (response.success) {
+        // Remove from local state immediately
+        setResellers(prev => prev.filter(r => r.id !== selectedResellerForDelete.id))
+        
+        // Update pagination total count
+        setPagination(prev => ({
+          ...prev,
+          total: Math.max(0, prev.total - 1),
+          totalPages: Math.ceil(Math.max(0, prev.total - 1) / prev.limit)
+        }))
+        
         toast.success('Reseller deleted successfully')
-        setShowDeleteModal(false)
-        setSelectedResellerForDelete(null)
-        fetchResellers() // Refresh the list
+        console.log('✅ Reseller deleted:', selectedResellerForDelete.id)
+        
+        // Refresh the reseller list from server to ensure consistency
+        setTimeout(() => {
+          fetchResellers()
+        }, 500)
       } else {
-        throw new Error(response.message || 'Failed to delete reseller')
+        toast.error(response.error || 'Failed to delete reseller')
+        console.error('❌ Failed to delete reseller:', response.error)
       }
     } catch (error) {
       console.error('❌ Failed to delete reseller:', error)
-      console.error('❌ Error details:', {
-        message: error.message,
-        response: error.response,
-        status: error.status
-      })
-      toast.error('Failed to delete reseller - using demo mode')
-      // Demo mode fallback
-      setShowDeleteModal(false)
-      setSelectedResellerForDelete(null)
+      
+      // Handle specific error types
+      if (error.message === 'Failed to fetch') {
+        toast.error('Connection error. Please check your internet connection and try again.')
+      } else if (error.message?.includes('404')) {
+        toast.error('Reseller not found. It may have already been deleted.')
+        // Refresh data on 404 to sync with server state
+        setTimeout(() => {
+          fetchResellers()
+        }, 500)
+      } else {
+        toast.error(error.message || 'Failed to delete reseller')
+      }
     } finally {
       setIsDeleting(false)
+      setShowDeleteModal(false)
+      setSelectedResellerForDelete(null)
     }
   }
 
@@ -488,6 +569,17 @@ function ResellersPage() {
     setTimeout(() => {
       fetchResellers({ search: value, page: 1 })
     }, 500)
+  }
+
+  // Handle pagination
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, page: newPage }))
+    fetchResellers({ page: newPage })
+  }
+
+  const handleLimitChange = (newLimit) => {
+    setPagination(prev => ({ ...prev, limit: newLimit, page: 1 }))
+    fetchResellers({ page: 1, limit: newLimit })
   }
 
   // Request handlers
@@ -677,45 +769,63 @@ function ResellersPage() {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-card border border-border rounded-lg p-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search resellers..."
-                value={searchTerm}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
-            </div>
+      <div className="mb-6 space-y-4">
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+          <input
+            type="text"
+            placeholder="Search by name, email, or phone..."
+            value={searchTerm}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-background text-foreground"
+          />
+        </div>
 
-            <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="border border-border rounded-lg bg-background text-foreground px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              >
-                <option value="all">All Status</option>
-                <option value="active">Active</option>
-                <option value="suspended">Suspended</option>
-                <option value="pending">Pending</option>
-              </select>
-            </div>
+        {/* Filters */}
+        <div className="flex flex-wrap gap-4">
+          <div className="flex items-center space-x-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-foreground">Filters:</span>
           </div>
 
-          <div className="text-sm text-muted-foreground">
-            Showing {filteredResellers.length} of {resellers.length} resellers
-          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-1 border border-border rounded-md text-sm focus:ring-2 focus:ring-ring bg-background text-foreground"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+            <option value="pending">Pending</option>
+          </select>
+
+          {(searchTerm || statusFilter !== 'all') && (
+            <button
+              onClick={() => {
+                setSearchTerm('')
+                setStatusFilter('all')
+              }}
+              className="px-3 py-1 text-sm text-muted-foreground hover:text-foreground border border-border rounded-md hover:bg-muted transition-colors"
+            >
+              Clear filters
+            </button>
+          )}
         </div>
       </div>
 
       {/* Resellers Table */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+      <ScrollableTable
+        pagination={pagination}
+        onPageChange={handlePageChange}
+        onLimitChange={handleLimitChange}
+        loading={loading}
+        maxHeight="600px"
+        showPagination={true}
+        showEntries={true}
+        showPageInfo={true}
+      >
+        <table className="w-full">
             <thead className="bg-muted/50">
               <tr>
                 <th className="text-left p-4 font-medium text-foreground">Reseller</th>
@@ -730,30 +840,16 @@ function ResellersPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr>
-                  <td colSpan="8" className="p-8 text-center">
-                    <div className="flex items-center justify-center space-x-2">
-                      <RefreshCw className="h-5 w-5 animate-spin text-muted-foreground" />
-                      <span className="text-muted-foreground">Loading resellers...</span>
-                    </div>
-                  </td>
-                </tr>
+                <ResellersLoadingState />
               ) : filteredResellers.length === 0 ? (
-                <tr>
-                  <td colSpan="8" className="p-8 text-center">
-                    <div className="flex flex-col items-center space-y-2">
-                      <Users className="h-12 w-12 text-muted-foreground opacity-50" />
-                      <p className="text-muted-foreground">No resellers found</p>
-                      <p className="text-sm text-muted-foreground">Try adjusting your search or filters</p>
-                    </div>
-                  </td>
-                </tr>
+                <ResellersEmptyState />
               ) : (
                 filteredResellers.map((reseller) => {
                 const statusDisplay = getStatusDisplay(reseller.status)
                 const StatusIcon = statusDisplay.icon
-                const simUsagePercent = getUsagePercentage(reseller.simUsed || 0, reseller.simLimit || 0)
-                const creditUsagePercent = getUsagePercentage(reseller.creditUsed || 0, reseller.creditLimit || 0)
+                
+                const simUsagePercent = getUsagePercentage(reseller.simUsed || 0, reseller.simLimit || 1000)
+                const creditUsagePercent = getUsagePercentage(reseller.creditUsed || 0, reseller.creditLimit || 1000)
 
                 return (
                   <tr key={reseller.id} className={`border-t border-border hover:bg-muted/30 transition-colors`}>
@@ -761,7 +857,9 @@ function ResellersPage() {
                       <div>
                         <p className="font-medium text-foreground">{reseller.name}</p>
                         <p className="text-sm text-muted-foreground">{reseller.email}</p>
-                        <p className="text-xs text-muted-foreground">{reseller.location}</p>
+                        <p className="text-xs text-muted-foreground flex items-center space-x-1">
+                          <span>{formatPhoneNumber(reseller.phone)}</span>
+                        </p>
                       </div>
                     </td>
                     <td className="p-4">
@@ -786,7 +884,7 @@ function ResellersPage() {
                     <td className="p-4">
                       <div className="space-y-1">
                         <p className="text-sm text-foreground">
-                          {reseller.simUsed || 0} / {reseller.simLimit || 0}
+                          {reseller.simUsed || 0} / {reseller.simLimit || 1000}
                         </p>
                         <div className="w-full bg-muted rounded-full h-2">
                           <div
@@ -805,7 +903,7 @@ function ResellersPage() {
                     <td className="p-4">
                       <div className="space-y-1">
                         <p className="text-sm text-foreground">
-                          ${(reseller.creditUsed || 0).toLocaleString()} / ${(reseller.creditLimit || 0).toLocaleString()}
+                          ${(reseller.creditUsed || 0).toLocaleString()} / ${(reseller.creditLimit || 1000).toLocaleString()}
                         </p>
                         <div className="w-full bg-muted rounded-full h-2">
                           <div
@@ -822,7 +920,7 @@ function ResellersPage() {
                       </div>
                     </td>
                     <td className="p-4">
-                      <p className="text-sm text-muted-foreground">{reseller.lastActivity || 'Just now'}</p>
+                      <p className="text-sm text-muted-foreground">{formatDateTime(reseller.lastActivity) || 'Never'}</p>
                     </td>
                     <td className="p-4">
                       <div className="flex items-center space-x-2">
@@ -831,7 +929,7 @@ function ResellersPage() {
                             setSelectedReseller(reseller)
                             setShowDetailsModal(true)
                           }}
-                          className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                          className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
                           title="View Details"
                         >
                           <Eye className="h-4 w-4" />
@@ -841,14 +939,14 @@ function ResellersPage() {
                             setSelectedReseller(reseller)
                             setShowAddModal(true)
                           }}
-                          className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                          className="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-500/10 rounded-lg transition-colors"
                           title="Edit"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteReseller(reseller)}
-                          className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                          className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                           title="Delete"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -860,9 +958,8 @@ function ResellersPage() {
               })
             )}
             </tbody>
-          </table>
-        </div>
-      </div>
+        </table>
+      </ScrollableTable>
         </>
       )}
 
@@ -917,7 +1014,7 @@ function ResellersPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-foreground">{request.email}</div>
                       <div className="text-sm text-muted-foreground">
-                        +{request.phoneCountryCode === 'US' ? '1' : '86'} {request.phoneNumber}
+                        {request.phone || `+${request.phoneCountryCode === 'US' ? '1' : '86'} ${request.phoneNumber}`}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -928,7 +1025,7 @@ function ResellersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-foreground">
-                        {new Date(request.requestDate).toLocaleDateString()}
+                        {formatDate(request.requestDate)}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {Math.ceil((new Date() - new Date(request.requestDate)) / (1000 * 60 * 60 * 24))} days ago
@@ -985,12 +1082,16 @@ function ResellersPage() {
       />
 
       {/* Delete Confirmation Modal */}
-      <DeleteConfirmationModal
+      <ConfirmationModal
         isOpen={showDeleteModal}
         onClose={handleCancelDelete}
         onConfirm={handleConfirmDelete}
-        reseller={selectedResellerForDelete}
+        title="Delete Reseller"
+        message={`Are you sure you want to delete "${selectedResellerForDelete?.name || 'this reseller'}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
         isLoading={isDeleting}
+        type="danger"
       />
 
       {/* Suspension Reason Modal */}
