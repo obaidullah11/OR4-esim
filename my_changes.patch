@@ -1,0 +1,2315 @@
+diff --cc src/config/api.js
+index fda50d6,149a60e..0000000
+--- a/src/config/api.js
++++ b/src/config/api.js
+@@@ -30,12 -30,29 +30,29 @@@ export const API_ENDPOINTS = 
+      GET_CURRENT_USER: 'api/v1/auth/me/',
+    },
+    USERS: {
+ -    LIST: 'api/v1/users/',
+ -    DETAIL: 'api/v1/users/{id}/',
+ -    CREATE: 'api/v1/users/',
+ -    UPDATE: 'api/v1/users/{id}/',
+ -    DELETE: 'api/v1/users/{id}/',
+ +    LIST: 'api/v1/accounts/users/',
+ +    DETAIL: 'api/v1/accounts/users/{id}/',
+ +    CREATE: 'api/v1/accounts/users/',
+ +    UPDATE: 'api/v1/accounts/users/{id}/',
+ +    DELETE: 'api/v1/accounts/users/{id}/',
+    },
++   // New Public Users (Clients) endpoints
++   PUBLIC_USERS: {
++     LIST: 'api/v1/clients/public_users/',
++     MOBILE_APP_USERS: 'api/v1/clients/mobile_app_users/',
++     DETAIL: 'api/v1/clients/{id}/',
++     CREATE: 'api/v1/clients/',
++     UPDATE: 'api/v1/clients/{id}/',
++     DELETE: 'api/v1/clients/{id}/',
++     HARD_DELETE: 'api/v1/clients/{id}/hard_delete/',
++     USER_DETAILS: 'api/v1/clients/{id}/user_details/',
++     ORDER_HISTORY: 'api/v1/clients/{id}/order_history/',
++     PAYMENT_HISTORY: 'api/v1/clients/{id}/payment_history/',
++     SUPPORT_TICKETS: 'api/v1/clients/{id}/support_tickets/',
++     BLOCK_USER: 'api/v1/clients/{id}/block_user/',
++     UNBLOCK_USER: 'api/v1/clients/{id}/unblock_user/',
++     STATISTICS: 'api/v1/clients/public_user_statistics/',
++   },
+    RESELLERS: {
+      LIST: 'api/v1/resellers/resellers/',
+      DETAIL: 'api/v1/resellers/resellers/{id}/',
+@@@ -48,8 -65,17 +65,18 @@@
+      ACTIVATE: 'api/v1/resellers/resellers/{id}/activate_reseller/',
+      CHANGE_STATUS: 'api/v1/resellers/resellers/{id}/change_status/',
+      AVAILABLE_USERS: 'api/v1/resellers/resellers/available_users/',
+ +    ACTIVATION_REQUESTS: 'api/v1/resellers/reseller-activation-requests/',
+    },
++   // New Reseller Activation Requests endpoints
++   RESELLER_ACTIVATION_REQUESTS: {
++     LIST: 'api/v1/resellers/reseller-activation-requests/',
++     DETAIL: 'api/v1/resellers/reseller-activation-requests/{id}/',
++     CREATE: 'api/v1/resellers/reseller-activation-requests/',
++     PENDING_REQUESTS: 'api/v1/resellers/reseller-activation-requests/pending_requests/',
++     MY_REQUEST: 'api/v1/resellers/reseller-activation-requests/my_request/',
++     APPROVE: 'api/v1/resellers/reseller-activation-requests/{id}/approve_request/',
++     REJECT: 'api/v1/resellers/reseller-activation-requests/{id}/reject_request/',
++   },
+    ORDERS: {
+      LIST: 'api/v1/orders/',
+      DETAIL: 'api/v1/orders/{id}/',
+@@@ -166,7 -147,32 +193,36 @@@ export const RESELLER_SUSPEND_URL = bui
+  export const RESELLER_ACTIVATE_URL = buildApiUrl(API_ENDPOINTS.RESELLERS.ACTIVATE)
+  export const RESELLER_CHANGE_STATUS_URL = buildApiUrl(API_ENDPOINTS.RESELLERS.CHANGE_STATUS)
+  export const RESELLER_AVAILABLE_USERS_URL = buildApiUrl(API_ENDPOINTS.RESELLERS.AVAILABLE_USERS)
+++<<<<<<< HEAD
+ +export const RESELLER_ACTIVATION_REQUESTS_URL = buildApiUrl(API_ENDPOINTS.RESELLERS.ACTIVATION_REQUESTS)
+++=======
++ 
++ // New Public Users URLs
++ export const PUBLIC_USERS_URL = buildApiUrl(API_ENDPOINTS.PUBLIC_USERS.LIST)
++ export const MOBILE_APP_USERS_URL = buildApiUrl(API_ENDPOINTS.PUBLIC_USERS.MOBILE_APP_USERS)
++ export const PUBLIC_USER_DETAIL_URL = buildApiUrl(API_ENDPOINTS.PUBLIC_USERS.DETAIL)
++ export const PUBLIC_USER_CREATE_URL = buildApiUrl(API_ENDPOINTS.PUBLIC_USERS.CREATE)
++ export const PUBLIC_USER_UPDATE_URL = buildApiUrl(API_ENDPOINTS.PUBLIC_USERS.UPDATE)
++ export const PUBLIC_USER_DELETE_URL = buildApiUrl(API_ENDPOINTS.PUBLIC_USERS.DELETE)
++ export const PUBLIC_USER_HARD_DELETE_URL = buildApiUrl(API_ENDPOINTS.PUBLIC_USERS.HARD_DELETE)
++ export const PUBLIC_USER_DETAILS_URL = buildApiUrl(API_ENDPOINTS.PUBLIC_USERS.USER_DETAILS)
++ export const PUBLIC_USER_ORDER_HISTORY_URL = buildApiUrl(API_ENDPOINTS.PUBLIC_USERS.ORDER_HISTORY)
++ export const PUBLIC_USER_PAYMENT_HISTORY_URL = buildApiUrl(API_ENDPOINTS.PUBLIC_USERS.PAYMENT_HISTORY)
++ export const PUBLIC_USER_SUPPORT_TICKETS_URL = buildApiUrl(API_ENDPOINTS.PUBLIC_USERS.SUPPORT_TICKETS)
++ export const PUBLIC_USER_BLOCK_URL = buildApiUrl(API_ENDPOINTS.PUBLIC_USERS.BLOCK_USER)
++ export const PUBLIC_USER_UNBLOCK_URL = buildApiUrl(API_ENDPOINTS.PUBLIC_USERS.UNBLOCK_USER)
++ export const PUBLIC_USER_STATISTICS_URL = buildApiUrl(API_ENDPOINTS.PUBLIC_USERS.STATISTICS)
++ 
++ // New Reseller Activation Request URLs
++ export const RESELLER_ACTIVATION_REQUESTS_URL = buildApiUrl(API_ENDPOINTS.RESELLER_ACTIVATION_REQUESTS.LIST)
++ export const RESELLER_ACTIVATION_REQUEST_DETAIL_URL = buildApiUrl(API_ENDPOINTS.RESELLER_ACTIVATION_REQUESTS.DETAIL)
++ export const RESELLER_ACTIVATION_REQUEST_CREATE_URL = buildApiUrl(API_ENDPOINTS.RESELLER_ACTIVATION_REQUESTS.CREATE)
++ export const RESELLER_ACTIVATION_REQUEST_PENDING_URL = buildApiUrl(API_ENDPOINTS.RESELLER_ACTIVATION_REQUESTS.PENDING_REQUESTS)
++ export const RESELLER_ACTIVATION_REQUEST_MY_REQUEST_URL = buildApiUrl(API_ENDPOINTS.RESELLER_ACTIVATION_REQUESTS.MY_REQUEST)
++ export const RESELLER_ACTIVATION_REQUEST_APPROVE_URL = buildApiUrl(API_ENDPOINTS.RESELLER_ACTIVATION_REQUESTS.APPROVE)
++ export const RESELLER_ACTIVATION_REQUEST_REJECT_URL = buildApiUrl(API_ENDPOINTS.RESELLER_ACTIVATION_REQUESTS.REJECT)
++ 
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+  export const DASHBOARD_REPORTS_URL = buildApiUrl(API_ENDPOINTS.REPORTS.DASHBOARD)
+  export const DASHBOARD_TEST_URL = buildApiUrl(API_ENDPOINTS.REPORTS.DASHBOARD_TEST)
+  export const DASHBOARD_MAIN_URL = buildApiUrl(API_ENDPOINTS.DASHBOARD.MAIN)
+diff --cc src/context/AuthContext.jsx
+index f4da1e6,dd4e24f..0000000
+--- a/src/context/AuthContext.jsx
++++ b/src/context/AuthContext.jsx
+@@@ -1,28 -1,14 +1,39 @@@
+  import { createContext, useContext, useReducer, useEffect, useCallback } from 'react'
+++<<<<<<< HEAD
+ +// BACKEND INTEGRATION ACTIVATED
+  import { authService } from '../services/authService'
+  import { tokenService } from '../services/tokenService'
+ +import {
+ +  isAdmin,
+ +  isReseller,
+ +  isClient,
+ +  isPublicUser,
+ +  hasRole,
+ +  hasManagementRole,
+ +  getUserRoleDisplay,
+ +  getDefaultDashboardRoute,
+ +  canAccessRoute,
+ +  USER_ROLES
+ +} from '../utils/auth'
+++=======
+++import { authService } from '../services/authService'
+++import { tokenService } from '../services/tokenService'
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+  
+  const AuthContext = createContext()
+  
+  const initialState = {
+    user: null,
+++<<<<<<< HEAD
+ +  // BACKEND INTEGRATION ACTIVATED
+ +  token: tokenService.getAccessToken(),
+ +  isAuthenticated: false,
+ +  isLoading: true, // Loading while checking authentication
+++=======
++   token: tokenService.getAccessToken(),
++   isAuthenticated: false,
++   isLoading: true,
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+  }
+  
+  function authReducer(state, action) {
+@@@ -79,7 -65,6 +90,10 @@@ export function AuthProvider({ childre
+  
+    // Initialize authentication on mount
+    useEffect(() => {
+++<<<<<<< HEAD
+ +    // BACKEND INTEGRATION ACTIVATED
+++=======
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+      const initializeAuth = async () => {
+        try {
+          const tokenStatus = tokenService.hasValidTokens()
+@@@ -111,9 -96,8 +125,12 @@@
+      initializeAuth()
+    }, [])
+  
+ -  // Set up automatic token refresh
+ +    // Set up automatic token refresh
+    useEffect(() => {
+++<<<<<<< HEAD
+ +    // BACKEND INTEGRATION ACTIVATED
+++=======
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+      if (!state.isAuthenticated) return
+  
+      const checkTokenExpiry = async () => {
+@@@ -139,16 -123,15 +156,19 @@@
+    }, [state.isAuthenticated])
+  
+    const login = async (credentials) => {
+++<<<<<<< HEAD
+ +    // BACKEND INTEGRATION ACTIVATED
+++=======
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+      try {
+        const response = await authService.login(credentials)
+- 
++       
+        // Tokens are already stored by authService.login()
+-       dispatch({
+-         type: 'LOGIN_SUCCESS',
+-         payload: { user: response.user, token: response.token }
++       dispatch({ 
++         type: 'LOGIN_SUCCESS', 
++         payload: { user: response.user, token: response.token } 
+        })
+- 
++       
+        return response
+      } catch (error) {
+        throw error
+@@@ -156,7 -139,6 +176,10 @@@
+    }
+  
+    const logout = async () => {
+++<<<<<<< HEAD
+ +    // BACKEND INTEGRATION ACTIVATED
+++=======
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+      try {
+        await authService.logout()
+        dispatch({ type: 'LOGOUT' })
+@@@ -169,7 -151,6 +192,10 @@@
+  
+    // Utility functions for token management
+    const refreshTokens = useCallback(async () => {
+++<<<<<<< HEAD
+ +    // BACKEND INTEGRATION ACTIVATED
+++=======
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+      try {
+        const newToken = await authService.refreshTokens()
+        dispatch({ type: 'TOKEN_REFRESHED', payload: newToken })
+@@@ -182,32 -163,15 +208,40 @@@
+    }, [])
+  
+    const checkTokenValidity = useCallback(() => {
+++<<<<<<< HEAD
+ +    // BACKEND INTEGRATION ACTIVATED
+ +    return tokenService.hasValidTokens()
+ +  }, [])
+ +
+ +  const getTokenExpiryInfo = useCallback(() => {
+ +    // BACKEND INTEGRATION ACTIVATED
+ +    return tokenService.getTokenExpiryInfo()
+++=======
++     return authService.checkTokenValidity()
++   }, [])
++ 
++   const getTokenExpiryInfo = useCallback(() => {
++     return authService.getTokenExpiryInfo()
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+    }, [])
+  
+ +  // Role-based helper functions
+ +  const roleHelpers = {
+ +    isAdmin: isAdmin(state.user),
+ +    isReseller: isReseller(state.user),
+ +    isClient: isClient(state.user),
+ +    isPublicUser: isPublicUser(state.user),
+ +    hasManagementRole: hasManagementRole(state.user),
+ +    roleDisplay: getUserRoleDisplay(state.user),
+ +    defaultDashboard: getDefaultDashboardRoute(state.user),
+ +    hasRole: (roles) => hasRole(state.user, roles),
+ +    canAccessRoute: (route) => canAccessRoute(state.user, route),
+ +    USER_ROLES
+ +  }
+ +
+    const value = {
+      ...state,
+ +    ...roleHelpers,
+      login,
+      logout,
+      refreshTokens,
+diff --cc src/pages/dashboard/DashboardPage.jsx
+index 50966e4,a67af6f..0000000
+--- a/src/pages/dashboard/DashboardPage.jsx
++++ b/src/pages/dashboard/DashboardPage.jsx
+@@@ -1,6 -1,5 +1,9 @@@
+  import { useState, useEffect } from 'react'
+  import { useTheme } from '../../context/ThemeContext'
+++<<<<<<< HEAD
+ +// BACKEND INTEGRATION ACTIVATED
+++=======
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+  import { dashboardService } from '../../services/apiService'
+  import {
+    Users,
+@@@ -150,7 -149,6 +153,10 @@@ function DashboardPage() 
+    const [lastUpdated, setLastUpdated] = useState(null)
+  
+    const fetchDashboardData = async () => {
+++<<<<<<< HEAD
+ +    // BACKEND INTEGRATION ACTIVATED
+++=======
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+      try {
+        setLoading(true)
+        setError(null)
+diff --cc src/pages/resellers/ResellersPage.jsx
+index 0c1d5f0,4c87f2e..0000000
+--- a/src/pages/resellers/ResellersPage.jsx
++++ b/src/pages/resellers/ResellersPage.jsx
+@@@ -26,8 -26,8 +26,12 @@@ import AddEditResellerModal from '../..
+  import ResellerDetailsModal from '../../components/resellers/ResellerDetailsModal'
+  import DeleteConfirmationModal from '../../components/resellers/DeleteConfirmationModal'
+  import SuspensionReasonModal from '../../components/resellers/SuspensionReasonModal'
++ import RejectionReasonModal from '../../components/resellers/RejectionReasonModal'
+  import Tooltip from '../../components/common/Tooltip'
+++<<<<<<< HEAD
+ +// BACKEND INTEGRATION ACTIVATED
+++=======
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+  import { resellerService } from '../../services/resellerService'
+  import toast from 'react-hot-toast'
+  
+@@@ -220,10 -228,9 +232,13 @@@ function ResellersPage() 
+  
+    // Fetch resellers from API
+    const fetchResellers = async (params = {}) => {
+++<<<<<<< HEAD
+ +    // BACKEND INTEGRATION ACTIVATED
+++=======
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+      try {
+        setLoading(true)
+- 
++       
+        const response = await resellerService.getAllResellers({
+          page: params.page || pagination.page,
+          limit: params.limit || pagination.limit,
+@@@ -249,33 -255,34 +264,64 @@@
+      }
+    }
+  
+++<<<<<<< HEAD
+ +  // Fetch activation requests from API
+ +  const fetchActivationRequests = async () => {
+ +    try {
+ +      const response = await resellerService.getActivationRequests({
+ +        ordering: '-created_at'
+ +      })
+ +
+ +      if (response.success) {
+ +        const formattedRequests = resellerService.formatActivationRequestsList(response.data.results)
+ +        setResellerRequests(formattedRequests)
+ +        console.log('✅ Activation requests loaded:', formattedRequests.length)
+ +      } else {
+ +        // Fallback to sample data if API fails
+ +        setResellerRequests(sampleResellerRequests)
+ +        console.warn('Using sample activation requests data')
+ +      }
+ +    } catch (error) {
+ +      console.error('Failed to fetch activation requests:', error)
+ +      // Fallback to sample data on error
+ +      setResellerRequests(sampleResellerRequests)
+ +    }
+ +  }
+ +
+ +  // Load resellers and activation requests on component mount
+ +  useEffect(() => {
+ +    fetchResellers()
+ +    fetchActivationRequests()
+++=======
++   // Fetch pending activation requests from API
++   const fetchPendingRequests = async () => {
++     try {
++       setRequestsLoading(true)
++       
++       const response = await resellerService.getPendingActivationRequests()
++       
++       if (response.success) {
++         const formattedRequests = resellerService.formatActivationRequestsList(response.data)
++         setResellerRequests(formattedRequests)
++       } else {
++         // Fallback to sample data if API fails
++         setResellerRequests(sampleResellerRequests)
++       }
++     } catch (error) {
++       console.error('Failed to fetch pending requests:', error)
++       toast.error('Failed to load pending requests')
++       // Fallback to sample data
++       setResellerRequests(sampleResellerRequests)
++     } finally {
++       setRequestsLoading(false)
++     }
++   }
++ 
++   // Load data on component mount
++   useEffect(() => {
++     fetchResellers()
++     fetchPendingRequests()
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+    }, [])
+  
+    // Filter resellers based on search and status (client-side filtering for better UX)
+@@@ -356,8 -363,7 +402,12 @@@
+  
+    const handleConfirmSuspension = async (reason) => {
+      if (!selectedResellerForSuspension) return
+++<<<<<<< HEAD
+ +
+ +    // BACKEND INTEGRATION ACTIVATED
+++=======
++     
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+      try {
+        setIsSuspending(true)
+        const response = await resellerService.suspendReseller(selectedResellerForSuspension.id, reason)
+@@@ -375,12 -381,7 +425,16 @@@
+        }
+      } catch (error) {
+        console.error('❌ Failed to suspend reseller:', error)
+++<<<<<<< HEAD
+ +      toast.error('Failed to suspend reseller - using demo mode')
+ +      // Demo mode fallback
+ +      setShowSuspensionModal(false)
+ +      setSelectedResellerForSuspension(null)
+ +      setShowDetailsModal(false)
+ +      setSelectedReseller(null)
+++=======
++       toast.error('Failed to suspend reseller')
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+      } finally {
+        setIsSuspending(false)
+      }
+@@@ -392,10 -393,9 +446,13 @@@
+    }
+  
+    const handleActivateReseller = async (reseller) => {
+++<<<<<<< HEAD
+ +    // BACKEND INTEGRATION ACTIVATED
+++=======
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+      try {
+        const response = await resellerService.activateReseller(reseller.id)
+- 
++       
+        if (response.success) {
+          toast.success('Reseller activated successfully')
+          // Close details modal and refresh list
+@@@ -421,8 -418,7 +478,12 @@@
+  
+    const handleConfirmDelete = async () => {
+      if (!selectedResellerForDelete) return
+++<<<<<<< HEAD
+ +
+ +    // BACKEND INTEGRATION ACTIVATED
+++=======
++     
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+      try {
+        setIsDeleting(true)
+        console.log('🗑️ Deleting reseller:', selectedResellerForDelete.id)
+@@@ -440,15 -436,7 +501,19 @@@
+        }
+      } catch (error) {
+        console.error('❌ Failed to delete reseller:', error)
+++<<<<<<< HEAD
+ +      console.error('❌ Error details:', {
+ +        message: error.message,
+ +        response: error.response,
+ +        status: error.status
+ +      })
+ +      toast.error('Failed to delete reseller - using demo mode')
+ +      // Demo mode fallback
+ +      setShowDeleteModal(false)
+ +      setSelectedResellerForDelete(null)
+++=======
++       toast.error('Failed to delete reseller')
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+      } finally {
+        setIsDeleting(false)
+      }
+@@@ -476,69 -464,67 +541,133 @@@
+    // Request handlers
+    const handleActivateRequest = async (requestId) => {
+      try {
+++<<<<<<< HEAD
+ +      const request = resellerRequests.find(r => r.id === requestId)
+ +      if (!request) {
+ +        toast.error('Request not found')
+ +        return
+ +      }
+ +
+ +      const approvalData = {
+ +        maxClients: 100,
+ +        maxSims: 1000,
+ +        creditLimit: 5000,
+ +        notes: 'Approved via admin panel'
+ +      }
+ +
+ +      const response = await resellerService.approveActivationRequest(requestId, approvalData)
+ +
+ +      if (response.success) {
+ +        // Remove from requests list
+ +        setResellerRequests(prev => prev.filter(r => r.id !== requestId))
+ +
+ +        // Refresh resellers list to include the new reseller
+ +        await fetchResellers()
+ +
+ +        toast.success(`Reseller ${request.name} activated successfully`)
+ +        console.log('✅ Reseller activated:', request.name)
+ +      } else {
+ +        toast.error(response.error || 'Failed to activate reseller')
+ +        console.error('❌ Failed to activate reseller:', response.error)
+ +      }
+ +    } catch (error) {
+ +      console.error('❌ Failed to activate reseller:', error)
+ +      toast.error('Failed to activate reseller')
+ +    }
+ +  }
+ +
+ +  const handleRejectRequest = async (requestId) => {
+ +    try {
+ +      const request = resellerRequests.find(r => r.id === requestId)
+ +      if (!request) {
+ +        toast.error('Request not found')
+ +        return
+ +      }
+ +
+ +      const rejectionReason = prompt('Please provide a reason for rejection:')
+ +      if (!rejectionReason) {
+ +        return // User cancelled
+ +      }
+ +
+ +      const response = await resellerService.rejectActivationRequest(requestId, rejectionReason)
+ +
+ +      if (response.success) {
+ +        // Remove from requests list
+ +        setResellerRequests(prev => prev.filter(r => r.id !== requestId))
+ +
+ +        toast.success(`Request from ${request.name} rejected`)
+ +        console.log('✅ Reseller request rejected:', request.name)
+ +      } else {
+ +        toast.error(response.error || 'Failed to reject request')
+ +        console.error('❌ Failed to reject request:', response.error)
+ +      }
+ +    } catch (error) {
+ +      console.error('❌ Failed to reject request:', error)
+ +      toast.error('Failed to reject request')
+ +    }
+++=======
++       setIsApproving(true)
++       
++       const response = await resellerService.approveActivationRequest(requestId)
++       
++       if (response.success) {
++         toast.success('Reseller activation request approved successfully')
++         
++         // Remove the approved request from the list
++         setResellerRequests(prev => prev.filter(r => r.id !== requestId))
++         
++         // Refresh the resellers list to show the newly created reseller
++         await fetchResellers()
++       } else {
++         throw new Error(response.message || 'Failed to approve request')
++       }
++     } catch (error) {
++       console.error('❌ Failed to approve activation request:', error)
++       toast.error(error.message || 'Failed to approve activation request')
++     } finally {
++       setIsApproving(false)
++     }
++   }
++ 
++   const handleRejectRequest = (requestId) => {
++     const request = resellerRequests.find(r => r.id === requestId)
++     if (request) {
++       setSelectedRequestForRejection(request)
++       setShowRejectionModal(true)
++     }
++   }
++ 
++   const handleConfirmRejection = async (reason) => {
++     if (!selectedRequestForRejection) return
++     
++     try {
++       setIsRejecting(true)
++       
++       const response = await resellerService.rejectActivationRequest(selectedRequestForRejection.id, reason)
++       
++       if (response.success) {
++         toast.success('Reseller activation request rejected successfully')
++         
++         // Remove the rejected request from the list
++         setResellerRequests(prev => prev.filter(r => r.id !== selectedRequestForRejection.id))
++         
++         setShowRejectionModal(false)
++         setSelectedRequestForRejection(null)
++       } else {
++         throw new Error(response.message || 'Failed to reject request')
++       }
++     } catch (error) {
++       console.error('❌ Failed to reject activation request:', error)
++       toast.error(error.message || 'Failed to reject activation request')
++     } finally {
++       setIsRejecting(false)
++     }
++   }
++ 
++   const handleCancelRejection = () => {
++     setShowRejectionModal(false)
++     setSelectedRequestForRejection(null)
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+    }
+  
+    return (
+diff --cc src/pages/users/UsersPage.jsx
+index da5ad5e,43b3899..0000000
+--- a/src/pages/users/UsersPage.jsx
++++ b/src/pages/users/UsersPage.jsx
+@@@ -156,63 -163,74 +166,125 @@@ function UsersPage() 
+    const [packageFilter, setPackageFilter] = useState('all')
+    const [selectedUser, setSelectedUser] = useState(null)
+    const [showDetailsModal, setShowDetailsModal] = useState(false)
+ +  const [pagination, setPagination] = useState({
+ +    page: 1,
+ +    limit: 20,
+ +    total: 0,
+ +    totalPages: 0
+ +  })
+ +
+ +  // Fetch users from API
+ +  const fetchUsers = async (params = {}) => {
+ +    // BACKEND INTEGRATION ACTIVATED
+ +    try {
+ +      setLoading(true)
+ +
+ +      const response = await usersService.getAllUsers({
+ +        page: params.page || pagination.page,
+ +        limit: params.limit || pagination.limit,
+ +        search: params.search || searchTerm,
+ +        role: 'public_user', // Only get public users for this page
+ +        is_active: statusFilter === 'active' ? true : statusFilter === 'blocked' ? false : undefined,
+ +        ordering: params.ordering || '-date_joined'
+ +      })
+ +
+ +      if (response.success) {
+ +        const formattedUsers = usersService.formatUsersList(response.data.results)
+ +        setUsers(formattedUsers)
+ +        setPagination(response.data.pagination)
+ +      } else {
+ +        // Fallback to sample data if API fails
+ +        console.error('API failed, using sample data:', response.error)
+ +        toast.error('Failed to load users - using sample data')
+ +        setUsers(sampleUsers)
+ +      }
+ +    } catch (error) {
+ +      console.error('Failed to fetch users:', error)
+ +      toast.error('Failed to load users - using sample data')
+ +      // Fallback to sample data
+ +      setUsers(sampleUsers)
+ +    } finally {
+ +      setLoading(false)
+ +    }
+ +  }
+ +
+ +  // Load users on component mount
+ +  useEffect(() => {
+ +    fetchUsers()
+ +  }, [])
+ +
+ +  // Reload users when filters change
+ +  useEffect(() => {
+ +    fetchUsers({ page: 1 })
+ +  }, [statusFilter])
+  
+-   // Filter users based on search and filters
+-   const filteredUsers = users.filter(user => {
++   // Modal states
++   const [showBlockModal, setShowBlockModal] = useState(false)
++   const [showAddModal, setShowAddModal] = useState(false)
++   const [showEditModal, setShowEditModal] = useState(false)
++   const [showDeleteModal, setShowDeleteModal] = useState(false)
++   const [showHardDeleteModal, setShowHardDeleteModal] = useState(false)
++   const [showOrderHistoryModal, setShowOrderHistoryModal] = useState(false)
++   const [showSupportTicketsModal, setShowSupportTicketsModal] = useState(false)
++   
++   // Selected users for actions
++   const [selectedUserForBlock, setSelectedUserForBlock] = useState(null)
++   const [selectedUserForEdit, setSelectedUserForEdit] = useState(null)
++   const [selectedUserForDelete, setSelectedUserForDelete] = useState(null)
++   
++   // Loading states
++   const [isBlocking, setIsBlocking] = useState(false)
++   
++   // Pagination state
++   const [pagination, setPagination] = useState({
++     page: 1,
++     limit: 20,
++     total: 0,
++     totalPages: 0
++   })
++ 
++   // Fetch public users from API
++   const fetchPublicUsers = async (params = {}) => {
++     try {
++       setLoading(true)
++       
++       const response = await publicUserService.getAllPublicUsers({
++         page: params.page || pagination.page,
++         limit: params.limit || pagination.limit,
++         search: params.search || searchTerm,
++         status: params.status || (statusFilter !== 'all' ? statusFilter : undefined),
++         city: params.city || (cityFilter !== 'all' ? cityFilter : undefined),
++         preferred_package: params.preferred_package || (packageFilter !== 'all' ? packageFilter : undefined),
++         ordering: params.ordering || '-created_at'
++       })
++       
++       if (response.success) {
++         const formattedUsers = publicUserService.formatPublicUsersList(response.data.results)
++         setUsers(formattedUsers)
++         setPagination(response.data.pagination)
++       } else {
++         setUsers(sampleUsers)
++       }
++     } catch (error) {
++       console.error('Failed to fetch public users:', error)
++       toast.error('Failed to load public users')
++       // Fallback to sample data
++       setUsers(sampleUsers)
++     } finally {
++       setLoading(false)
++     }
++   }
++ 
++   // Load users on component mount
++   useEffect(() => {
++     fetchPublicUsers()
++   }, [])
++ 
++   // Filter users based on search and filters (client-side filtering for better UX)
++   const filteredUsers = (users || []).filter(user => {
+      const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+-                          user.phone.includes(searchTerm)
++                          (user.phone && user.phone.includes(searchTerm))
+  
+      const matchesStatus = statusFilter === 'all' || user.status === statusFilter
+      const matchesCity = cityFilter === 'all' || user.city === cityFilter
+@@@ -251,80 -270,129 +324,204 @@@
+    }
+  
+    // Handler functions
+-   const handleViewUser = (user) => {
++   const handleViewUser = async (user) => {
++     try {
++       // Get detailed user information from API
++       const response = await publicUserService.getPublicUserDetails(user.id)
++       
++       if (response.success) {
++         const formattedUser = publicUserService.formatPublicUserData(response.data)
++         setSelectedUser(formattedUser)
++         setShowDetailsModal(true)
++       } else {
++         // Fallback to basic user info
++         setSelectedUser(user)
++         setShowDetailsModal(true)
++       }
++     } catch (error) {
++       console.error('Failed to fetch user details:', error)
++       toast.error('Failed to load user details')
++       // Fallback to basic user info
++       setSelectedUser(user)
++       setShowDetailsModal(true)
++     }
++   }
++ 
++   const handleEditUser = (user) => {
++     setSelectedUserForEdit(user)
++     setShowEditModal(true)
++   }
++ 
++   const handleDeleteUser = (user) => {
++     setSelectedUserForDelete(user)
++     setShowDeleteModal(true)
++   }
++ 
++   const handleHardDeleteUser = (user) => {
++     setSelectedUserForDelete(user)
++     setShowHardDeleteModal(true)
++   }
++ 
++   const handleBlockUser = (user) => {
+      setSelectedUser(user)
+++<<<<<<< HEAD
+ +    // TEMPORARILY COMMENTED OUT - Modal causing issues
+ +    // setShowDetailsModal(true)
+ +    console.log('View user:', user.name)
+ +    alert(`Viewing user: ${user.name} (Backend integration active)`)
+ +  }
+ +
+ +  const handleBlockUser = async (userId) => {
+ +    // BACKEND INTEGRATION ACTIVATED
+ +    try {
+ +      const user = users.find(u => u.id === userId)
+ +      const isCurrentlyBlocked = user.status === 'blocked'
+ +      
+ +      let response
+ +      if (isCurrentlyBlocked) {
+ +        response = await usersService.unblockUser(userId)
+ +      } else {
+ +        response = await usersService.blockUser(userId, 'Blocked by admin')
+ +      }
+ +
+ +      if (response.success) {
+ +        toast.success(response.message)
+ +        // Update local state
+ +        setUsers(prev => prev.map(u =>
+ +          u.id === userId
+ +            ? { ...u, status: isCurrentlyBlocked ? 'active' : 'blocked' }
+ +            : u
+ +        ))
+ +      } else {
+ +        toast.error(response.error || 'Failed to update user status')
+ +      }
+ +    } catch (error) {
+ +      console.error('Failed to update user status:', error)
+ +      toast.error('Failed to update user status')
+ +    }
+ +  }
+ +
+ +  const handleSuspendUser = async (userId) => {
+ +    // BACKEND INTEGRATION ACTIVATED
+ +    try {
+ +      const user = users.find(u => u.id === userId)
+ +      const isCurrentlySuspended = user.status === 'suspended'
+ +      
+ +      let response
+ +      if (isCurrentlySuspended) {
+ +        response = await usersService.unblockUser(userId)
+ +      } else {
+ +        response = await usersService.blockUser(userId, 'Suspended by admin')
+ +      }
+ +
+ +      if (response.success) {
+ +        toast.success(response.message)
+ +        // Update local state
+ +        setUsers(prev => prev.map(u =>
+ +          u.id === userId
+ +            ? { ...u, status: isCurrentlySuspended ? 'active' : 'suspended' }
+ +            : u
+ +        ))
+ +      } else {
+ +        toast.error(response.error || 'Failed to update user status')
+ +      }
+ +    } catch (error) {
+ +      console.error('Failed to update user status:', error)
+ +      toast.error('Failed to update user status')
+ +    }
+ +  }
+ +
+ +  const handleSearch = (searchValue) => {
+ +    setSearchTerm(searchValue)
+ +    // Debounce search to avoid too many API calls
+ +    setTimeout(() => {
+ +      fetchUsers({ page: 1, search: searchValue })
+ +    }, 500)
+++=======
++     setShowBlockModal(true)
++   }
++ 
++   const handleConfirmBlock = async (reason, notes) => {
++     if (!selectedUser) return
++     
++     try {
++       const response = await publicUserService.blockPublicUser(selectedUser.id, reason, notes)
++       
++       if (response.success) {
++         toast.success('User blocked successfully!')
++         // Close the block modal
++         setShowBlockModal(false)
++         // Refresh the user list to get updated data
++         fetchPublicUsers()
++       } else {
++         throw new Error(response.message || 'Failed to block user')
++       }
++     } catch (error) {
++       console.error('Failed to block user:', error)
++       toast.error(error.message || 'Failed to block user')
++     }
++   }
++ 
++   const handleUnblockUser = async (userId) => {
++     try {
++       const response = await publicUserService.unblockPublicUser(userId, 'User unblocked by admin', '')
++       
++       if (response.success) {
++         toast.success('User unblocked successfully!')
++         // Refresh the user list to get updated data
++         fetchPublicUsers()
++       } else {
++         throw new Error(response.message || 'Failed to unblock user')
++       }
++     } catch (error) {
++       console.error('Failed to unblock user:', error)
++       toast.error(error.message || 'Failed to unblock user')
++     }
++   }
++ 
++   const handleViewOrderHistory = async (user) => {
++     setSelectedUser(user)
++     setShowOrderHistoryModal(true)
++   }
++ 
++   const handleViewSupportTickets = async (user) => {
++     setSelectedUser(user)
++     setShowSupportTicketsModal(true)
++   }
++ 
++   const handleRefresh = () => {
++     fetchPublicUsers()
++   }
++ 
++   // Handle successful user creation
++   const handleUserCreated = (newUser) => {
++     console.log('UsersPage - User created, refreshing data')
++     toast.success('New user added successfully!')
++     // Close the add modal
++     setShowAddModal(false)
++     // Refresh the user list to get the latest data from backend
++     fetchPublicUsers()
++   }
++ 
++   // Handle successful user update
++   const handleUserUpdated = (updatedUser) => {
++     console.log('UsersPage - User updated, refreshing data')
++     toast.success('User updated successfully!')
++     // Close the edit modal
++     setShowEditModal(false)
++     // Refresh the user list to get the latest data from backend
++     fetchPublicUsers()
++   }
++ 
++   // Handle successful user deletion
++   const handleUserDeleted = (userId) => {
++     console.log('UsersPage - User deleted, refreshing data')
++     toast.success('User deleted successfully!')
++     // Close the delete modal
++     setShowDeleteModal(false)
++     // Refresh the user list to get the latest data from backend
++     fetchPublicUsers()
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+    }
+  
+    return (
+@@@ -470,28 -555,14 +684,39 @@@
+              </thead>
+              <tbody className="divide-y divide-border">
+                {loading ? (
+++<<<<<<< HEAD
+ +                // Loading skeleton rows
+ +                [...Array(5)].map((_, i) => (
+ +                  <tr key={i} className="animate-pulse">
+ +                    <td className="p-4">
+ +                      <div className="flex items-center space-x-3">
+ +                        <div className="w-10 h-10 bg-muted rounded-full"></div>
+ +                        <div className="space-y-2">
+ +                          <div className="h-4 bg-muted rounded w-32"></div>
+ +                          <div className="h-3 bg-muted rounded w-48"></div>
+ +                          <div className="h-3 bg-muted rounded w-28"></div>
+ +                        </div>
+ +                      </div>
+ +                    </td>
+ +                    <td className="p-4"><div className="h-6 bg-muted rounded w-20"></div></td>
+ +                    <td className="p-4"><div className="h-4 bg-muted rounded w-16"></div></td>
+ +                    <td className="p-4"><div className="h-4 bg-muted rounded w-24"></div></td>
+ +                    <td className="p-4"><div className="h-4 bg-muted rounded w-8"></div></td>
+ +                    <td className="p-4"><div className="h-4 bg-muted rounded w-16"></div></td>
+ +                    <td className="p-4"><div className="h-4 bg-muted rounded w-20"></div></td>
+ +                    <td className="p-4"><div className="h-8 bg-muted rounded w-24"></div></td>
+ +                  </tr>
+ +                ))
+++=======
++                 <tr>
++                   <td colSpan="8" className="p-8 text-center">
++                     <div className="flex items-center justify-center space-x-2">
++                       <RefreshCw className="h-5 w-5 animate-spin text-muted-foreground" />
++                       <span className="text-muted-foreground">Loading users...</span>
++                     </div>
++                   </td>
++                 </tr>
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+                ) : filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" className="p-8 text-center">
+@@@ -502,7 -573,8 +727,12 @@@
+                      </div>
+                    </td>
+                  </tr>
+++<<<<<<< HEAD
+ +              ) : filteredUsers.map((user) => {
+++=======
++               ) : (
++                 filteredUsers.map((user) => {
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+                  const statusDisplay = getStatusDisplay(user.status)
+                  const StatusIcon = statusDisplay.icon
+  
+@@@ -640,25 -739,47 +897,52 @@@
+              </tbody>
+            </table>
+          </div>
+++<<<<<<< HEAD
+ +
+ +
+++=======
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+        </div>
+  
+-       {/* User Details Modal - TEMPORARILY COMMENTED OUT */}
+-       {/*
+-       {showDetailsModal && selectedUser && (
+-         <UserDetailsModal
++       {/* Modals */}
++       <AddUserModal
++         isOpen={showAddModal}
++         onClose={() => setShowAddModal(false)}
++         onSuccess={handleUserCreated}
++       />
++       
++       <EditUserModal
++         isOpen={showEditModal}
++         onClose={() => setShowEditModal(false)}
++         onSuccess={handleUserUpdated}
++         user={selectedUser}
++       />
++       
++       <DeleteUserModal
++         isOpen={showDeleteModal}
++         onClose={() => setShowDeleteModal(false)}
++         onSuccess={handleUserDeleted}
++         user={selectedUser}
++       />
++       
++       <BlockUserModal
++         isOpen={showBlockModal}
++         onClose={() => setShowBlockModal(false)}
++         onConfirm={handleConfirmBlock}
++         user={selectedUser}
++       />
++ 
++       <OrderHistoryModal
++         isOpen={showOrderHistoryModal}
++         onClose={() => setShowOrderHistoryModal(false)}
++         user={selectedUser}
++       />
++ 
++       <SupportTicketsModal
++         isOpen={showSupportTicketsModal}
++         onClose={() => setShowSupportTicketsModal(false)}
+            user={selectedUser}
+-           isOpen={showDetailsModal}
+-           onClose={() => {
+-             setShowDetailsModal(false)
+-             setSelectedUser(null)
+-           }}
+-           onBlockUser={handleBlockUser}
+-           onSuspendUser={handleSuspendUser}
+-         />
+-       )}
+-       */}
++       />
+      </div>
+    )
+  }
+diff --cc src/pages/users/UsersPageSimple.jsx
+index 5155dbb,3204502..0000000
+--- a/src/pages/users/UsersPageSimple.jsx
++++ b/src/pages/users/UsersPageSimple.jsx
+@@@ -1,30 -1,39 +1,57 @@@
+  import { useState, useEffect } from 'react'
+++<<<<<<< HEAD
+ +// import { useTheme } from '../../context/ThemeContext' // No longer needed with unified theme system
+ +import toast from 'react-hot-toast'
+ +import { userService } from '../../services/userService'
+ +import {
+ +  Search,
+ +  Users,
+ +  Eye,
+ +  Edit,
+ +  Trash2,
+ +  Filter,
+-   Phone,
+-   MapPin,
+++=======
++ import { 
++   Users, 
++   Search, 
++   Filter, 
++   MoreHorizontal, 
++   Eye, 
++   Edit, 
++   Trash2, 
++   Shield, 
++   ShieldOff, 
++   Plus, 
++   RefreshCw,
+    Package,
+-   CreditCard,
+    MessageSquare,
+-   History,
+-   Ban,
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
++   Phone,
++   MapPin,
+    CheckCircle,
+    XCircle,
+    Clock,
++   ShoppingBag,
+    DollarSign,
+++<<<<<<< HEAD
+ +  ShoppingBag,
+ +  UserX
+++=======
++   History,
++   Ban
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+  } from 'lucide-react'
++ import { toast } from 'react-hot-toast'
++ import { publicUserService } from '../../services/publicUserService'
++ import { useTheme } from '../../context/ThemeContext'
++ import AddUserModal from '../../components/users/AddUserModal'
++ import EditUserModal from '../../components/users/EditUserModal'
++ import DeleteUserModal from '../../components/users/DeleteUserModal'
++ import BlockUserModal from '../../components/users/BlockUserModal'
++ import OrderHistoryModal from '../../components/users/OrderHistoryModal'
++ import SupportTicketsModal from '../../components/users/SupportTicketsModal'
+  
+- // Enhanced sample data for Public Users (App SIM Buyers)
++ // Enhanced sample data for Public Users (App SIM Buyers) - fallback
+  const sampleUsers = [
+    {
+      id: 1,
+@@@ -109,262 -118,205 +136,449 @@@
+  ]
+  
+  function UsersPageSimple() {
+++<<<<<<< HEAD
+ +  // const { resolvedTheme } = useTheme() // No longer needed with unified theme system
+++=======
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+    const [users, setUsers] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [searchTerm, setSearchTerm] = useState('')
+    const [statusFilter, setStatusFilter] = useState('all')
+ +  const [roleFilter, setRoleFilter] = useState('all')
+    const [cityFilter, setCityFilter] = useState('all')
+    const [packageFilter, setPackageFilter] = useState('all')
++   const [showAddModal, setShowAddModal] = useState(false)
++   const [showEditModal, setShowEditModal] = useState(false)
++   const [showDeleteModal, setShowDeleteModal] = useState(false)
++   const [showBlockModal, setShowBlockModal] = useState(false)
++   const [showOrderHistoryModal, setShowOrderHistoryModal] = useState(false)
++   const [showSupportTicketsModal, setShowSupportTicketsModal] = useState(false)
+    const [selectedUser, setSelectedUser] = useState(null)
+    const [showUserDetails, setShowUserDetails] = useState(false)
+ +  const [pagination, setPagination] = useState({
+ +    page: 1,
+ +    limit: 20,
+ +    total: 0,
+ +    totalPages: 0
+ +  })
+ +  const [userStats, setUserStats] = useState({
+ +    totalUsers: 0,
+ +    adminUsers: 0,
+ +    resellerUsers: 0,
+ +    clientUsers: 0,
+ +    publicUsers: 0,
+ +    activeUsers: 0,
+ +    inactiveUsers: 0
+ +  })
+ +
+++<<<<<<< HEAD
+ +  // Extract unique cities and packages from sample data for filters
+ +  const cities = [...new Set(sampleUsers.map(user => user.city))]
+ +  const packages = [...new Set(sampleUsers.map(user => user.package))]
+ +
+ +  // Fetch users from API
+ +  const fetchUsers = async (params = {}) => {
+ +    try {
+ +      setLoading(true)
+ +      console.log('🔄 Fetching users from API:', params)
+ +
+ +      const response = await userService.getAllUsers({
+ +        page: params.page || pagination.page,
+ +        limit: params.limit || pagination.limit,
+ +        search: params.search || searchTerm,
+ +        role: roleFilter !== 'all' ? roleFilter : undefined,
+ +        status: statusFilter !== 'all' ? statusFilter : undefined,
+ +        ordering: params.ordering || '-date_joined'
+ +      })
+  
+ +      if (response.success) {
+ +        const formattedUsers = userService.formatUsersList(response.data.results)
+ +        setUsers(formattedUsers)
+ +        setPagination(response.data.pagination)
+ +        console.log('✅ Users loaded successfully:', formattedUsers.length, 'users')
+ +      } else {
+ +        // Fallback to sample data if API fails
+ +        console.warn('User API failed, using sample data:', response.error)
+ +        const fallbackUsers = sampleUsers.map(user => ({
+ +          ...user,
+ +          role: 'public_user',
+ +          roleDisplay: 'Public User',
+ +          statusDisplay: user.status,
+ +          joinDate: user.joinDate,
+ +          phone: user.phone,
+ +          name: user.name,
+ +          email: user.email
+ +        }))
+ +        setUsers(fallbackUsers)
+ +        toast.error('Failed to load users from server, showing sample data')
+ +      }
+ +    } catch (error) {
+ +      console.error('❌ Failed to fetch users:', error)
+ +      // Fallback to sample data
+ +      const fallbackUsers = sampleUsers.map(user => ({
+ +        ...user,
+ +        role: 'public_user',
+ +        roleDisplay: 'Public User',
+ +        statusDisplay: user.status,
+ +        joinDate: user.joinDate,
+ +        phone: user.phone,
+ +        name: user.name,
+ +        email: user.email
+ +      }))
+ +      setUsers(fallbackUsers)
+ +      toast.error('Failed to load users, showing sample data')
+++=======
++   // Handle user actions
++   const handleEditUser = (user) => {
++     setSelectedUser(user)
++     setShowEditModal(true)
++   }
++ 
++   const handleDeleteUser = (user) => {
++     setSelectedUser(user)
++     setShowDeleteModal(true)
++   }
++ 
++   const handleBlockUser = (user) => {
++     setSelectedUser(user)
++     setShowBlockModal(true)
++   }
++ 
++   const handleUserBlocked = (updatedUser) => {
++     console.log('UsersPageSimple - User blocked, refreshing data')
++     toast.success('User status updated successfully!')
++     // Close the block modal
++     setShowBlockModal(false)
++     // Refresh the user list to get the latest data from backend
++     fetchPublicUsers()
++   }
++ 
++   const handleConfirmBlock = async (reason, notes) => {
++     if (!selectedUser) return
++     
++     try {
++       const response = await publicUserService.blockPublicUser(selectedUser.id, reason, notes)
++       
++       if (response.success) {
++         toast.success('User blocked successfully!')
++         // Close the block modal
++         setShowBlockModal(false)
++         // Refresh the user list to get updated data
++         fetchPublicUsers()
++       } else {
++         throw new Error(response.message || 'Failed to block user')
++       }
++     } catch (error) {
++       console.error('Failed to block user:', error)
++       toast.error(error.message || 'Failed to block user')
++     }
++   }
++ 
++   const handleUserCreated = (newUser) => {
++     console.log('UsersPageSimple - User created, refreshing data')
++     toast.success('New user added successfully!')
++     // Close the add modal
++     setShowAddModal(false)
++     // Refresh the user list to get the latest data from backend
++     fetchPublicUsers()
++   }
++ 
++   const handleUserUpdated = (updatedUser) => {
++     console.log('UsersPageSimple - User updated, refreshing data')
++     toast.success('User updated successfully!')
++     // Close the edit modal
++     setShowEditModal(false)
++     // Refresh the user list to get the latest data from backend
++     fetchPublicUsers()
++   }
++ 
++   const handleUserDeleted = (userId) => {
++     console.log('UsersPageSimple - User deleted, refreshing data')
++     toast.success('User deleted successfully!')
++     // Close the delete modal
++     setShowDeleteModal(false)
++     // Refresh the user list to get the latest data from backend
++     fetchPublicUsers()
++   }
++ 
++   const handleUnblockUser = async (userId) => {
++     try {
++       const response = await publicUserService.unblockPublicUser(userId, 'User unblocked by admin', '')
++       
++       if (response.success) {
++         toast.success('User unblocked successfully!')
++         // Refresh the user list to get updated data
++         fetchPublicUsers()
++       } else {
++         throw new Error(response.message || 'Failed to unblock user')
++       }
++     } catch (error) {
++       console.error('Failed to unblock user:', error)
++       toast.error(error.message || 'Failed to unblock user')
++     }
++   }
++ 
++   // Pagination state
++   const [pagination, setPagination] = useState({
++     page: 1,
++     limit: 20,
++     total: 0,
++     totalPages: 0
++   })
++ 
++   // Fetch public users from API
++   const fetchPublicUsers = async (params = {}) => {
++     try {
++       setLoading(true)
++       
++       const response = await publicUserService.getAllPublicUsers({
++         page: params.page || pagination.page,
++         limit: params.limit || pagination.limit,
++         search: params.search || searchTerm,
++         status: params.status || (statusFilter !== 'all' ? statusFilter : undefined),
++         city: params.city || (cityFilter !== 'all' ? cityFilter : undefined),
++         preferred_package: params.preferred_package || (packageFilter !== 'all' ? packageFilter : undefined),
++         ordering: params.ordering || '-created_at'
++       })
++       
++       if (response.success) {
++         const formattedUsers = publicUserService.formatPublicUsersList(response.data.results)
++         setUsers(formattedUsers)
++         setPagination(response.data.pagination)
++       } else {
++         setUsers(sampleUsers)
++       }
++     } catch (error) {
++       console.error('Failed to fetch public users:', error)
++       toast.error('Failed to load public users')
++       // Fallback to sample data
++       setUsers(sampleUsers)
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+      } finally {
+        setLoading(false)
+      }
+    }
+  
+++<<<<<<< HEAD
+ +  // Fetch user statistics
+ +  const fetchUserStats = async () => {
+ +    try {
+ +      const response = await userService.getUserStatistics()
+ +      if (response.success) {
+ +        setUserStats(response.data)
+ +      }
+ +    } catch (error) {
+ +      console.error('Failed to fetch user statistics:', error)
+ +    }
+ +  }
+ +
+ +  // Load users on component mount
+ +  useEffect(() => {
+ +    fetchUsers()
+ +    fetchUserStats()
+ +  }, [])
+ +
+ +  // Reload users when search or filter changes
+ +  useEffect(() => {
+ +    const timeoutId = setTimeout(() => {
+ +      fetchUsers({ page: 1 })
+ +    }, 500) // Debounce search
+ +
+ +    return () => clearTimeout(timeoutId)
+ +  }, [searchTerm, statusFilter, roleFilter])
+ +
+ +  // Filter users (now handled by backend, but keep for local fallback)
+ +  const filteredUsers = users.filter(user => {
+ +    if (searchTerm) {
+ +      const searchLower = searchTerm.toLowerCase()
+ +      const matchesSearch = user.name.toLowerCase().includes(searchLower) ||
+ +                           user.email.toLowerCase().includes(searchLower) ||
+ +                           user.phone.includes(searchTerm)
+ +      if (!matchesSearch) return false
+ +    }
+ +
+ +    if (statusFilter !== 'all') {
+ +      const matchesStatus = user.status.toLowerCase() === statusFilter.toLowerCase()
+ +      if (!matchesStatus) return false
+ +    }
+++=======
++   // Load users on component mount
++   useEffect(() => {
++     fetchPublicUsers()
++   }, [])
++ 
++   // Get unique values for filters
++   const cities = [...new Set(users.map(user => user.city).filter(Boolean))]
++   const packages = [...new Set(users.map(user => user.preferredPackage).filter(Boolean))]
++ 
++   const filteredUsers = (users || []).filter(user => {
++     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
++                          user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
++                          (user.phone && user.phone.includes(searchTerm))
++ 
++     const matchesStatus = statusFilter === 'all' || user.status.toLowerCase() === statusFilter.toLowerCase()
++     const matchesCity = cityFilter === 'all' || user.city === cityFilter
++     const matchesPackage = packageFilter === 'all' || user.preferredPackage === packageFilter
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+  
+ -    return matchesSearch && matchesStatus && matchesCity && matchesPackage
+ +    if (roleFilter !== 'all') {
+ +      const matchesRole = user.role === roleFilter
+ +      if (!matchesRole) return false
+ +    }
+ +
+ +    if (cityFilter !== 'all') {
+ +      const matchesCity = user.city === cityFilter
+ +      if (!matchesCity) return false
+ +    }
+ +
+ +    if (packageFilter !== 'all') {
+ +      const matchesPackage = user.package === packageFilter
+ +      if (!matchesPackage) return false
+ +    }
+ +
+ +    return true
+    })
+  
+    // Handler functions
+-   const handleViewUser = (user) => {
++   const handleViewUser = async (user) => {
++     try {
++       const response = await publicUserService.getPublicUserDetails(user.id)
++       
++       if (response.success) {
++         const formattedUser = publicUserService.formatPublicUserData(response.data)
++         setSelectedUser(formattedUser)
++         setShowUserDetails(true)
++       } else {
++         setSelectedUser(user)
++         setShowUserDetails(true)
++       }
++     } catch (error) {
++       console.error('Failed to fetch user details:', error)
++       toast.error('Failed to load user details')
++       setSelectedUser(user)
++       setShowUserDetails(true)
++     }
++   }
++ 
++   const handleViewOrderHistory = async (user) => {
+      setSelectedUser(user)
+-     setShowUserDetails(true)
++     setShowOrderHistoryModal(true)
+    }
+  
+++<<<<<<< HEAD
+ +  const handleToggleUserStatus = async (userId) => {
+ +    try {
+ +      const user = users.find(u => u.id === userId)
+ +      if (!user) return
+ +
+ +      const newStatus = user.status === 'active' ? 'inactive' : 'active'
+ +      const response = await userService.updateUser(userId, {
+ +        is_active: newStatus === 'active'
+ +      })
+ +
+ +      if (response.success) {
+ +        // Update local state
+ +        setUsers(prev => prev.map(u =>
+ +          u.id === userId
+ +            ? { ...u, status: newStatus, statusDisplay: newStatus === 'active' ? 'Active' : 'Inactive' }
+ +            : u
+ +        ))
+ +        toast.success(`User ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`)
+ +        console.log('✅ User status updated:', userId, newStatus)
+ +      } else {
+ +        toast.error(response.error || 'Failed to update user status')
+ +        console.error('❌ Failed to update user status:', response.error)
+ +      }
+ +    } catch (error) {
+ +      console.error('❌ Failed to toggle user status:', error)
+ +      toast.error('Failed to update user status')
+ +    }
+ +  }
+ +
+ +  const handleDeleteUser = async (userId) => {
+ +    if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+ +      return
+ +    }
+ +
+ +    try {
+ +      const response = await userService.deleteUser(userId)
+ +
+ +      if (response.success) {
+ +        // Remove from local state
+ +        setUsers(prev => prev.filter(u => u.id !== userId))
+ +        toast.success('User deleted successfully')
+ +        console.log('✅ User deleted:', userId)
+ +      } else {
+ +        toast.error(response.error || 'Failed to delete user')
+ +        console.error('❌ Failed to delete user:', response.error)
+ +      }
+ +    } catch (error) {
+ +      console.error('❌ Failed to delete user:', error)
+ +      toast.error('Failed to delete user')
+ +    }
+ +  }
+ +
+ +  const handleEditUser = (user) => {
+ +    // TODO: Implement edit user modal or navigate to edit page
+ +    toast.info('Edit user functionality coming soon')
+ +    console.log('Edit user:', user)
+ +  }
+ +
+ +  const handleRefresh = async () => {
+ +    await fetchUsers({ page: 1 })
+ +    await fetchUserStats()
+ +    toast.success('Users list refreshed')
+ +    console.log('🔄 Users list refreshed')
+ +  }
+ +
+ +  const handleViewOrders = (user) => {
+ +    // TODO: Implement view orders functionality
+ +    toast.info('View orders functionality coming soon')
+ +    console.log('View orders for user:', user)
+ +  }
+ +
+ +  const handleViewTickets = (user) => {
+ +    // TODO: Implement view tickets functionality
+ +    toast.info('View tickets functionality coming soon')
+ +    console.log('View tickets for user:', user)
+ +  }
+ +
+ +  const handleBlockUser = async (userId) => {
+ +    try {
+ +      const user = users.find(u => u.id === userId)
+ +      if (!user) return
+ +
+ +      const newStatus = user.status === 'blocked' ? 'active' : 'blocked'
+ +      const response = await userService.updateUser(userId, {
+ +        is_active: newStatus === 'active'
+ +      })
+ +
+ +      if (response.success) {
+ +        // Update local state
+ +        setUsers(prev => prev.map(u =>
+ +          u.id === userId
+ +            ? { ...u, status: newStatus, statusDisplay: newStatus === 'active' ? 'Active' : 'Blocked' }
+ +            : u
+ +        ))
+ +        toast.success(`User ${newStatus === 'active' ? 'unblocked' : 'blocked'} successfully`)
+ +        console.log('✅ User status updated:', userId, newStatus)
+ +      } else {
+ +        toast.error(response.error || 'Failed to update user status')
+ +        console.error('❌ Failed to update user status:', response.error)
+ +      }
+ +    } catch (error) {
+ +      console.error('❌ Failed to block/unblock user:', error)
+ +      toast.error('Failed to update user status')
+ +    }
+++=======
++   const handleViewSupportTickets = async (user) => {
++     setSelectedUser(user)
++     setShowSupportTicketsModal(true)
++   }
++ 
++   const handleRefresh = () => {
++     fetchPublicUsers()
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+    }
+  
+    return (
+@@@ -373,10 -325,27 +587,32 @@@
+          <div className="flex items-center space-x-3">
+            <Users className="h-8 w-8 text-blue-600" />
+            <div>
+++<<<<<<< HEAD
+ +            <h1 className="text-2xl font-bold text-foreground">Public Users Management</h1>
+ +            <p className="text-muted-foreground">App SIM Buyers - {filteredUsers.length} users</p>
+++=======
++             <h1 className="text-2xl font-bold text-gray-900">Public Users Management</h1>
++             <p className="text-gray-600">App SIM Buyers - {loading ? 'Loading...' : filteredUsers.length} users</p>
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+            </div>
+          </div>
++         <div className="flex items-center space-x-3">
++           <button
++             onClick={handleRefresh}
++             disabled={loading}
++             className="flex items-center space-x-2 bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
++           >
++             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
++             <span>Refresh</span>
++           </button>
++           <button 
++             onClick={() => setShowAddModal(true)}
++             className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
++           >
++             <Plus className="h-4 w-4" />
++             <span>Add User</span>
++           </button>
++         </div>
+        </div>
+  
+        {/* Search and Filters */}
+@@@ -460,123 -429,13 +696,133 @@@
+                </th>
+              </tr>
+            </thead>
+++<<<<<<< HEAD
+ +          <tbody className="bg-card divide-y divide-border">
+ +            {filteredUsers.map((user) => (
+ +              <tr key={user.id} className="hover:bg-muted/50 transition-colors">
+ +                {/* User Details */}
+ +                <td className="px-6 py-4">
+ +                  <div className="flex items-center">
+ +                    <div className="flex-shrink-0 h-10 w-10">
+ +                      <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center">
+ +                        <span className="text-white font-medium text-sm">
+ +                          {user.name.split(' ').map(n => n[0]).join('')}
+ +                        </span>
+ +                      </div>
+ +                    </div>
+ +                    <div className="ml-4">
+ +                      <div className="text-sm font-medium text-foreground">{user.name}</div>
+ +                      <div className="text-sm text-muted-foreground">{user.email}</div>
+ +                      <div className="text-xs text-muted-foreground">Joined: {user.joinDate}</div>
+ +                    </div>
+ +                  </div>
+ +                </td>
+ +
+ +                {/* Contact & Location */}
+ +                <td className="px-6 py-4">
+ +                  <div className="text-sm text-foreground">
+ +                    <div className="flex items-center mb-1">
+ +                      <Phone className="h-3 w-3 text-muted-foreground mr-1" />
+ +                      {user.phone}
+ +                    </div>
+ +                    <div className="flex items-center">
+ +                      <MapPin className="h-3 w-3 text-muted-foreground mr-1" />
+ +                      <span className="text-xs">{user.address}</span>
+ +                    </div>
+ +                  </div>
+ +                </td>
+ +
+ +                {/* Package & Status */}
+ +                <td className="px-6 py-4">
+ +                  <div className="space-y-1">
+ +                    <div className="flex items-center">
+ +                      <Package className="h-3 w-3 text-muted-foreground mr-1" />
+ +                      <span className="text-xs text-foreground">{user.package}</span>
+ +                    </div>
+ +                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+ +                      user.status === 'Active'
+ +                        ? 'bg-success/10 text-success border border-success/20'
+ +                        : user.status === 'Blocked'
+ +                        ? 'bg-destructive/10 text-destructive border border-destructive/20'
+ +                        : 'bg-warning/10 text-warning border border-warning/20'
+ +                    }`}>
+ +                      {user.status === 'Active' && <CheckCircle className="h-3 w-3 mr-1" />}
+ +                      {user.status === 'Blocked' && <XCircle className="h-3 w-3 mr-1" />}
+ +                      {user.status === 'Inactive' && <Clock className="h-3 w-3 mr-1" />}
+ +                      {user.status}
+ +                    </span>
+ +                  </div>
+ +                </td>
+ +
+ +                {/* Activity & Orders */}
+ +                <td className="px-6 py-4">
+ +                  <div className="text-sm space-y-1">
+ +                    <div className="flex items-center">
+ +                      <ShoppingBag className="h-3 w-3 text-muted-foreground mr-1" />
+ +                      <span className="text-xs">{user.totalOrders} orders</span>
+ +                    </div>
+ +                    <div className="flex items-center">
+ +                      <DollarSign className="h-3 w-3 text-muted-foreground mr-1" />
+ +                      <span className="text-xs font-medium">${user.totalSpent}</span>
+ +                    </div>
+ +                    <div className="text-xs text-muted-foreground">Last: {user.lastActivity}</div>
+ +                  </div>
+ +                </td>
+ +
+ +                {/* Support */}
+ +                <td className="px-6 py-4">
+ +                  <div className="flex items-center">
+ +                    <MessageSquare className="h-3 w-3 text-muted-foreground mr-1" />
+ +                    <span className={`text-xs ${user.supportTickets > 0 ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+ +                      {user.supportTickets} tickets
+ +                    </span>
+ +                  </div>
+ +                </td>
+ +
+ +                {/* Actions */}
+ +                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+ +                  <div className="flex space-x-1">
+ +                    <button
+ +                      onClick={() => handleViewUser(user)}
+ +                      className="p-1 text-primary hover:text-primary/80 transition-colors"
+ +                      title="View Details"
+ +                    >
+ +                      <Eye className="h-4 w-4" />
+ +                    </button>
+ +                    <button
+ +                      onClick={() => handleEditUser(user)}
+ +                      className="p-1 text-success hover:text-success/80 transition-colors"
+ +                      title="Edit User"
+ +                    >
+ +                      <Edit className="h-4 w-4" />
+ +                    </button>
+ +                    <button
+ +                      onClick={() => handleToggleUserStatus(user.id)}
+ +                      className={`p-1 transition-colors ${
+ +                        user.status === 'active'
+ +                          ? 'text-destructive hover:text-destructive/80'
+ +                          : 'text-success hover:text-success/80'
+ +                      }`}
+ +                      title={user.status === 'active' ? 'Deactivate User' : 'Activate User'}
+ +                    >
+ +                      {user.status === 'active' ? <UserX className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+ +                    </button>
+ +                    <button
+ +                      onClick={() => handleDeleteUser(user.id)}
+ +                      className="p-1 text-destructive hover:text-destructive/80 transition-colors"
+ +                      title="Delete User"
+ +                    >
+ +                      <Trash2 className="h-4 w-4" />
+ +                    </button>
+++=======
++           <tbody className="bg-white divide-y divide-gray-200">
++             {loading ? (
++               <tr>
++                 <td colSpan="6" className="px-6 py-8 text-center">
++                   <div className="flex items-center justify-center space-x-2">
++                     <RefreshCw className="h-5 w-5 animate-spin text-gray-400" />
++                     <span className="text-gray-500">Loading users...</span>
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+                    </div>
+                  </td>
+                </tr>
+@@@ -585,9 -585,9 +972,9 @@@
+          </table>
+        </div>
+  
+-       {filteredUsers.length === 0 && (
++       {filteredUsers.length === 0 && !loading && (
+          <div className="text-center py-8">
+ -          <p className="text-gray-500">No users found matching your search.</p>
+ +          <p className="text-muted-foreground">No users found matching your search.</p>
+          </div>
+        )}
+  
+@@@ -608,99 -608,110 +995,176 @@@
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Personal Information */}
+                <div className="space-y-4">
+ -                <h3 className="font-semibold text-gray-900 border-b pb-2">Personal Information</h3>
+ +                <h3 className="font-semibold text-foreground border-b border-border pb-2">Personal Information</h3>
+                  <div className="space-y-2">
+                    <div>
+++<<<<<<< HEAD
+ +                    <label className="text-sm font-medium text-muted-foreground">Name</label>
+ +                    <p className="text-foreground">{selectedUser.name}</p>
+ +                  </div>
+ +                  <div>
+ +                    <label className="text-sm font-medium text-muted-foreground">Email</label>
+ +                    <p className="text-foreground">{selectedUser.email}</p>
+ +                  </div>
+ +                  <div>
+ +                    <label className="text-sm font-medium text-muted-foreground">Phone</label>
+ +                    <p className="text-foreground">{selectedUser.phone}</p>
+ +                  </div>
+ +                  <div>
+ +                    <label className="text-sm font-medium text-muted-foreground">Address</label>
+ +                    <p className="text-foreground">{selectedUser.address}</p>
+ +                  </div>
+ +                  <div>
+ +                    <label className="text-sm font-medium text-muted-foreground">Join Date</label>
+ +                    <p className="text-foreground">{selectedUser.joinDate}</p>
+++=======
++                     <label className="text-sm font-medium text-gray-500">Name</label>
++                     <p className="text-gray-900">{selectedUser.name || selectedUser.fullName || 'N/A'}</p>
++                   </div>
++                   <div>
++                     <label className="text-sm font-medium text-gray-500">Email</label>
++                     <p className="text-gray-900">{selectedUser.displayEmail || selectedUser.email || 'N/A'}</p>
++                   </div>
++                   <div>
++                     <label className="text-sm font-medium text-gray-500">Phone</label>
++                     <p className="text-gray-900">{selectedUser.displayPhone || selectedUser.phone || selectedUser.phoneNumber || 'N/A'}</p>
++                   </div>
++                   <div>
++                     <label className="text-sm font-medium text-gray-500">Address</label>
++                     <p className="text-gray-900">{selectedUser.displayAddress || selectedUser.address || selectedUser.displayCity || 'N/A'}</p>
++                   </div>
++                   <div>
++                     <label className="text-sm font-medium text-gray-500">Join Date</label>
++                     <p className="text-gray-900">{selectedUser.joinDate || selectedUser.createdAt || 'N/A'}</p>
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+                    </div>
+                  </div>
+                </div>
+  
+                {/* Account & Activity */}
+                <div className="space-y-4">
+ -                <h3 className="font-semibold text-gray-900 border-b pb-2">Account & Activity</h3>
+ +                <h3 className="font-semibold text-foreground border-b border-border pb-2">Account & Activity</h3>
+                  <div className="space-y-2">
+                    <div>
+ -                    <label className="text-sm font-medium text-gray-500">Status</label>
+ +                    <label className="text-sm font-medium text-muted-foreground">Status</label>
+                      <p className={`font-medium ${
+++<<<<<<< HEAD
+ +                      selectedUser.status === 'Active' ? 'text-success' :
+ +                      selectedUser.status === 'Blocked' ? 'text-destructive' : 'text-warning'
+++=======
++                       selectedUser.status === 'Active' || selectedUser.status === 'active' ? 'text-green-600' :
++                       selectedUser.status === 'Blocked' || selectedUser.status === 'blocked' ? 'text-red-600' : 'text-yellow-600'
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+                      }`}>
+-                       {selectedUser.status}
++                       {selectedUser.displayStatus || selectedUser.status || 'N/A'}
+                      </p>
+                    </div>
+                    <div>
+++<<<<<<< HEAD
+ +                    <label className="text-sm font-medium text-muted-foreground">Current Package</label>
+ +                    <p className="text-foreground">{selectedUser.package}</p>
+ +                  </div>
+ +                  <div>
+ +                    <label className="text-sm font-medium text-muted-foreground">Total Orders</label>
+ +                    <p className="text-foreground">{selectedUser.totalOrders}</p>
+ +                  </div>
+ +                  <div>
+ +                    <label className="text-sm font-medium text-muted-foreground">Total Spent</label>
+ +                    <p className="text-foreground font-medium">${selectedUser.totalSpent}</p>
+ +                  </div>
+ +                  <div>
+ +                    <label className="text-sm font-medium text-muted-foreground">Support Tickets</label>
+ +                    <p className={`font-medium ${selectedUser.supportTickets > 0 ? 'text-destructive' : 'text-success'}`}>
+ +                      {selectedUser.supportTickets}
+ +                    </p>
+ +                  </div>
+ +                  <div>
+ +                    <label className="text-sm font-medium text-muted-foreground">Last Activity</label>
+ +                    <p className="text-foreground">{selectedUser.lastActivity}</p>
+++=======
++                     <label className="text-sm font-medium text-gray-500">Current Package</label>
++                     <p className="text-gray-900">{selectedUser.displayPackage || selectedUser.preferredPackage || selectedUser.package || 'N/A'}</p>
++                   </div>
++                   <div>
++                     <label className="text-sm font-medium text-gray-500">Total Orders</label>
++                     <p className="text-gray-900">{selectedUser.displayTotalOrders || selectedUser.totalOrders || 0}</p>
++                   </div>
++                   <div>
++                     <label className="text-sm font-medium text-gray-500">Total Spent</label>
++                     <p className="text-gray-900 font-medium">{selectedUser.displayTotalSpent || (selectedUser.totalSpent ? `$${selectedUser.totalSpent}` : 'N/A')}</p>
++                   </div>
++                   <div>
++                     <label className="text-sm font-medium text-gray-500">Support Tickets</label>
++                     <p className={`font-medium ${(selectedUser.displaySupportTickets || selectedUser.supportTickets || 0) > 0 ? 'text-red-600' : 'text-green-600'}`}>
++                       {selectedUser.displaySupportTickets || selectedUser.supportTickets || 0}
++                     </p>
++                   </div>
++                   <div>
++                     <label className="text-sm font-medium text-gray-500">Last Activity</label>
++                     <p className="text-gray-900">{selectedUser.lastActivityDisplay || selectedUser.lastActivity || 'N/A'}</p>
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+                    </div>
+                  </div>
+                </div>
+              </div>
+  
+              {/* Action Buttons */}
+ -            <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
+ +            <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-border">
+                <button
+++<<<<<<< HEAD
+ +                onClick={() => handleViewOrders(selectedUser)}
+ +                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 flex items-center space-x-2 transition-colors"
+++=======
++                 onClick={() => handleEditUser(selectedUser)}
++                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
++               >
++                 <Edit className="h-4 w-4" />
++                 <span>Edit User</span>
++               </button>
++               <button
++                 onClick={() => handleViewOrderHistory(selectedUser)}
++                 className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center space-x-2"
+                >
+                  <History className="h-4 w-4" />
+                  <span>View Orders</span>
+                </button>
+                <button
+++<<<<<<< HEAD
+ +                onClick={() => handleViewTickets(selectedUser)}
+ +                className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 flex items-center space-x-2 transition-colors"
+++=======
++                 onClick={() => handleViewSupportTickets(selectedUser)}
++                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center space-x-2"
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  <span>View Tickets</span>
+                </button>
+                <button
+                  onClick={() => {
+-                   handleBlockUser(selectedUser.id)
++                   if (selectedUser.status === 'blocked' || selectedUser.status === 'Blocked') {
++                     handleUnblockUser(selectedUser.id)
++                   } else {
++                     handleBlockUser(selectedUser)
++                   }
+                    setShowUserDetails(false)
+                  }}
+++<<<<<<< HEAD
+ +                className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors ${
+ +                  selectedUser.status === 'Blocked'
+ +                    ? 'bg-success hover:bg-success/90 text-success-foreground'
+ +                    : 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'
+++=======
++                 className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
++                   selectedUser.status === 'Blocked' || selectedUser.status === 'blocked'
++                     ? 'bg-green-600 hover:bg-green-700 text-white'
++                     : 'bg-red-600 hover:bg-red-700 text-white'
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+                  }`}
+                >
+-                 {selectedUser.status === 'Blocked' ? <CheckCircle className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
+-                 <span>{selectedUser.status === 'Blocked' ? 'Unblock User' : 'Block User'}</span>
++                 {selectedUser.status === 'Blocked' || selectedUser.status === 'blocked' ? <CheckCircle className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
++                 <span>{selectedUser.status === 'Blocked' || selectedUser.status === 'blocked' ? 'Unblock User' : 'Block User'}</span>
+                </button>
+              </div>
+            </div>
+diff --cc src/services/resellerService.js
+index d884b2d,3c53ae4..0000000
+--- a/src/services/resellerService.js
++++ b/src/services/resellerService.js
+@@@ -10,7 -10,14 +10,18 @@@ import 
+    RESELLER_ACTIVATE_URL,
+    RESELLER_CHANGE_STATUS_URL,
+    RESELLER_AVAILABLE_USERS_URL,
+++<<<<<<< HEAD
+ +  RESELLER_ACTIVATION_REQUESTS_URL
+++=======
++   // New activation request URLs
++   RESELLER_ACTIVATION_REQUESTS_URL,
++   RESELLER_ACTIVATION_REQUEST_DETAIL_URL,
++   RESELLER_ACTIVATION_REQUEST_CREATE_URL,
++   RESELLER_ACTIVATION_REQUEST_PENDING_URL,
++   RESELLER_ACTIVATION_REQUEST_MY_REQUEST_URL,
++   RESELLER_ACTIVATION_REQUEST_APPROVE_URL,
++   RESELLER_ACTIVATION_REQUEST_REJECT_URL
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+  } from '../config/api'
+  import { apiService } from './apiService'
+  
+@@@ -334,154 -341,212 +345,361 @@@ export const resellerService = 
+      return resellers.map(reseller => this.formatResellerData(reseller))
+    },
+  
+++<<<<<<< HEAD
+ +  // ===== Reseller Approval Workflows =====
+ +
+ +  /**
+ +   * Get reseller activation requests
+ +   */
+ +  async getActivationRequests(params = {}) {
+ +    try {
+ +      console.log('🔄 Fetching reseller activation requests')
+ +
+ +      const queryParams = new URLSearchParams()
+ +
+ +      if (params.page) queryParams.append('page', params.page)
+ +      if (params.limit) queryParams.append('limit', params.limit)
+ +      if (params.status) queryParams.append('status', params.status)
+ +      if (params.ordering) queryParams.append('ordering', params.ordering)
+ +
+ +      const url = queryParams.toString() ?
+ +        `${RESELLER_ACTIVATION_REQUESTS_URL}?${queryParams.toString()}` :
+ +        RESELLER_ACTIVATION_REQUESTS_URL
+ +
+ +      const response = await apiService.get(url, { requiresAuth: true })
+ +
+ +      const data = response.data || response
+ +
+ +      return {
+ +        success: true,
+ +        data: {
+ +          count: data.count || (Array.isArray(data.results || data) ? (data.results || data).length : 0),
+ +          next: data.next,
+ +          previous: data.previous,
+ +          results: data.results || data || [],
+ +          pagination: {
+ +            page: params.page || 1,
+ +            limit: params.limit || 20,
+ +            total: data.count || (Array.isArray(data.results || data) ? (data.results || data).length : 0),
+ +            totalPages: data.count ? Math.ceil(data.count / (params.limit || 20)) : 1
+++=======
++   // ===== RESELLER ACTIVATION REQUESTS =====
++ 
++   // Get all activation requests (Admin Only)
++   async getAllActivationRequests(params = {}) {
++     try {
++       const queryParams = new URLSearchParams()
++       
++       // Add pagination parameters
++       if (params.page) queryParams.append('page', params.page)
++       if (params.limit) queryParams.append('limit', params.limit)
++       if (params.search) queryParams.append('search', params.search)
++       if (params.ordering) queryParams.append('ordering', params.ordering)
++       
++       const url = queryParams.toString() ? `${RESELLER_ACTIVATION_REQUESTS_URL}?${queryParams.toString()}` : RESELLER_ACTIVATION_REQUESTS_URL
++       
++       const response = await apiService.get(url, { requiresAuth: true })
++       
++       // Handle both wrapped and direct response formats
++       const data = response.data || response
++       
++       return {
++         success: true,
++         data: {
++           count: data.count || data.length,
++           next: data.next,
++           previous: data.previous,
++           results: data.results || data,
++           pagination: {
++             page: params.page || 1,
++             limit: params.limit || 20,
++             total: data.count || data.length,
++             totalPages: Math.ceil((data.count || data.length) / (params.limit || 20))
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+            }
+          }
+        }
+      } catch (error) {
+        console.error('❌ Failed to fetch activation requests:', error)
+++<<<<<<< HEAD
+ +      return {
+ +        success: false,
+ +        error: error.message || 'Failed to fetch activation requests'
+ +      }
+ +    }
+ +  },
+ +
+ +  /**
+ +   * Approve reseller activation request
+ +   */
+ +  async approveActivationRequest(requestId, approvalData = {}) {
+ +    try {
+ +      console.log('🔄 Approving reseller activation request:', requestId)
+ +
+ +      const url = `${RESELLERS_URL.replace('resellers/', 'reseller-activation-requests/')}${requestId}/approve/`
+ +
+ +      const response = await apiService.post(url, {
+ +        max_clients: approvalData.maxClients || 100,
+ +        max_sims: approvalData.maxSims || 1000,
+ +        credit_limit: approvalData.creditLimit || 1000,
+ +        notes: approvalData.notes || ''
+ +      }, { requiresAuth: true })
+ +
+ +      const data = response.data || response
+ +
+ +      if (response.success || data.success) {
+ +        console.log('✅ Activation request approved successfully')
+ +        return {
+ +          success: true,
+ +          data: data.data || data,
+ +          message: 'Reseller activation request approved successfully'
+ +        }
+ +      }
+ +
+ +      return response
+ +    } catch (error) {
+ +      console.error('❌ Failed to approve activation request:', error)
+ +      return {
+ +        success: false,
+ +        error: error.message || 'Failed to approve activation request'
+ +      }
+ +    }
+ +  },
+ +
+ +  /**
+ +   * Reject reseller activation request
+ +   */
+ +  async rejectActivationRequest(requestId, rejectionReason) {
+ +    try {
+ +      console.log('🔄 Rejecting reseller activation request:', requestId)
+ +
+ +      const url = `${RESELLERS_URL.replace('resellers/', 'reseller-activation-requests/')}${requestId}/reject/`
+ +
+ +      const response = await apiService.post(url, {
+ +        rejection_reason: rejectionReason
+ +      }, { requiresAuth: true })
+ +
+ +      const data = response.data || response
+ +
+ +      if (response.success || data.success) {
+ +        console.log('✅ Activation request rejected successfully')
+ +        return {
+ +          success: true,
+ +          data: data.data || data,
+ +          message: 'Reseller activation request rejected successfully'
+ +        }
+ +      }
+ +
+ +      return response
+ +    } catch (error) {
+ +      console.error('❌ Failed to reject activation request:', error)
+ +      return {
+ +        success: false,
+ +        error: error.message || 'Failed to reject activation request'
+ +      }
+ +    }
+ +  },
+ +
+ +  /**
+ +   * Format activation requests for frontend consumption
+ +   */
+ +  formatActivationRequestsList(requests) {
+ +    if (!Array.isArray(requests)) {
+ +      return []
+ +    }
+ +
+ +    return requests.map(request => ({
+ +      id: request.id,
+ +      firstName: request.user?.first_name || '',
+ +      lastName: request.user?.last_name || '',
+ +      name: `${request.user?.first_name || ''} ${request.user?.last_name || ''}`.trim(),
+ +      email: request.user?.email || '',
+ +      phoneCountryCode: request.user?.country_code || '',
+ +      phoneNumber: request.user?.phone_number || '',
+ +      countryOfRegistration: request.user?.country_code || '',
+ +      companyName: request.company_name || '',
+ +      businessType: request.business_type || '',
+ +      requestDate: request.created_at,
+ +      status: request.status || 'pending',
+ +      maxClients: request.max_clients || 100,
+ +      maxSims: request.max_sims || 1000,
+ +      creditLimit: request.credit_limit || 1000,
+ +      rejectionReason: request.rejection_reason || '',
+ +      approvedBy: request.approved_by || null,
+ +      approvedAt: request.approved_at || null,
+ +      documents: request.documents || []
+ +    }))
+++=======
++       throw error
++     }
++   },
++ 
++   // Get pending activation requests only (Admin Only)
++   async getPendingActivationRequests() {
++     try {
++       const response = await apiService.get(RESELLER_ACTIVATION_REQUEST_PENDING_URL, { requiresAuth: true })
++       
++       // Handle both response formats
++       const data = response.data || response
++       
++       return {
++         success: true,
++         data: data.data || data
++       }
++     } catch (error) {
++       console.error('❌ Failed to fetch pending activation requests:', error)
++       throw error
++     }
++   },
++ 
++   // Get specific activation request by ID (Admin Only)
++   async getActivationRequestById(id) {
++     try {
++       const url = replaceUrlParams(RESELLER_ACTIVATION_REQUEST_DETAIL_URL, { id })
++       const response = await apiService.get(url, { requiresAuth: true })
++       
++       // Handle both response formats
++       const data = response.data || response
++       
++       return {
++         success: true,
++         data: data.data || data
++       }
++     } catch (error) {
++       console.error(`❌ Failed to fetch activation request ${id}:`, error)
++       throw error
++     }
++   },
++ 
++   // Create new activation request (User Only)
++   async createActivationRequest(requestData) {
++     try {
++       const response = await apiService.post(RESELLER_ACTIVATION_REQUEST_CREATE_URL, requestData, { requiresAuth: true })
++       
++       // Handle both response formats
++       const data = response.data || response
++       
++       return {
++         success: true,
++         data: data.data || data
++       }
++     } catch (error) {
++       console.error('❌ Failed to create activation request:', error)
++       throw error
++     }
++   },
++ 
++   // Get my activation request (User Only)
++   async getMyActivationRequest() {
++     try {
++       const response = await apiService.get(RESELLER_ACTIVATION_REQUEST_MY_REQUEST_URL, { requiresAuth: true })
++       
++       // Handle both response formats
++       const data = response.data || response
++       
++       return {
++         success: true,
++         data: data.data || data
++       }
++     } catch (error) {
++       console.error('❌ Failed to fetch my activation request:', error)
++       throw error
++     }
++   },
++ 
++   // Approve activation request (Admin Only)
++   async approveActivationRequest(id) {
++     try {
++       const url = replaceUrlParams(RESELLER_ACTIVATION_REQUEST_APPROVE_URL, { id })
++       const response = await apiService.post(url, {}, { requiresAuth: true })
++       
++       // Handle both response formats
++       if (response.success !== undefined) {
++         // Response already has success property
++         return response
++       } else {
++         // Response is direct data
++         return {
++           success: true,
++           message: response.message || 'Activation request approved successfully',
++           data: response.data || response
++         }
++       }
++     } catch (error) {
++       console.error(`❌ Failed to approve activation request ${id}:`, error)
++       throw error
++     }
++   },
++ 
++   // Reject activation request (Admin Only)
++   async rejectActivationRequest(id, adminNotes = '') {
++     try {
++       const url = replaceUrlParams(RESELLER_ACTIVATION_REQUEST_REJECT_URL, { id })
++       const response = await apiService.post(url, { admin_notes: adminNotes }, { requiresAuth: true })
++       
++       // Handle both response formats
++       if (response.success !== undefined) {
++         // Response already has success property
++         return response
++       } else {
++         // Response is direct data
++         return {
++           success: true,
++           message: response.message || 'Activation request rejected successfully',
++           data: response.data || response
++         }
++       }
++     } catch (error) {
++       console.error(`❌ Failed to reject activation request ${id}:`, error)
++       throw error
++     }
++   },
++ 
++   // Helper function to format activation request data for frontend
++   formatActivationRequestData(request) {
++     if (!request) return null
++     
++     return {
++       id: request.id,
++       user: {
++         id: request.user?.id,
++         email: request.user?.email,
++         firstName: request.user?.first_name,
++         lastName: request.user?.last_name,
++         name: request.user?.first_name && request.user?.last_name 
++           ? `${request.user.first_name} ${request.user.last_name}`
++           : request.user?.email,
++         phone: request.user?.phone_number,
++         countryCode: request.user?.country_code,
++         fullPhoneNumber: request.user?.full_phone_number,
++         isActive: request.user?.is_active !== false,
++         createdAt: request.user?.created_at,
++         lastLogin: request.user?.last_login
++       },
++       maxClients: request.max_clients,
++       maxSims: request.max_sims,
++       creditLimit: request.credit_limit,
++       status: request.status,
++       adminNotes: request.admin_notes,
++       approvedBy: request.approved_by,
++       approvedAt: request.approved_at,
++       rejectedAt: request.rejected_at,
++       createdAt: request.created_at,
++       updatedAt: request.updated_at,
++       isPending: request.is_pending,
++       isApproved: request.is_approved,
++       isRejected: request.is_rejected,
++       // Frontend display fields
++       requestDate: request.created_at,
++       daysAgo: request.created_at ? Math.ceil((new Date() - new Date(request.created_at)) / (1000 * 60 * 60 * 24)) : 0
++     }
++   },
++ 
++   // Helper function to format multiple activation requests
++   formatActivationRequestsList(requests) {
++     if (!Array.isArray(requests)) return []
++     return requests.map(request => this.formatActivationRequestData(request))
+++>>>>>>> 6b0a368198b1d6f18336def7cb067b929f192c84
+    }
+  }
+  

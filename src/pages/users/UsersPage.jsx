@@ -1,5 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTheme } from '../../context/ThemeContext'
+import toast from 'react-hot-toast'
+// BACKEND INTEGRATION ACTIVATED
+import { usersService } from '../../services/usersService'
 import {
   Search,
   Filter,
@@ -145,13 +148,65 @@ const sampleUsers = [
 
 function UsersPage() {
   const { resolvedTheme } = useTheme()
-  const [users, setUsers] = useState(sampleUsers)
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [cityFilter, setCityFilter] = useState('all')
   const [packageFilter, setPackageFilter] = useState('all')
   const [selectedUser, setSelectedUser] = useState(null)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0
+  })
+
+  // Fetch users from API
+  const fetchUsers = async (params = {}) => {
+    // BACKEND INTEGRATION ACTIVATED
+    try {
+      setLoading(true)
+
+      const response = await usersService.getAllUsers({
+        page: params.page || pagination.page,
+        limit: params.limit || pagination.limit,
+        search: params.search || searchTerm,
+        role: 'public_user', // Only get public users for this page
+        is_active: statusFilter === 'active' ? true : statusFilter === 'blocked' ? false : undefined,
+        ordering: params.ordering || '-date_joined'
+      })
+
+      if (response.success) {
+        const formattedUsers = usersService.formatUsersList(response.data.results)
+        setUsers(formattedUsers)
+        setPagination(response.data.pagination)
+      } else {
+        // Fallback to sample data if API fails
+        console.error('API failed, using sample data:', response.error)
+        toast.error('Failed to load users - using sample data')
+        setUsers(sampleUsers)
+      }
+    } catch (error) {
+      console.error('Failed to fetch users:', error)
+      toast.error('Failed to load users - using sample data')
+      // Fallback to sample data
+      setUsers(sampleUsers)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Load users on component mount
+  useEffect(() => {
+    fetchUsers()
+  }, [])
+
+  // Reload users when filters change
+  useEffect(() => {
+    fetchUsers({ page: 1 })
+  }, [statusFilter])
 
   // Filter users based on search and filters
   const filteredUsers = users.filter(user => {
@@ -201,23 +256,75 @@ function UsersPage() {
     // TEMPORARILY COMMENTED OUT - Modal causing issues
     // setShowDetailsModal(true)
     console.log('View user:', user.name)
-    alert(`Viewing user: ${user.name} (Demo mode)`)
+    alert(`Viewing user: ${user.name} (Backend integration active)`)
   }
 
-  const handleBlockUser = (userId) => {
-    setUsers(prev => prev.map(user =>
-      user.id === userId
-        ? { ...user, status: user.status === 'blocked' ? 'active' : 'blocked' }
-        : user
-    ))
+  const handleBlockUser = async (userId) => {
+    // BACKEND INTEGRATION ACTIVATED
+    try {
+      const user = users.find(u => u.id === userId)
+      const isCurrentlyBlocked = user.status === 'blocked'
+      
+      let response
+      if (isCurrentlyBlocked) {
+        response = await usersService.unblockUser(userId)
+      } else {
+        response = await usersService.blockUser(userId, 'Blocked by admin')
+      }
+
+      if (response.success) {
+        toast.success(response.message)
+        // Update local state
+        setUsers(prev => prev.map(u =>
+          u.id === userId
+            ? { ...u, status: isCurrentlyBlocked ? 'active' : 'blocked' }
+            : u
+        ))
+      } else {
+        toast.error(response.error || 'Failed to update user status')
+      }
+    } catch (error) {
+      console.error('Failed to update user status:', error)
+      toast.error('Failed to update user status')
+    }
   }
 
-  const handleSuspendUser = (userId) => {
-    setUsers(prev => prev.map(user =>
-      user.id === userId
-        ? { ...user, status: user.status === 'suspended' ? 'active' : 'suspended' }
-        : user
-    ))
+  const handleSuspendUser = async (userId) => {
+    // BACKEND INTEGRATION ACTIVATED
+    try {
+      const user = users.find(u => u.id === userId)
+      const isCurrentlySuspended = user.status === 'suspended'
+      
+      let response
+      if (isCurrentlySuspended) {
+        response = await usersService.unblockUser(userId)
+      } else {
+        response = await usersService.blockUser(userId, 'Suspended by admin')
+      }
+
+      if (response.success) {
+        toast.success(response.message)
+        // Update local state
+        setUsers(prev => prev.map(u =>
+          u.id === userId
+            ? { ...u, status: isCurrentlySuspended ? 'active' : 'suspended' }
+            : u
+        ))
+      } else {
+        toast.error(response.error || 'Failed to update user status')
+      }
+    } catch (error) {
+      console.error('Failed to update user status:', error)
+      toast.error('Failed to update user status')
+    }
+  }
+
+  const handleSearch = (searchValue) => {
+    setSearchTerm(searchValue)
+    // Debounce search to avoid too many API calls
+    setTimeout(() => {
+      fetchUsers({ page: 1, search: searchValue })
+    }, 500)
   }
 
   return (
@@ -298,7 +405,7 @@ function UsersPage() {
                 type="text"
                 placeholder="Search users by name, email, or phone..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => handleSearch(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
@@ -362,7 +469,40 @@ function UsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filteredUsers.map((user) => {
+              {loading ? (
+                // Loading skeleton rows
+                [...Array(5)].map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td className="p-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-muted rounded-full"></div>
+                        <div className="space-y-2">
+                          <div className="h-4 bg-muted rounded w-32"></div>
+                          <div className="h-3 bg-muted rounded w-48"></div>
+                          <div className="h-3 bg-muted rounded w-28"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4"><div className="h-6 bg-muted rounded w-20"></div></td>
+                    <td className="p-4"><div className="h-4 bg-muted rounded w-16"></div></td>
+                    <td className="p-4"><div className="h-4 bg-muted rounded w-24"></div></td>
+                    <td className="p-4"><div className="h-4 bg-muted rounded w-8"></div></td>
+                    <td className="p-4"><div className="h-4 bg-muted rounded w-16"></div></td>
+                    <td className="p-4"><div className="h-4 bg-muted rounded w-20"></div></td>
+                    <td className="p-4"><div className="h-8 bg-muted rounded w-24"></div></td>
+                  </tr>
+                ))
+              ) : filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan="8" className="p-8 text-center">
+                    <div className="flex flex-col items-center space-y-2">
+                      <Users className="h-12 w-12 text-muted-foreground opacity-50" />
+                      <p className="text-muted-foreground">No users found</p>
+                      <p className="text-sm text-muted-foreground">Try adjusting your search or filters</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredUsers.map((user) => {
                 const statusDisplay = getStatusDisplay(user.status)
                 const StatusIcon = statusDisplay.icon
 
@@ -501,18 +641,7 @@ function UsersPage() {
           </table>
         </div>
 
-        {/* Empty State */}
-        {filteredUsers.length === 0 && (
-          <div className="text-center py-12">
-            <Users className={`mx-auto h-12 w-12 ${resolvedTheme === 'dark' ? 'text-slate-600' : 'text-gray-400'}`} />
-            <h3 className="mt-2 text-sm font-medium text-foreground">No users found</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {searchTerm || statusFilter !== 'all' || cityFilter !== 'all' || packageFilter !== 'all'
-                ? 'Try adjusting your search or filters'
-                : 'No users have been registered yet'}
-            </p>
-          </div>
-        )}
+
       </div>
 
       {/* User Details Modal - TEMPORARILY COMMENTED OUT */}

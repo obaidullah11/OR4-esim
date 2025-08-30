@@ -303,8 +303,8 @@ function SettingsPageClean() {
       <div className="flex items-center space-x-3 mb-6">
         <Settings className="h-8 w-8 text-blue-600" />
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-600">Manage your system configuration and preferences</p>
+          <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+          <p className="text-muted-foreground">Manage your system configuration and preferences</p>
         </div>
       </div>
 
@@ -321,7 +321,7 @@ function SettingsPageClean() {
                   className={`w-full flex items-center space-x-3 px-4 py-3 text-left rounded-lg transition-colors ${
                     activeTab === tab.id
                       ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-500'
-                      : 'text-gray-600 hover:bg-gray-50'
+                      : 'text-muted-foreground hover:bg-accent'
                   }`}
                 >
                   <Icon className="h-5 w-5" />
@@ -334,43 +334,43 @@ function SettingsPageClean() {
 
         {/* Content */}
         <div className="flex-1">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-card rounded-lg shadow-soft dark:shadow-dark-soft border border-border p-6">
             {/* General Settings */}
             {activeTab === 'general' && (
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-gray-900">General Settings</h3>
+                <h3 className="text-lg font-semibold text-foreground">General Settings</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Site Name
                     </label>
                     <input
                       type="text"
                       value={settings.siteName}
                       onChange={(e) => setSettings(prev => ({ ...prev, siteName: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-background text-foreground"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Contact Email
                     </label>
                     <input
                       type="email"
                       value={settings.contactEmail}
                       onChange={(e) => setSettings(prev => ({ ...prev, contactEmail: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-background text-foreground"
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Site Description
                     </label>
                     <textarea
                       value={settings.siteDescription}
                       onChange={(e) => setSettings(prev => ({ ...prev, siteDescription: e.target.value }))}
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-background text-foreground"
                     />
                   </div>
                 </div>
@@ -396,35 +396,35 @@ function SettingsPageClean() {
                   <h4 className="font-medium text-gray-900 mb-4">Profile Information</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Admin Name
                     </label>
                     <input
                       type="text"
                       value={settings.adminName}
                       onChange={(e) => setSettings(prev => ({ ...prev, adminName: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-background text-foreground"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Admin Email
                     </label>
                     <input
                       type="email"
                       value={settings.adminEmail}
                       onChange={(e) => setSettings(prev => ({ ...prev, adminEmail: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-background text-foreground"
                     />
                   </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Role
                       </label>
                       <select
                         value={settings.adminRole}
                         onChange={(e) => setSettings(prev => ({ ...prev, adminRole: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-background text-foreground"
                       >
                         <option value="super_admin">Super Admin</option>
                         <option value="admin">Admin</option>
@@ -432,7 +432,7 @@ function SettingsPageClean() {
                       </select>
                     </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       New Password
                     </label>
                     <div className="relative">
@@ -557,7 +557,7 @@ function SettingsPageClean() {
                   <h4 className="font-medium text-gray-900 mb-4">General Settings</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Express Delivery Fee
                       </label>
                       <input
@@ -569,7 +569,7 @@ function SettingsPageClean() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Weekend Delivery Multiplier
                       </label>
                       <input
@@ -600,7 +600,7 @@ function SettingsPageClean() {
                   {settings.weightBasedPricing.enabled && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
                           Base Weight (kg)
                         </label>
                         <input
@@ -615,7 +615,7 @@ function SettingsPageClean() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
                           Additional Weight Fee (per 0.5kg)
                         </label>
                         <input
@@ -667,7 +667,7 @@ function SettingsPageClean() {
                   {settings.taxSettings.vatEnabled && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
                           VAT Rate (%)
                         </label>
                         <input
@@ -682,7 +682,7 @@ function SettingsPageClean() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
                           Currency
                         </label>
                         <select
@@ -705,7 +705,7 @@ function SettingsPageClean() {
                   <h4 className="font-medium text-gray-900 mb-4">Service Charges</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Service Charge
                       </label>
                       <input
@@ -720,7 +720,7 @@ function SettingsPageClean() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Charge Type
                       </label>
                       <select
@@ -853,7 +853,7 @@ function SettingsPageClean() {
                   <h4 className="font-medium text-gray-900 mb-4">Template Editor</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Notification Type
                       </label>
                       <select
@@ -866,7 +866,7 @@ function SettingsPageClean() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Template
                       </label>
                       <select
@@ -885,7 +885,7 @@ function SettingsPageClean() {
                   {selectedNotificationType === 'email' && (
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
                           Subject Line
                         </label>
                         <input
@@ -908,7 +908,7 @@ function SettingsPageClean() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
                           Email Body
                         </label>
                         <textarea
@@ -935,7 +935,7 @@ function SettingsPageClean() {
                   
                   {selectedNotificationType === 'sms' && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         SMS Message
                       </label>
                       <textarea
@@ -1189,7 +1189,7 @@ function SettingsPageClean() {
                   <h4 className="font-medium text-gray-900 mb-4">Logo & Favicon</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Company Logo
                       </label>
                       <div className="flex items-center space-x-4">
@@ -1222,7 +1222,7 @@ function SettingsPageClean() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Favicon
                       </label>
                       <div className="flex items-center space-x-4">
@@ -1261,7 +1261,7 @@ function SettingsPageClean() {
                   <h4 className="font-medium text-gray-900 mb-4">Brand Information</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Brand Name
                       </label>
                       <input
@@ -1275,7 +1275,7 @@ function SettingsPageClean() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Tagline
                       </label>
                       <input
@@ -1289,7 +1289,7 @@ function SettingsPageClean() {
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Footer Text
                       </label>
                       <textarea
@@ -1310,7 +1310,7 @@ function SettingsPageClean() {
                   <h4 className="font-medium text-gray-900 mb-4">Color Scheme</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Primary Color
                       </label>
                       <div className="flex items-center space-x-3">
@@ -1335,7 +1335,7 @@ function SettingsPageClean() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Secondary Color
                       </label>
                       <div className="flex items-center space-x-3">
@@ -1397,7 +1397,7 @@ function SettingsPageClean() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
                           Session Timeout (minutes)
                         </label>
                         <input
@@ -1410,7 +1410,7 @@ function SettingsPageClean() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
                           Password Expiry (days)
                         </label>
                         <input
@@ -1423,7 +1423,7 @@ function SettingsPageClean() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
                           Max Login Attempts
                         </label>
                         <input

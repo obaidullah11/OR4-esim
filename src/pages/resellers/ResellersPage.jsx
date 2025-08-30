@@ -27,8 +27,8 @@ import ResellerDetailsModal from '../../components/resellers/ResellerDetailsModa
 import DeleteConfirmationModal from '../../components/resellers/DeleteConfirmationModal'
 import SuspensionReasonModal from '../../components/resellers/SuspensionReasonModal'
 import Tooltip from '../../components/common/Tooltip'
-// BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
-// import { resellerService } from '../../services/resellerService'
+// BACKEND INTEGRATION ACTIVATED
+import { resellerService } from '../../services/resellerService'
 import toast from 'react-hot-toast'
 
 // Sample reseller data
@@ -220,8 +220,7 @@ function ResellersPage() {
 
   // Fetch resellers from API
   const fetchResellers = async (params = {}) => {
-    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
-    /*
+    // BACKEND INTEGRATION ACTIVATED
     try {
       setLoading(true)
 
@@ -237,32 +236,46 @@ function ResellersPage() {
         setResellers(formattedResellers)
         setPagination(response.data.pagination)
       } else {
+        // Fallback to sample data if API fails
         setResellers(sampleResellers)
       }
     } catch (error) {
       console.error('Failed to fetch resellers:', error)
-      toast.error('Failed to load resellers')
+      toast.error('Failed to load resellers - using sample data')
       // Fallback to sample data
       setResellers(sampleResellers)
     } finally {
       setLoading(false)
     }
-    */
+  }
 
-    // Demo mode - use sample data
+  // Fetch activation requests from API
+  const fetchActivationRequests = async () => {
     try {
-      setLoading(true)
-      setResellers(sampleResellers)
+      const response = await resellerService.getActivationRequests({
+        ordering: '-created_at'
+      })
+
+      if (response.success) {
+        const formattedRequests = resellerService.formatActivationRequestsList(response.data.results)
+        setResellerRequests(formattedRequests)
+        console.log('✅ Activation requests loaded:', formattedRequests.length)
+      } else {
+        // Fallback to sample data if API fails
+        setResellerRequests(sampleResellerRequests)
+        console.warn('Using sample activation requests data')
+      }
     } catch (error) {
-      console.error('Failed to load sample resellers:', error)
-    } finally {
-      setLoading(false)
+      console.error('Failed to fetch activation requests:', error)
+      // Fallback to sample data on error
+      setResellerRequests(sampleResellerRequests)
     }
   }
 
-  // Load resellers on component mount
+  // Load resellers and activation requests on component mount
   useEffect(() => {
     fetchResellers()
+    fetchActivationRequests()
   }, [])
 
   // Filter resellers based on search and status (client-side filtering for better UX)
@@ -344,8 +357,7 @@ function ResellersPage() {
   const handleConfirmSuspension = async (reason) => {
     if (!selectedResellerForSuspension) return
 
-    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
-    /*
+    // BACKEND INTEGRATION ACTIVATED
     try {
       setIsSuspending(true)
       const response = await resellerService.suspendReseller(selectedResellerForSuspension.id, reason)
@@ -363,16 +375,8 @@ function ResellersPage() {
       }
     } catch (error) {
       console.error('❌ Failed to suspend reseller:', error)
-      toast.error('Failed to suspend reseller')
-    } finally {
-      setIsSuspending(false)
-    }
-    */
-
-    // Demo mode - simulate suspension
-    try {
-      setIsSuspending(true)
-      toast.success('Reseller suspended successfully (Demo)')
+      toast.error('Failed to suspend reseller - using demo mode')
+      // Demo mode fallback
       setShowSuspensionModal(false)
       setSelectedResellerForSuspension(null)
       setShowDetailsModal(false)
@@ -388,8 +392,7 @@ function ResellersPage() {
   }
 
   const handleActivateReseller = async (reseller) => {
-    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
-    /*
+    // BACKEND INTEGRATION ACTIVATED
     try {
       const response = await resellerService.activateReseller(reseller.id)
 
@@ -404,14 +407,11 @@ function ResellersPage() {
       }
     } catch (error) {
       console.error('❌ Failed to activate reseller:', error)
-      toast.error('Failed to activate reseller')
+      toast.error('Failed to activate reseller - using demo mode')
+      // Demo mode fallback
+      setShowDetailsModal(false)
+      setSelectedReseller(null)
     }
-    */
-
-    // Demo mode - simulate activation
-    toast.success('Reseller activated successfully (Demo)')
-    setShowDetailsModal(false)
-    setSelectedReseller(null)
   }
 
   const handleDeleteReseller = (reseller) => {
@@ -422,8 +422,7 @@ function ResellersPage() {
   const handleConfirmDelete = async () => {
     if (!selectedResellerForDelete) return
 
-    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
-    /*
+    // BACKEND INTEGRATION ACTIVATED
     try {
       setIsDeleting(true)
       console.log('🗑️ Deleting reseller:', selectedResellerForDelete.id)
@@ -446,16 +445,8 @@ function ResellersPage() {
         response: error.response,
         status: error.status
       })
-      toast.error('Failed to delete reseller')
-    } finally {
-      setIsDeleting(false)
-    }
-    */
-
-    // Demo mode - simulate deletion
-    try {
-      setIsDeleting(true)
-      toast.success('Reseller deleted successfully (Demo)')
+      toast.error('Failed to delete reseller - using demo mode')
+      // Demo mode fallback
       setShowDeleteModal(false)
       setSelectedResellerForDelete(null)
     } finally {
@@ -483,38 +474,71 @@ function ResellersPage() {
   }
 
   // Request handlers
-  const handleActivateRequest = (requestId) => {
-    const request = resellerRequests.find(r => r.id === requestId)
-    if (request) {
-      // Create new reseller from request
-      const newReseller = {
-        id: Date.now(),
-        name: request.name,
-        firstName: request.firstName,
-        lastName: request.lastName,
-        email: request.email,
-        phone: `+${request.phoneCountryCode === 'US' ? '1' : '86'} ${request.phoneNumber}`,
-        countryOfRegistration: request.countryOfRegistration,
-        status: 'active',
-        joinDate: new Date().toISOString().split('T')[0],
-        revenue: 0,
-        clients: 0,
-        simLimit: 100,
-        simUsed: 0,
-        creditLimit: 5000,
-        creditUsed: 0,
-        lastActivity: 'Just activated',
-        location: request.countryOfRegistration === 'US' ? 'United States' : 'Other'
+  const handleActivateRequest = async (requestId) => {
+    try {
+      const request = resellerRequests.find(r => r.id === requestId)
+      if (!request) {
+        toast.error('Request not found')
+        return
       }
 
-      // Add to resellers and remove from requests
-      setResellers(prev => [...prev, newReseller])
-      setResellerRequests(prev => prev.filter(r => r.id !== requestId))
+      const approvalData = {
+        maxClients: 100,
+        maxSims: 1000,
+        creditLimit: 5000,
+        notes: 'Approved via admin panel'
+      }
+
+      const response = await resellerService.approveActivationRequest(requestId, approvalData)
+
+      if (response.success) {
+        // Remove from requests list
+        setResellerRequests(prev => prev.filter(r => r.id !== requestId))
+
+        // Refresh resellers list to include the new reseller
+        await fetchResellers()
+
+        toast.success(`Reseller ${request.name} activated successfully`)
+        console.log('✅ Reseller activated:', request.name)
+      } else {
+        toast.error(response.error || 'Failed to activate reseller')
+        console.error('❌ Failed to activate reseller:', response.error)
+      }
+    } catch (error) {
+      console.error('❌ Failed to activate reseller:', error)
+      toast.error('Failed to activate reseller')
     }
   }
 
-  const handleRejectRequest = (requestId) => {
-    setResellerRequests(prev => prev.filter(r => r.id !== requestId))
+  const handleRejectRequest = async (requestId) => {
+    try {
+      const request = resellerRequests.find(r => r.id === requestId)
+      if (!request) {
+        toast.error('Request not found')
+        return
+      }
+
+      const rejectionReason = prompt('Please provide a reason for rejection:')
+      if (!rejectionReason) {
+        return // User cancelled
+      }
+
+      const response = await resellerService.rejectActivationRequest(requestId, rejectionReason)
+
+      if (response.success) {
+        // Remove from requests list
+        setResellerRequests(prev => prev.filter(r => r.id !== requestId))
+
+        toast.success(`Request from ${request.name} rejected`)
+        console.log('✅ Reseller request rejected:', request.name)
+      } else {
+        toast.error(response.error || 'Failed to reject request')
+        console.error('❌ Failed to reject request:', response.error)
+      }
+    } catch (error) {
+      console.error('❌ Failed to reject request:', error)
+      toast.error('Failed to reject request')
+    }
   }
 
   return (

@@ -90,7 +90,7 @@ function ImageUpload({
     <div className={cn('space-y-3', className)}>
       <label className={cn(
         'block text-sm font-medium transition-colors duration-300',
-        'text-gray-700 dark:text-gray-300'
+        'text-foreground'
       )}>
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
@@ -119,7 +119,7 @@ function ImageUpload({
           <img
             src={preview}
             alt="Profile preview"
-            className="w-24 h-24 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
+            className="w-24 h-24 rounded-full object-cover border-2 border-border"
           />
           <button
             type="button"
@@ -138,19 +138,19 @@ function ImageUpload({
             'border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 cursor-pointer',
             isDragOver
               ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-              : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500',
-            'bg-gray-50 dark:bg-gray-800'
+              : 'border-border hover:border-border/80',
+            'bg-muted/50'
           )}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={openFileDialog}
         >
-          <Upload className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+          <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <p className="text-sm text-muted-foreground mb-2">
             Drag and drop an image here, or click to select
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-500">
+          <p className="text-xs text-muted-foreground">
             JPEG, PNG, GIF up to 5MB
           </p>
         </div>
@@ -163,8 +163,8 @@ function ImageUpload({
           onClick={openFileDialog}
           className={cn(
             'flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg border transition-colors duration-200',
-            'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300',
-            'hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
+            'border-border text-foreground',
+            'hover:border-border/80 hover:bg-accent'
           )}
         >
           <Image size={16} />
@@ -176,8 +176,8 @@ function ImageUpload({
           onClick={openCamera}
           className={cn(
             'flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg border transition-colors duration-200',
-            'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300',
-            'hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
+            'border-border text-foreground',
+            'hover:border-border/80 hover:bg-accent'
           )}
         >
           <Camera size={16} />
@@ -186,7 +186,7 @@ function ImageUpload({
       </div>
 
       {/* Help Text */}
-      <p className="text-xs text-gray-500 dark:text-gray-400">
+      <p className="text-xs text-muted-foreground">
         Supported formats: JPEG, PNG, GIF • Max size: 5MB
       </p>
     </div>

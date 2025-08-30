@@ -30,11 +30,11 @@ export const API_ENDPOINTS = {
     GET_CURRENT_USER: 'api/v1/auth/me/',
   },
   USERS: {
-    LIST: 'api/v1/users/',
-    DETAIL: 'api/v1/users/{id}/',
-    CREATE: 'api/v1/users/',
-    UPDATE: 'api/v1/users/{id}/',
-    DELETE: 'api/v1/users/{id}/',
+    LIST: 'api/v1/accounts/users/',
+    DETAIL: 'api/v1/accounts/users/{id}/',
+    CREATE: 'api/v1/accounts/users/',
+    UPDATE: 'api/v1/accounts/users/{id}/',
+    DELETE: 'api/v1/accounts/users/{id}/',
   },
   RESELLERS: {
     LIST: 'api/v1/resellers/resellers/',
@@ -48,6 +48,7 @@ export const API_ENDPOINTS = {
     ACTIVATE: 'api/v1/resellers/resellers/{id}/activate_reseller/',
     CHANGE_STATUS: 'api/v1/resellers/resellers/{id}/change_status/',
     AVAILABLE_USERS: 'api/v1/resellers/resellers/available_users/',
+    ACTIVATION_REQUESTS: 'api/v1/resellers/reseller-activation-requests/',
   },
   ORDERS: {
     LIST: 'api/v1/orders/',
@@ -72,6 +73,51 @@ export const API_ENDPOINTS = {
   DASHBOARD: {
     MAIN: 'api/v1/reports/dashboard/',
     TEST: 'api/v1/reports/dashboard/test/',
+  },
+  CLIENTS: {
+    LIST: 'api/v1/clients/',
+    DETAIL: 'api/v1/clients/{id}/',
+    CREATE: 'api/v1/clients/',
+    UPDATE: 'api/v1/clients/{id}/',
+    DELETE: 'api/v1/clients/{id}/',
+    MY_CLIENTS: 'api/v1/clients/my_clients/',
+    RESELLER_CLIENTS: 'api/v1/clients/reseller-clients/',
+    SUPPORT_TICKETS: 'api/v1/clients/support-tickets/',
+  },
+  ESIM: {
+    LIST: 'api/v1/esim/esims/',
+    DETAIL: 'api/v1/esim/esims/{id}/',
+    CREATE: 'api/v1/esim/esims/',
+    UPDATE: 'api/v1/esim/esims/{id}/',
+    DELETE: 'api/v1/esim/esims/{id}/',
+    ACTIVATE: 'api/v1/esim/esims/{id}/activate_esim/',
+    DEACTIVATE: 'api/v1/esim/esims/{id}/deactivate_esim/',
+    PLANS: 'api/v1/esim/esim-plans/',
+    PLAN_DETAIL: 'api/v1/esim/esim-plans/{id}/',
+    AVAILABLE_PLANS: 'api/v1/esim/esim-plans/available_plans/',
+    USAGE: 'api/v1/esim/esim-usage/',
+    USAGE_DETAIL: 'api/v1/esim/esim-usage/{id}/',
+    DELIVERIES: 'api/v1/esim/esim-deliveries/',
+    WEBHOOKS: 'api/v1/esim/traveroam-webhooks/',
+  },
+  ESIM_RESELLER: {
+    CLIENTS: 'api/v1/esim/reseller/clients/',
+    CLIENT_DETAIL: 'api/v1/esim/reseller/clients/{id}/',
+    ESIMS: 'api/v1/esim/reseller/esims/',
+    ESIM_DETAIL: 'api/v1/esim/reseller/esims/{id}/',
+    PLANS: 'api/v1/esim/reseller/plans/',
+    DASHBOARD: 'api/v1/esim/reseller/dashboard/',
+  },
+  TRAVEROAM: {
+    PLANS: 'api/v1/traveroam/plans/',
+    NETWORKS: 'api/v1/traveroam/networks/',
+    ESIM_ASSIGN: 'api/v1/traveroam/esim/assign/',
+    ESIM_STATUS: 'api/v1/traveroam/esim/{esim_id}/status/',
+    ESIM_USAGE: 'api/v1/traveroam/esim/{esim_id}/usage/',
+    ORDER_PROCESS: 'api/v1/traveroam/orders/process/',
+    CLIENT_VALIDATE: 'api/v1/traveroam/client/validate/',
+    ANALYTICS: 'api/v1/traveroam/analytics/',
+    BULK_OPERATIONS: 'api/v1/traveroam/bulk/',
   }
 }
 
@@ -120,7 +166,40 @@ export const RESELLER_SUSPEND_URL = buildApiUrl(API_ENDPOINTS.RESELLERS.SUSPEND)
 export const RESELLER_ACTIVATE_URL = buildApiUrl(API_ENDPOINTS.RESELLERS.ACTIVATE)
 export const RESELLER_CHANGE_STATUS_URL = buildApiUrl(API_ENDPOINTS.RESELLERS.CHANGE_STATUS)
 export const RESELLER_AVAILABLE_USERS_URL = buildApiUrl(API_ENDPOINTS.RESELLERS.AVAILABLE_USERS)
+export const RESELLER_ACTIVATION_REQUESTS_URL = buildApiUrl(API_ENDPOINTS.RESELLERS.ACTIVATION_REQUESTS)
 export const DASHBOARD_REPORTS_URL = buildApiUrl(API_ENDPOINTS.REPORTS.DASHBOARD)
 export const DASHBOARD_TEST_URL = buildApiUrl(API_ENDPOINTS.REPORTS.DASHBOARD_TEST)
 export const DASHBOARD_MAIN_URL = buildApiUrl(API_ENDPOINTS.DASHBOARD.MAIN)
 export const DASHBOARD_TEST_URL_ALT = buildApiUrl(API_ENDPOINTS.DASHBOARD.TEST)
+
+// Client Management URLs
+export const CLIENTS_URL = buildApiUrl(API_ENDPOINTS.CLIENTS.LIST)
+export const CLIENT_DETAIL_URL = buildApiUrl(API_ENDPOINTS.CLIENTS.DETAIL)
+export const CLIENT_CREATE_URL = buildApiUrl(API_ENDPOINTS.CLIENTS.CREATE)
+export const CLIENT_UPDATE_URL = buildApiUrl(API_ENDPOINTS.CLIENTS.UPDATE)
+export const CLIENT_DELETE_URL = buildApiUrl(API_ENDPOINTS.CLIENTS.DELETE)
+export const MY_CLIENTS_URL = buildApiUrl(API_ENDPOINTS.CLIENTS.MY_CLIENTS)
+export const RESELLER_CLIENTS_URL = buildApiUrl(API_ENDPOINTS.CLIENTS.RESELLER_CLIENTS)
+
+// eSIM Management URLs
+export const ESIMS_URL = buildApiUrl(API_ENDPOINTS.ESIM.LIST)
+export const ESIM_DETAIL_URL = buildApiUrl(API_ENDPOINTS.ESIM.DETAIL)
+export const ESIM_CREATE_URL = buildApiUrl(API_ENDPOINTS.ESIM.CREATE)
+export const ESIM_ACTIVATE_URL = buildApiUrl(API_ENDPOINTS.ESIM.ACTIVATE)
+export const ESIM_DEACTIVATE_URL = buildApiUrl(API_ENDPOINTS.ESIM.DEACTIVATE)
+export const ESIM_PLANS_URL = buildApiUrl(API_ENDPOINTS.ESIM.PLANS)
+export const ESIM_AVAILABLE_PLANS_URL = buildApiUrl(API_ENDPOINTS.ESIM.AVAILABLE_PLANS)
+export const ESIM_USAGE_URL = buildApiUrl(API_ENDPOINTS.ESIM.USAGE)
+
+// eSIM Reseller URLs
+export const ESIM_RESELLER_CLIENTS_URL = buildApiUrl(API_ENDPOINTS.ESIM_RESELLER.CLIENTS)
+export const ESIM_RESELLER_ESIMS_URL = buildApiUrl(API_ENDPOINTS.ESIM_RESELLER.ESIMS)
+export const ESIM_RESELLER_PLANS_URL = buildApiUrl(API_ENDPOINTS.ESIM_RESELLER.PLANS)
+export const ESIM_RESELLER_DASHBOARD_URL = buildApiUrl(API_ENDPOINTS.ESIM_RESELLER.DASHBOARD)
+
+// TraveRoam URLs
+export const TRAVEROAM_PLANS_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.PLANS)
+export const TRAVEROAM_NETWORKS_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.NETWORKS)
+export const TRAVEROAM_ESIM_ASSIGN_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.ESIM_ASSIGN)
+export const TRAVEROAM_ORDER_PROCESS_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.ORDER_PROCESS)
+export const TRAVEROAM_CLIENT_VALIDATE_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.CLIENT_VALIDATE)

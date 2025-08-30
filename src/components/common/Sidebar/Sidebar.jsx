@@ -25,16 +25,12 @@ const navigation = [
 ]
 
 function Sidebar({ isOpen, onClose }) {
-  const { resolvedTheme } = useTheme()
+  // const { resolvedTheme } = useTheme() // No longer needed with unified theme system
 
   return (
     <>
       {/* Desktop sidebar */}
-      <div className={cn(
-        'hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 transition-colors duration-300',
-        resolvedTheme === 'dark' ? 'bg-slate-900 border-slate-700' : 'bg-white border-gray-200',
-        'border-r'
-      )}>
+      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 bg-card border-r border-border transition-colors duration-300">
         <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
           {/* Logo */}
           <div className="flex items-center flex-shrink-0 px-4">
@@ -44,10 +40,7 @@ function Sidebar({ isOpen, onClose }) {
             )}>
               <Smartphone className="h-5 w-5 text-white" />
             </div>
-            <span className={cn(
-              'text-xl font-semibold transition-colors duration-300',
-              resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'
-            )}>
+            <span className="text-xl font-semibold text-foreground transition-colors duration-300">
               SIM Admin
             </span>
           </div>
@@ -63,12 +56,8 @@ function Sidebar({ isOpen, onClose }) {
                   className={({ isActive }) => cn(
                     'group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-all duration-200',
                     isActive
-                      ? resolvedTheme === 'dark'
-                        ? 'bg-slate-800 text-blue-400 border-r-2 border-blue-400'
-                        : 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                      : resolvedTheme === 'dark'
-                        ? 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-accent text-accent-foreground border-r-2 border-primary'
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                   )}
                 >
                   <Icon className="mr-3 h-5 w-5 flex-shrink-0" />
@@ -85,10 +74,7 @@ function Sidebar({ isOpen, onClose }) {
         'lg:hidden fixed inset-0 z-40 flex transition-transform duration-300 ease-in-out',
         isOpen ? 'translate-x-0' : '-translate-x-full'
       )}>
-        <div className={cn(
-          'relative flex-1 flex flex-col max-w-xs w-full transition-colors duration-300',
-          resolvedTheme === 'dark' ? 'bg-slate-900' : 'bg-white'
-        )}>
+        <div className="relative flex-1 flex flex-col max-w-xs w-full bg-card border-r border-border transition-colors duration-300">
           {/* Close button */}
           <div className="absolute top-0 right-0 -mr-12 pt-2">
             <button
@@ -109,10 +95,7 @@ function Sidebar({ isOpen, onClose }) {
               )}>
                 <Smartphone className="h-5 w-5 text-white" />
               </div>
-              <span className={cn(
-                'text-xl font-semibold transition-colors duration-300',
-                resolvedTheme === 'dark' ? 'text-white' : 'text-gray-900'
-              )}>
+              <span className="text-xl font-semibold text-foreground transition-colors duration-300">
                 SIM Admin
               </span>
             </div>
@@ -129,12 +112,8 @@ function Sidebar({ isOpen, onClose }) {
                     className={({ isActive }) => cn(
                       'group flex items-center px-2 py-2 text-base font-medium rounded-md transition-all duration-200',
                       isActive
-                        ? resolvedTheme === 'dark'
-                          ? 'bg-slate-800 text-blue-400'
-                          : 'bg-blue-50 text-blue-700'
-                        : resolvedTheme === 'dark'
-                          ? 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        ? 'bg-accent text-accent-foreground'
+                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                     )}
                   >
                     <Icon className="mr-4 h-6 w-6 flex-shrink-0" />

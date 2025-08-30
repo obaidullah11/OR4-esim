@@ -14,58 +14,77 @@ import { Dock, DockIcon, DockItem, DockLabel } from '../../ui/dock'
 import { useAuth } from '../../../context/AuthContext'
 import { useTheme } from '../../../context/ThemeContext'
 import { cn } from '../../../lib/utils'
+import { USER_ROLES } from '../../../utils/auth'
 import ThemeToggle from '../ThemeToggle/ThemeToggle'
 
-const navigationData = [
-  {
-    title: 'Dashboard',
-    icon: LayoutDashboard,
-    href: '/dashboard',
-    color: 'text-blue-600 dark:text-blue-400'
-  },
-  {
-    title: 'Resellers',
-    icon: UserCheck,
-    href: '/resellers',
-    color: 'text-green-600 dark:text-green-400'
-  },
-  {
-    title: 'Users',
-    icon: Users,
-    href: '/users',
-    color: 'text-purple-600 dark:text-purple-400'
-  },
-  {
-    title: 'Orders',
-    icon: ShoppingCart,
-    href: '/orders',
-    color: 'text-orange-600 dark:text-orange-400'
-  },
-  {
-    title: 'Transactions',
-    icon: CreditCard,
-    href: '/transactions',
-    color: 'text-emerald-600 dark:text-emerald-400'
-  },
-  {
-    title: 'Reports',
-    icon: BarChart3,
-    href: '/reports',
-    color: 'text-indigo-600 dark:text-indigo-400'
-  },
-  {
-    title: 'Settings',
-    icon: Settings,
-    href: '/settings',
-    color: 'text-gray-600 dark:text-gray-400'
-  },
-]
+// Role-based navigation configuration
+const getNavigationData = (userRole) => {
+  const adminNavigation = [
+    {
+      title: 'Dashboard',
+      icon: LayoutDashboard,
+      href: '/dashboard',
+      color: 'text-blue-600 dark:text-blue-400',
+      roles: [USER_ROLES.ADMIN]
+    },
+    {
+      title: 'Resellers',
+      icon: UserCheck,
+      href: '/resellers',
+      color: 'text-green-600 dark:text-green-400',
+      roles: [USER_ROLES.ADMIN]
+    },
+    {
+      title: 'Users',
+      icon: Users,
+      href: '/users',
+      color: 'text-purple-600 dark:text-purple-400',
+      roles: [USER_ROLES.ADMIN]
+    },
+    {
+      title: 'Orders',
+      icon: ShoppingCart,
+      href: '/orders',
+      color: 'text-orange-600 dark:text-orange-400',
+      roles: [USER_ROLES.ADMIN]
+    },
+    {
+      title: 'Transactions',
+      icon: CreditCard,
+      href: '/transactions',
+      color: 'text-emerald-600 dark:text-emerald-400',
+      roles: [USER_ROLES.ADMIN]
+    },
+    {
+      title: 'Reports',
+      icon: BarChart3,
+      href: '/reports',
+      color: 'text-indigo-600 dark:text-indigo-400',
+      roles: [USER_ROLES.ADMIN]
+    },
+    {
+      title: 'Settings',
+      icon: Settings,
+      href: '/settings',
+      color: 'text-gray-600 dark:text-gray-400',
+      roles: [USER_ROLES.ADMIN]
+    },
+  ]
+
+  // Return navigation items based on user role
+  return adminNavigation.filter(item =>
+    !item.roles || item.roles.includes(userRole)
+  )
+}
 
 function DockSidebar({ className }) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
   const { resolvedTheme } = useTheme()
+
+  // Get navigation items based on user role
+  const navigationData = getNavigationData(user?.role)
 
   const handleNavigation = (href) => {
     navigate(href)

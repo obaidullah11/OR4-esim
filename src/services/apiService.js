@@ -76,6 +76,9 @@ class ApiService {
       ...restOptions
     } = options
 
+    // Construct full URL - if url doesn't start with http, prepend BASE_URL
+    const fullUrl = url.startsWith('http') ? url : `${BASE_URL}${url}`
+
     let requestHeaders
     if (requiresAuth) {
       try {
@@ -111,7 +114,7 @@ class ApiService {
     }
 
     try {
-      const response = await fetch(url, requestOptions)
+      const response = await fetch(fullUrl, requestOptions)
 
       // Handle HTTP errors
       if (!response.ok) {

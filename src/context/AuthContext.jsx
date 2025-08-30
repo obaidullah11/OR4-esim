@@ -1,17 +1,28 @@
 import { createContext, useContext, useReducer, useEffect, useCallback } from 'react'
-// BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
-// import { authService } from '../services/authService'
-// import { tokenService } from '../services/tokenService'
+// BACKEND INTEGRATION ACTIVATED
+import { authService } from '../services/authService'
+import { tokenService } from '../services/tokenService'
+import {
+  isAdmin,
+  isReseller,
+  isClient,
+  isPublicUser,
+  hasRole,
+  hasManagementRole,
+  getUserRoleDisplay,
+  getDefaultDashboardRoute,
+  canAccessRoute,
+  USER_ROLES
+} from '../utils/auth'
 
 const AuthContext = createContext()
 
 const initialState = {
   user: null,
-  // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
-  // token: tokenService.getAccessToken(),
-  token: null,
+  // BACKEND INTEGRATION ACTIVATED
+  token: tokenService.getAccessToken(),
   isAuthenticated: false,
-  isLoading: false, // Changed to false for demo mode
+  isLoading: true, // Loading while checking authentication
 }
 
 function authReducer(state, action) {
@@ -68,8 +79,7 @@ export function AuthProvider({ children }) {
 
   // Initialize authentication on mount
   useEffect(() => {
-    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
-    /*
+    // BACKEND INTEGRATION ACTIVATED
     const initializeAuth = async () => {
       try {
         const tokenStatus = tokenService.hasValidTokens()
@@ -99,16 +109,11 @@ export function AuthProvider({ children }) {
     }
 
     initializeAuth()
-    */
-
-    // Demo mode - no backend calls
-    dispatch({ type: 'SET_LOADING', payload: false })
   }, [])
 
-  // Set up automatic token refresh
+    // Set up automatic token refresh
   useEffect(() => {
-    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
-    /*
+    // BACKEND INTEGRATION ACTIVATED
     if (!state.isAuthenticated) return
 
     const checkTokenExpiry = async () => {
@@ -131,12 +136,10 @@ export function AuthProvider({ children }) {
     const interval = setInterval(checkTokenExpiry, 5 * 60 * 1000)
 
     return () => clearInterval(interval)
-    */
   }, [state.isAuthenticated])
 
   const login = async (credentials) => {
-    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
-    /*
+    // BACKEND INTEGRATION ACTIVATED
     try {
       const response = await authService.login(credentials)
 
@@ -150,37 +153,10 @@ export function AuthProvider({ children }) {
     } catch (error) {
       throw error
     }
-    */
-
-    // Demo mode - simulate successful login
-    try {
-      const mockUser = {
-        id: 1,
-        email: credentials.email,
-        first_name: 'Demo',
-        last_name: 'User',
-        role: 'admin'
-      }
-
-      const mockResponse = {
-        user: mockUser,
-        token: 'demo-token-123'
-      }
-
-      dispatch({
-        type: 'LOGIN_SUCCESS',
-        payload: { user: mockUser, token: 'demo-token-123' }
-      })
-
-      return mockResponse
-    } catch (error) {
-      throw error
-    }
   }
 
   const logout = async () => {
-    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
-    /*
+    // BACKEND INTEGRATION ACTIVATED
     try {
       await authService.logout()
       dispatch({ type: 'LOGOUT' })
@@ -189,16 +165,11 @@ export function AuthProvider({ children }) {
       // Even if logout fails, clear local state
       dispatch({ type: 'LOGOUT' })
     }
-    */
-
-    // Demo mode - simple logout
-    dispatch({ type: 'LOGOUT' })
   }
 
   // Utility functions for token management
   const refreshTokens = useCallback(async () => {
-    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
-    /*
+    // BACKEND INTEGRATION ACTIVATED
     try {
       const newToken = await authService.refreshTokens()
       dispatch({ type: 'TOKEN_REFRESHED', payload: newToken })
@@ -208,30 +179,35 @@ export function AuthProvider({ children }) {
       dispatch({ type: 'TOKEN_EXPIRED' })
       throw error
     }
-    */
-
-    // Demo mode - return mock token
-    return 'demo-refreshed-token'
   }, [])
 
   const checkTokenValidity = useCallback(() => {
-    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
-    // return authService.checkTokenValidity()
-
-    // Demo mode - always return valid
-    return 'valid'
+    // BACKEND INTEGRATION ACTIVATED
+    return tokenService.hasValidTokens()
   }, [])
 
   const getTokenExpiryInfo = useCallback(() => {
-    // BACKEND INTEGRATION COMMENTED OUT - Uncomment when backend is ready
-    // return authService.getTokenExpiryInfo()
-
-    // Demo mode - return mock info
-    return { valid: true, message: 'Demo mode - no real tokens' }
+    // BACKEND INTEGRATION ACTIVATED
+    return tokenService.getTokenExpiryInfo()
   }, [])
+
+  // Role-based helper functions
+  const roleHelpers = {
+    isAdmin: isAdmin(state.user),
+    isReseller: isReseller(state.user),
+    isClient: isClient(state.user),
+    isPublicUser: isPublicUser(state.user),
+    hasManagementRole: hasManagementRole(state.user),
+    roleDisplay: getUserRoleDisplay(state.user),
+    defaultDashboard: getDefaultDashboardRoute(state.user),
+    hasRole: (roles) => hasRole(state.user, roles),
+    canAccessRoute: (route) => canAccessRoute(state.user, route),
+    USER_ROLES
+  }
 
   const value = {
     ...state,
+    ...roleHelpers,
     login,
     logout,
     refreshTokens,

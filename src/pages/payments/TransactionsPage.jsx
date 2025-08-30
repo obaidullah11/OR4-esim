@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTheme } from '../../context/ThemeContext'
 import toast from 'react-hot-toast'
+// BACKEND INTEGRATION ACTIVATED
+import { paymentsService } from '../../services/paymentsService'
 import {
   Search,
   Filter,
@@ -212,7 +214,8 @@ const sampleTransactions = [
 
 function TransactionsPage() {
   const { resolvedTheme } = useTheme()
-  const [transactions, setTransactions] = useState(sampleTransactions)
+  const [transactions, setTransactions] = useState([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
@@ -222,6 +225,57 @@ function TransactionsPage() {
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [showRefundModal, setShowRefundModal] = useState(false)
   const [showApprovalModal, setShowApprovalModal] = useState(false)
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0
+  })
+
+  // Fetch transactions from API
+  const fetchTransactions = async (params = {}) => {
+    // BACKEND INTEGRATION ACTIVATED
+    try {
+      setLoading(true)
+
+      const response = await paymentsService.getAllPayments({
+        page: params.page || pagination.page,
+        limit: params.limit || pagination.limit,
+        search: params.search || searchTerm,
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        payment_method: paymentMethodFilter !== 'all' ? paymentMethodFilter : undefined,
+        ordering: params.ordering || '-created_at'
+      })
+
+      if (response.success) {
+        const formattedTransactions = paymentsService.formatPaymentsList(response.data.results)
+        setTransactions(formattedTransactions)
+        setPagination(response.data.pagination)
+      } else {
+        // Fallback to sample data if API fails
+        console.error('API failed, using sample data:', response.error)
+        toast.error('Failed to load transactions - using sample data')
+        setTransactions(sampleTransactions)
+      }
+    } catch (error) {
+      console.error('Failed to fetch transactions:', error)
+      toast.error('Failed to load transactions - using sample data')
+      // Fallback to sample data
+      setTransactions(sampleTransactions)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Load transactions on component mount
+  useEffect(() => {
+    fetchTransactions()
+  }, [])
+
+  // Reload transactions when filters change
+  useEffect(() => {
+    fetchTransactions({ page: 1 })
+  }, [statusFilter, paymentMethodFilter])
 
   // Filter transactions based on search and filters
   const filteredTransactions = transactions.filter(transaction => {
@@ -301,71 +355,166 @@ function TransactionsPage() {
     setShowApprovalModal(true)
   }
 
-  const handleApproveTransaction = (transactionId, notes) => {
-    setTransactions(prev => prev.map(transaction => {
-      if (transaction.id === transactionId) {
-        return {
-          ...transaction,
-          status: 'completed',
-          processedAt: new Date().toISOString(),
-          approvalNotes: notes
-        }
+  const handleApproveTransaction = async (transactionId, notes) => {
+    // BACKEND INTEGRATION ACTIVATED
+    try {
+      const response = await paymentsService.approvePayment(transactionId, notes)
+
+      if (response.success) {
+        // Update local state
+        setTransactions(prev => prev.map(transaction => {
+          if (transaction.id === transactionId) {
+            return {
+              ...transaction,
+              status: 'completed',
+              processedAt: new Date().toISOString(),
+              approvalNotes: notes
+            }
+          }
+          return transaction
+        }))
+
+        toast.success('Transaction approved successfully')
+      } else {
+        throw new Error(response.error || 'Failed to approve transaction')
       }
-      return transaction
-    }))
-
-    toast.success('Transaction approved successfully')
-    setShowApprovalModal(false)
-    setSelectedTransaction(null)
-  }
-
-  const handleRejectTransaction = (transactionId, reason) => {
-    setTransactions(prev => prev.map(transaction => {
-      if (transaction.id === transactionId) {
-        return {
-          ...transaction,
-          status: 'failed',
-          processedAt: new Date().toISOString(),
-          rejectionReason: reason
+    } catch (error) {
+      console.error('Failed to approve transaction:', error)
+      toast.error('Failed to approve transaction - using local update')
+      
+      // Fallback to local update
+      setTransactions(prev => prev.map(transaction => {
+        if (transaction.id === transactionId) {
+          return {
+            ...transaction,
+            status: 'completed',
+            processedAt: new Date().toISOString(),
+            approvalNotes: notes
+          }
         }
-      }
-      return transaction
-    }))
-
-    toast.success('Transaction rejected')
-    setShowApprovalModal(false)
-    setSelectedTransaction(null)
-  }
-
-  const handleProcessRefund = (transactionId, amount, reason) => {
-    // Create new refund transaction
-    const originalTransaction = transactions.find(t => t.id === transactionId)
-    const newRefund = {
-      id: Date.now(),
-      transactionId: `TXN-${Date.now()}`,
-      orderId: originalTransaction.orderId,
-      type: 'refund',
-      source: originalTransaction.source,
-      customer: originalTransaction.customer,
-      amount: -amount,
-      currency: originalTransaction.currency,
-      paymentMethod: originalTransaction.paymentMethod,
-      paymentGateway: originalTransaction.paymentGateway,
-      status: 'completed',
-      description: `Refund: ${reason}`,
-      createdAt: new Date().toISOString(),
-      processedAt: new Date().toISOString(),
-      gatewayResponse: {
-        refundId: `re_${Date.now()}`,
-        originalTransaction: originalTransaction.transactionId
-      },
-      fees: -(originalTransaction.fees || 0),
-      netAmount: -amount + (originalTransaction.fees || 0),
-      invoiceNumber: `REF-${Date.now()}`
+        return transaction
+      }))
     }
 
-    setTransactions(prev => [newRefund, ...prev])
-    toast.success('Refund processed successfully')
+    setShowApprovalModal(false)
+    setSelectedTransaction(null)
+  }
+
+  const handleRejectTransaction = async (transactionId, reason) => {
+    // BACKEND INTEGRATION ACTIVATED
+    try {
+      const response = await paymentsService.rejectPayment(transactionId, reason)
+
+      if (response.success) {
+        // Update local state
+        setTransactions(prev => prev.map(transaction => {
+          if (transaction.id === transactionId) {
+            return {
+              ...transaction,
+              status: 'failed',
+              processedAt: new Date().toISOString(),
+              rejectionReason: reason
+            }
+          }
+          return transaction
+        }))
+
+        toast.success('Transaction rejected')
+      } else {
+        throw new Error(response.error || 'Failed to reject transaction')
+      }
+    } catch (error) {
+      console.error('Failed to reject transaction:', error)
+      toast.error('Failed to reject transaction - using local update')
+      
+      // Fallback to local update
+      setTransactions(prev => prev.map(transaction => {
+        if (transaction.id === transactionId) {
+          return {
+            ...transaction,
+            status: 'failed',
+            processedAt: new Date().toISOString(),
+            rejectionReason: reason
+          }
+        }
+        return transaction
+      }))
+    }
+
+    setShowApprovalModal(false)
+    setSelectedTransaction(null)
+  }
+
+  const handleProcessRefund = async (transactionId, amount, reason) => {
+    // BACKEND INTEGRATION ACTIVATED
+    try {
+      const response = await paymentsService.processRefund(transactionId, amount, reason)
+
+      if (response.success) {
+        // Create new refund transaction locally
+        const originalTransaction = transactions.find(t => t.id === transactionId)
+        const newRefund = {
+          id: Date.now(),
+          transactionId: `TXN-${Date.now()}`,
+          orderId: originalTransaction.orderId,
+          type: 'refund',
+          source: originalTransaction.source,
+          customer: originalTransaction.customer,
+          amount: -amount,
+          currency: originalTransaction.currency,
+          paymentMethod: originalTransaction.paymentMethod,
+          paymentGateway: originalTransaction.paymentGateway,
+          status: 'completed',
+          description: `Refund: ${reason}`,
+          createdAt: new Date().toISOString(),
+          processedAt: new Date().toISOString(),
+          gatewayResponse: {
+            refundId: `re_${Date.now()}`,
+            originalTransaction: originalTransaction.transactionId
+          },
+          fees: -(originalTransaction.fees || 0),
+          netAmount: -amount + (originalTransaction.fees || 0),
+          invoiceNumber: `REF-${Date.now()}`
+        }
+
+        setTransactions(prev => [newRefund, ...prev])
+        toast.success('Refund processed successfully')
+      } else {
+        throw new Error(response.error || 'Failed to process refund')
+      }
+    } catch (error) {
+      console.error('Failed to process refund:', error)
+      toast.error('Failed to process refund - using local update')
+      
+      // Fallback to local update
+      const originalTransaction = transactions.find(t => t.id === transactionId)
+      const newRefund = {
+        id: Date.now(),
+        transactionId: `TXN-${Date.now()}`,
+        orderId: originalTransaction.orderId,
+        type: 'refund',
+        source: originalTransaction.source,
+        customer: originalTransaction.customer,
+        amount: -amount,
+        currency: originalTransaction.currency,
+        paymentMethod: originalTransaction.paymentMethod,
+        paymentGateway: originalTransaction.paymentGateway,
+        status: 'completed',
+        description: `Refund: ${reason}`,
+        createdAt: new Date().toISOString(),
+        processedAt: new Date().toISOString(),
+        gatewayResponse: {
+          refundId: `re_${Date.now()}`,
+          originalTransaction: originalTransaction.transactionId
+        },
+        fees: -(originalTransaction.fees || 0),
+        netAmount: -amount + (originalTransaction.fees || 0),
+        invoiceNumber: `REF-${Date.now()}`
+      }
+
+      setTransactions(prev => [newRefund, ...prev])
+    }
+
     setShowRefundModal(false)
     setSelectedTransaction(null)
   }
@@ -378,6 +527,35 @@ function TransactionsPage() {
 
     // Simulate invoice download
     toast.success(`Downloading invoice ${transaction.invoiceNumber}`)
+  }
+
+  const handleRefresh = async () => {
+    await fetchTransactions({ page: 1 })
+    toast.success('Transactions list refreshed')
+    console.log('🔄 Transactions list refreshed')
+  }
+
+  const handleExportTransactions = async () => {
+    try {
+      const filters = {
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        payment_method: paymentMethodFilter !== 'all' ? paymentMethodFilter : undefined,
+        payment_type: typeFilter !== 'all' ? typeFilter : undefined
+      }
+
+      const response = await paymentsService.exportTransactions(filters)
+
+      if (response.success) {
+        toast.success('Transactions exported successfully')
+        console.log('✅ Transactions exported')
+      } else {
+        toast.error('Failed to export transactions')
+        console.error('❌ Export failed:', response.error)
+      }
+    } catch (error) {
+      console.error('❌ Failed to export transactions:', error)
+      toast.error('Failed to export transactions')
+    }
   }
 
   // Calculate statistics
@@ -402,17 +580,7 @@ function TransactionsPage() {
         </div>
         <div className="flex items-center space-x-3">
           <button
-            onClick={() => window.location.reload()}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-              resolvedTheme === 'dark'
-                ? 'bg-slate-700 hover:bg-slate-600 text-slate-300'
-                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-            }`}
-          >
-            <RefreshCw className="h-4 w-4" />
-            <span>Refresh</span>
-          </button>
-          <button
+            onClick={handleExportTransactions}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
               resolvedTheme === 'dark'
                 ? 'bg-blue-600 hover:bg-blue-700 text-white'
@@ -421,6 +589,19 @@ function TransactionsPage() {
           >
             <Download className="h-4 w-4" />
             <span>Export</span>
+          </button>
+
+          <button
+            onClick={handleRefresh}
+            disabled={loading}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 ${
+              resolvedTheme === 'dark'
+                ? 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+            }`}
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
           </button>
         </div>
       </div>

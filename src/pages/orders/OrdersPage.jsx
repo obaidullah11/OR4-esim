@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTheme } from '../../context/ThemeContext'
 import toast from 'react-hot-toast'
+// BACKEND INTEGRATION ACTIVATED
+import { ordersService } from '../../services/ordersService'
 import {
   Search,
   Filter,
@@ -204,7 +206,8 @@ const sampleOrders = [
 
 function OrdersPage() {
   const { resolvedTheme } = useTheme()
-  const [orders, setOrders] = useState(sampleOrders)
+  const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [orderTypeFilter, setOrderTypeFilter] = useState('all')
@@ -213,6 +216,60 @@ function OrdersPage() {
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [showDeliveryModal, setShowDeliveryModal] = useState(false)
   const [showStatusModal, setShowStatusModal] = useState(false)
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0
+  })
+
+  // Fetch orders from API
+  const fetchOrders = async (params = {}) => {
+    // BACKEND INTEGRATION ACTIVATED
+    try {
+      setLoading(true)
+
+      const response = await ordersService.getAllOrders({
+        page: params.page || pagination.page,
+        limit: params.limit || pagination.limit,
+        search: params.search || searchTerm,
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        order_type: orderTypeFilter !== 'all' ? orderTypeFilter : undefined,
+        payment_status: paymentStatusFilter !== 'all' ? paymentStatusFilter : undefined,
+        ordering: params.ordering || '-created_at'
+      })
+
+      if (response.success) {
+        const formattedOrders = ordersService.formatOrdersList(response.data.results)
+        setOrders(formattedOrders)
+        setPagination(response.data.pagination)
+      } else {
+        // Fallback to sample data if API fails
+        console.error('API failed, using sample data:', response.error)
+        toast.error('Failed to load orders - using sample data')
+        setOrders(sampleOrders)
+      }
+    } catch (error) {
+      console.error('Failed to fetch orders:', error)
+      toast.error('Failed to load orders - using sample data')
+      // Fallback to sample data
+      setOrders(sampleOrders)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Load orders on component mount
+  useEffect(() => {
+    fetchOrders()
+  }, [])
+
+  // Refresh orders when filters change
+  useEffect(() => {
+    if (!loading) { // Avoid double loading on initial mount
+      fetchOrders({ page: 1 })
+    }
+  }, [statusFilter, orderTypeFilter, paymentStatusFilter])
 
   // Filter orders based on search and filters
   const filteredOrders = orders.filter(order => {
@@ -297,55 +354,125 @@ function OrdersPage() {
     setShowStatusModal(true)
   }
 
-  const handleStatusUpdate = (orderId, newStatus, trackingNumber = '') => {
-    setOrders(prev => prev.map(order => {
-      if (order.id === orderId) {
-        const updatedOrder = {
-          ...order,
-          status: newStatus,
-          updatedAt: new Date().toISOString()
-        }
+  const handleStatusUpdate = async (orderId, newStatus, trackingNumber = '') => {
+    // BACKEND INTEGRATION ACTIVATED
+    try {
+      const response = await ordersService.updateOrderStatus(orderId, newStatus, trackingNumber)
 
-        if (trackingNumber) {
-          updatedOrder.deliveryTrackingNumber = trackingNumber
-        }
+      if (response.success) {
+        // Update local state
+        setOrders(prev => prev.map(order => {
+          if (order.id === orderId) {
+            const updatedOrder = {
+              ...order,
+              status: newStatus,
+              updatedAt: new Date().toISOString()
+            }
 
-        if (newStatus === 'delivered') {
-          updatedOrder.deliveredAt = new Date().toISOString()
-        }
+            if (trackingNumber) {
+              updatedOrder.deliveryTrackingNumber = trackingNumber
+            }
 
-        if (newStatus === 'activated') {
-          updatedOrder.activatedAt = new Date().toISOString()
-        }
+            if (newStatus === 'delivered') {
+              updatedOrder.deliveredAt = new Date().toISOString()
+            }
 
-        return updatedOrder
+            if (newStatus === 'activated') {
+              updatedOrder.activatedAt = new Date().toISOString()
+            }
+
+            return updatedOrder
+          }
+          return order
+        }))
+
+        toast.success(`Order ${newStatus} successfully`)
+      } else {
+        throw new Error(response.error || 'Failed to update order status')
       }
-      return order
-    }))
+    } catch (error) {
+      console.error('Failed to update order status:', error)
+      toast.error('Failed to update order status - using local update')
+      
+      // Fallback to local update
+      setOrders(prev => prev.map(order => {
+        if (order.id === orderId) {
+          const updatedOrder = {
+            ...order,
+            status: newStatus,
+            updatedAt: new Date().toISOString()
+          }
 
-    // Send notification
-    toast.success(`Order ${newStatus} successfully`)
+          if (trackingNumber) {
+            updatedOrder.deliveryTrackingNumber = trackingNumber
+          }
+
+          if (newStatus === 'delivered') {
+            updatedOrder.deliveredAt = new Date().toISOString()
+          }
+
+          if (newStatus === 'activated') {
+            updatedOrder.activatedAt = new Date().toISOString()
+          }
+
+          return updatedOrder
+        }
+        return order
+      }))
+
+      toast.success(`Order ${newStatus} successfully (local update)`)
+    }
 
     // Close modal
     setShowStatusModal(false)
     setSelectedOrder(null)
   }
 
-  const handleDeliveryAssignment = (orderId, trackingNumber, deliveryNotes) => {
-    setOrders(prev => prev.map(order => {
-      if (order.id === orderId) {
-        return {
-          ...order,
-          status: 'dispatched',
-          deliveryTrackingNumber: trackingNumber,
-          notes: deliveryNotes || order.notes,
-          updatedAt: new Date().toISOString()
-        }
-      }
-      return order
-    }))
+  const handleDeliveryAssignment = async (orderId, trackingNumber, deliveryNotes) => {
+    // BACKEND INTEGRATION ACTIVATED
+    try {
+      const response = await ordersService.assignDeliveryTracking(orderId, trackingNumber, deliveryNotes)
 
-    toast.success('Delivery assigned successfully')
+      if (response.success) {
+        // Update local state
+        setOrders(prev => prev.map(order => {
+          if (order.id === orderId) {
+            return {
+              ...order,
+              status: 'dispatched',
+              deliveryTrackingNumber: trackingNumber,
+              notes: deliveryNotes || order.notes,
+              updatedAt: new Date().toISOString()
+            }
+          }
+          return order
+        }))
+
+        toast.success('Delivery assigned successfully')
+      } else {
+        throw new Error(response.error || 'Failed to assign delivery')
+      }
+    } catch (error) {
+      console.error('Failed to assign delivery:', error)
+      toast.error('Failed to assign delivery - using local update')
+      
+      // Fallback to local update
+      setOrders(prev => prev.map(order => {
+        if (order.id === orderId) {
+          return {
+            ...order,
+            status: 'dispatched',
+            deliveryTrackingNumber: trackingNumber,
+            notes: deliveryNotes || order.notes,
+            updatedAt: new Date().toISOString()
+          }
+        }
+        return order
+      }))
+
+      toast.success('Delivery assigned successfully (local update)')
+    }
+
     setShowDeliveryModal(false)
     setSelectedOrder(null)
   }
@@ -353,6 +480,62 @@ function OrdersPage() {
   const sendNotification = (order, type) => {
     // Simulate sending notification
     toast.success(`${type} notification sent to ${order.customer.name}`)
+  }
+
+  // Refresh function
+  const handleRefresh = async () => {
+    await fetchOrders({ page: 1 })
+    toast.success('Orders list refreshed')
+    console.log('🔄 Orders list refreshed')
+  }
+
+  const handleExportOrders = async () => {
+    try {
+      const filters = {
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        order_type: orderTypeFilter !== 'all' ? orderTypeFilter : undefined,
+        payment_status: paymentStatusFilter !== 'all' ? paymentStatusFilter : undefined
+      }
+
+      const response = await ordersService.exportOrders(filters)
+
+      if (response.success) {
+        toast.success('Orders exported successfully')
+        console.log('✅ Orders exported')
+      } else {
+        toast.error('Failed to export orders')
+        console.error('❌ Export failed:', response.error)
+      }
+    } catch (error) {
+      console.error('❌ Failed to export orders:', error)
+      toast.error('Failed to export orders')
+    }
+  }
+
+  const handleSendNotification = async (order, notificationType, message) => {
+    try {
+      const response = await ordersService.sendOrderNotification(order.id, notificationType, message)
+
+      if (response.success) {
+        toast.success('Notification sent successfully')
+        console.log('✅ Notification sent to:', order.customer.email)
+      } else {
+        toast.error('Failed to send notification')
+        console.error('❌ Notification failed:', response.error)
+      }
+    } catch (error) {
+      console.error('❌ Failed to send notification:', error)
+      toast.error('Failed to send notification')
+    }
+  }
+
+  // Handle search with debouncing
+  const handleSearch = (value) => {
+    setSearchTerm(value)
+    // Debounce search to avoid too many API calls
+    setTimeout(() => {
+      fetchOrders({ search: value, page: 1 })
+    }, 500)
   }
 
   return (
@@ -365,17 +548,19 @@ function OrdersPage() {
         </div>
         <div className="flex items-center space-x-3">
           <button
-            onClick={() => window.location.reload()}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+            onClick={handleRefresh}
+            disabled={loading}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 ${
               resolvedTheme === 'dark'
                 ? 'bg-slate-700 hover:bg-slate-600 text-slate-300'
                 : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
             }`}
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </button>
           <button
+            onClick={handleExportOrders}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
               resolvedTheme === 'dark'
                 ? 'bg-blue-600 hover:bg-blue-700 text-white'
@@ -456,7 +641,7 @@ function OrdersPage() {
                 type="text"
                 placeholder="Search orders by number, customer, email, or plan..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => handleSearch(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
@@ -523,7 +708,31 @@ function OrdersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filteredOrders.map((order) => {
+              {loading ? (
+                <tr>
+                  <td colSpan="8" className="p-8 text-center">
+                    <div className="flex items-center justify-center space-x-2">
+                      <RefreshCw className="h-5 w-5 animate-spin text-muted-foreground" />
+                      <span className="text-muted-foreground">Loading orders...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredOrders.length === 0 ? (
+                <tr>
+                  <td colSpan="8" className="p-8 text-center">
+                    <div className="flex flex-col items-center space-y-2">
+                      <ShoppingCart className="h-12 w-12 text-muted-foreground opacity-50" />
+                      <p className="text-muted-foreground">No orders found</p>
+                      <p className="text-sm text-muted-foreground">
+                        {searchTerm || statusFilter !== 'all' || orderTypeFilter !== 'all' || paymentStatusFilter !== 'all'
+                          ? 'Try adjusting your search or filters'
+                          : 'No orders have been placed yet'}
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredOrders.map((order) => {
                 const statusDisplay = getStatusDisplay(order.status)
                 const paymentDisplay = getPaymentStatusDisplay(order.paymentStatus)
                 const StatusIcon = statusDisplay.icon
@@ -690,23 +899,13 @@ function OrdersPage() {
                     </td>
                   </tr>
                 )
-              })}
+              })
+              )}
             </tbody>
           </table>
         </div>
 
-        {/* Empty State */}
-        {filteredOrders.length === 0 && (
-          <div className="text-center py-12">
-            <ShoppingCart className={`mx-auto h-12 w-12 ${resolvedTheme === 'dark' ? 'text-slate-600' : 'text-gray-400'}`} />
-            <h3 className="mt-2 text-sm font-medium text-foreground">No orders found</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {searchTerm || statusFilter !== 'all' || orderTypeFilter !== 'all' || paymentStatusFilter !== 'all'
-                ? 'Try adjusting your search or filters'
-                : 'No orders have been placed yet'}
-            </p>
-          </div>
-        )}
+
       </div>
 
       {/* Modals */}

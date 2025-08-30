@@ -315,7 +315,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transaction, onDownloadInvoi
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <FileText className={`mx-auto h-12 w-12 ${resolvedTheme === 'dark' ? 'text-slate-600' : 'text-gray-400'}`} />
+                    <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
                     <h3 className="mt-2 text-sm font-medium text-foreground">No gateway response</h3>
                     <p className="mt-1 text-sm text-muted-foreground">
                       Gateway response data is not available for this transaction
@@ -359,7 +359,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transaction, onDownloadInvoi
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
                   resolvedTheme === 'dark'
                     ? 'bg-slate-700 hover:bg-slate-600 text-slate-300'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                    : 'bg-muted hover:bg-muted/80 text-foreground'
                 }`}
               >
                 <Receipt className="h-4 w-4" />
@@ -372,7 +372,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transaction, onDownloadInvoi
             className={`px-4 py-2 rounded-lg transition-colors ${
               resolvedTheme === 'dark'
                 ? 'bg-slate-700 hover:bg-slate-600 text-slate-300'
-                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                : 'bg-muted hover:bg-muted/80 text-foreground'
             }`}
           >
             Close

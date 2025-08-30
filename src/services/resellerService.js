@@ -9,7 +9,8 @@ import {
   RESELLER_SUSPEND_URL,
   RESELLER_ACTIVATE_URL,
   RESELLER_CHANGE_STATUS_URL,
-  RESELLER_AVAILABLE_USERS_URL
+  RESELLER_AVAILABLE_USERS_URL,
+  RESELLER_ACTIVATION_REQUESTS_URL
 } from '../config/api'
 import { apiService } from './apiService'
 
@@ -331,6 +332,156 @@ export const resellerService = {
   formatResellersList(resellers) {
     if (!Array.isArray(resellers)) return []
     return resellers.map(reseller => this.formatResellerData(reseller))
+  },
+
+  // ===== Reseller Approval Workflows =====
+
+  /**
+   * Get reseller activation requests
+   */
+  async getActivationRequests(params = {}) {
+    try {
+      console.log('🔄 Fetching reseller activation requests')
+
+      const queryParams = new URLSearchParams()
+
+      if (params.page) queryParams.append('page', params.page)
+      if (params.limit) queryParams.append('limit', params.limit)
+      if (params.status) queryParams.append('status', params.status)
+      if (params.ordering) queryParams.append('ordering', params.ordering)
+
+      const url = queryParams.toString() ?
+        `${RESELLER_ACTIVATION_REQUESTS_URL}?${queryParams.toString()}` :
+        RESELLER_ACTIVATION_REQUESTS_URL
+
+      const response = await apiService.get(url, { requiresAuth: true })
+
+      const data = response.data || response
+
+      return {
+        success: true,
+        data: {
+          count: data.count || (Array.isArray(data.results || data) ? (data.results || data).length : 0),
+          next: data.next,
+          previous: data.previous,
+          results: data.results || data || [],
+          pagination: {
+            page: params.page || 1,
+            limit: params.limit || 20,
+            total: data.count || (Array.isArray(data.results || data) ? (data.results || data).length : 0),
+            totalPages: data.count ? Math.ceil(data.count / (params.limit || 20)) : 1
+          }
+        }
+      }
+    } catch (error) {
+      console.error('❌ Failed to fetch activation requests:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to fetch activation requests'
+      }
+    }
+  },
+
+  /**
+   * Approve reseller activation request
+   */
+  async approveActivationRequest(requestId, approvalData = {}) {
+    try {
+      console.log('🔄 Approving reseller activation request:', requestId)
+
+      const url = `${RESELLERS_URL.replace('resellers/', 'reseller-activation-requests/')}${requestId}/approve/`
+
+      const response = await apiService.post(url, {
+        max_clients: approvalData.maxClients || 100,
+        max_sims: approvalData.maxSims || 1000,
+        credit_limit: approvalData.creditLimit || 1000,
+        notes: approvalData.notes || ''
+      }, { requiresAuth: true })
+
+      const data = response.data || response
+
+      if (response.success || data.success) {
+        console.log('✅ Activation request approved successfully')
+        return {
+          success: true,
+          data: data.data || data,
+          message: 'Reseller activation request approved successfully'
+        }
+      }
+
+      return response
+    } catch (error) {
+      console.error('❌ Failed to approve activation request:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to approve activation request'
+      }
+    }
+  },
+
+  /**
+   * Reject reseller activation request
+   */
+  async rejectActivationRequest(requestId, rejectionReason) {
+    try {
+      console.log('🔄 Rejecting reseller activation request:', requestId)
+
+      const url = `${RESELLERS_URL.replace('resellers/', 'reseller-activation-requests/')}${requestId}/reject/`
+
+      const response = await apiService.post(url, {
+        rejection_reason: rejectionReason
+      }, { requiresAuth: true })
+
+      const data = response.data || response
+
+      if (response.success || data.success) {
+        console.log('✅ Activation request rejected successfully')
+        return {
+          success: true,
+          data: data.data || data,
+          message: 'Reseller activation request rejected successfully'
+        }
+      }
+
+      return response
+    } catch (error) {
+      console.error('❌ Failed to reject activation request:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to reject activation request'
+      }
+    }
+  },
+
+  /**
+   * Format activation requests for frontend consumption
+   */
+  formatActivationRequestsList(requests) {
+    if (!Array.isArray(requests)) {
+      return []
+    }
+
+    return requests.map(request => ({
+      id: request.id,
+      firstName: request.user?.first_name || '',
+      lastName: request.user?.last_name || '',
+      name: `${request.user?.first_name || ''} ${request.user?.last_name || ''}`.trim(),
+      email: request.user?.email || '',
+      phoneCountryCode: request.user?.country_code || '',
+      phoneNumber: request.user?.phone_number || '',
+      countryOfRegistration: request.user?.country_code || '',
+      companyName: request.company_name || '',
+      businessType: request.business_type || '',
+      requestDate: request.created_at,
+      status: request.status || 'pending',
+      maxClients: request.max_clients || 100,
+      maxSims: request.max_sims || 1000,
+      creditLimit: request.credit_limit || 1000,
+      rejectionReason: request.rejection_reason || '',
+      approvedBy: request.approved_by || null,
+      approvedAt: request.approved_at || null,
+      documents: request.documents || []
+    }))
   }
 }
 

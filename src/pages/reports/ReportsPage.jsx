@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTheme } from '../../context/ThemeContext'
 import toast from 'react-hot-toast'
+// BACKEND INTEGRATION ACTIVATED
+import { reportsService } from '../../services/reportsService'
 import {
   Calendar,
   Download,
@@ -106,11 +108,134 @@ function ReportsPage() {
   const [reportType, setReportType] = useState('overview')
   const [showExportModal, setShowExportModal] = useState(false)
   const [selectedMetric, setSelectedMetric] = useState('revenue')
+  const [analyticsData, setAnalyticsData] = useState(sampleAnalytics)
+  const [loading, setLoading] = useState(true)
+  const [lastUpdated, setLastUpdated] = useState(null)
 
-  const handleExport = (format, reportData) => {
-    // Simulate export functionality
-    toast.success(`Exporting ${reportData.type} report as ${format.toUpperCase()}`)
+  // Helper function to safely get new users count
+  const getSafeNewUsersCount = () => {
+    try {
+      if (!analyticsData) {
+        console.warn('analyticsData is null/undefined')
+        return '0'
+      }
+
+      if (!analyticsData.userGrowth) {
+        console.warn('analyticsData.userGrowth is null/undefined')
+        return '0'
+      }
+
+      if (!Array.isArray(analyticsData.userGrowth)) {
+        console.warn('analyticsData.userGrowth is not an array:', typeof analyticsData.userGrowth)
+        return '0'
+      }
+
+      if (analyticsData.userGrowth.length === 0) {
+        console.warn('analyticsData.userGrowth is empty array')
+        return '0'
+      }
+
+      const lastEntry = analyticsData.userGrowth[analyticsData.userGrowth.length - 1]
+      if (!lastEntry) {
+        console.warn('Last entry in userGrowth is null/undefined')
+        return '0'
+      }
+
+      const newCount = lastEntry.new
+      if (newCount === null || newCount === undefined) {
+        console.warn('new property is null/undefined in last userGrowth entry')
+        return '0'
+      }
+
+      return newCount.toLocaleString()
+    } catch (error) {
+      console.error('Error in getSafeNewUsersCount:', error)
+      return '0'
+    }
+  }
+
+  // Fetch analytics data from backend
+  const fetchAnalyticsData = async (params = {}) => {
+    // BACKEND INTEGRATION ACTIVATED
+    try {
+      setLoading(true)
+
+      // Get date range for the selected period
+      const { startDate, endDate } = reportsService.getDateRange(dateRange)
+
+      // Use dashboard data since analytics endpoint doesn't exist yet
+      const response = await reportsService.getDashboardReports()
+
+      if (response.success) {
+        const formattedData = reportsService.formatAnalyticsData(response.data)
+        setAnalyticsData(formattedData)
+        setLastUpdated(new Date())
+      } else {
+        // Fallback to sample data if API fails
+        console.error('API failed, using sample data:', response.error)
+        toast.error('Failed to load analytics - using sample data')
+        setAnalyticsData(sampleAnalytics)
+      }
+    } catch (error) {
+      console.error('Failed to fetch analytics:', error)
+      toast.error('Failed to load analytics - using sample data')
+      // Fallback to sample data
+      setAnalyticsData(sampleAnalytics)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Debug analytics data
+  useEffect(() => {
+    console.log('🔍 Analytics data updated:', {
+      hasUserGrowth: !!analyticsData?.userGrowth,
+      userGrowthType: typeof analyticsData?.userGrowth,
+      userGrowthLength: analyticsData?.userGrowth?.length,
+      userGrowthSample: analyticsData?.userGrowth?.[0],
+      lastUserGrowth: analyticsData?.userGrowth?.[analyticsData.userGrowth.length - 1]
+    })
+  }, [analyticsData])
+
+  // Load analytics on component mount
+  useEffect(() => {
+    fetchAnalyticsData()
+  }, [])
+
+  // Reload analytics when date range changes
+  useEffect(() => {
+    fetchAnalyticsData()
+  }, [dateRange])
+
+  const handleExport = async (format, reportData) => {
+    // BACKEND INTEGRATION ACTIVATED
+    try {
+      const { startDate, endDate } = reportsService.getDateRange(dateRange)
+      const response = await reportsService.exportReport(reportData.type, format, {
+        date_from: startDate,
+        date_to: endDate,
+        period: dateRange
+      })
+
+      if (response.success) {
+        toast.success(`${reportData.type} report exported successfully as ${format.toUpperCase()}`)
+        console.log('✅ Report exported:', reportData.type, format)
+      } else {
+        toast.error('Failed to export report')
+        console.error('❌ Export failed:', response.error)
+      }
+    } catch (error) {
+      console.error('Failed to export report:', error)
+      toast.error('Failed to export report')
+    }
+
     setShowExportModal(false)
+  }
+
+  const handleRefresh = async () => {
+    await fetchAnalyticsData()
+    toast.success('Reports data refreshed')
+    console.log('🔄 Reports data refreshed')
   }
 
   const getGrowthColor = (growth) => {
@@ -145,14 +270,15 @@ function ReportsPage() {
             <option value="1year">Last Year</option>
           </select>
           <button
-            onClick={() => window.location.reload()}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+            onClick={handleRefresh}
+            disabled={loading}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 ${
               resolvedTheme === 'dark'
                 ? 'bg-slate-700 hover:bg-slate-600 text-slate-300'
                 : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
             }`}
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </button>
           <button
@@ -179,19 +305,19 @@ function ReportsPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">
-                  ${sampleAnalytics.overview.totalRevenue.toLocaleString()}
+                  ${analyticsData.overview.totalRevenue.toLocaleString()}
                 </p>
                 <p className="text-sm text-muted-foreground">Total Revenue</p>
               </div>
             </div>
             <div className="text-right">
-              <div className={`flex items-center space-x-1 ${getGrowthColor(sampleAnalytics.overview.revenueGrowth)}`}>
+              <div className={`flex items-center space-x-1 ${getGrowthColor(analyticsData.overview.revenueGrowth)}`}>
                 {(() => {
-                  const GrowthIcon = getGrowthIcon(sampleAnalytics.overview.revenueGrowth)
+                  const GrowthIcon = getGrowthIcon(analyticsData.overview.revenueGrowth)
                   return <GrowthIcon className="h-4 w-4" />
                 })()}
                 <span className="text-sm font-medium">
-                  {Math.abs(sampleAnalytics.overview.revenueGrowth)}%
+                  {Math.abs(analyticsData.overview.revenueGrowth)}%
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">vs last month</p>
@@ -207,19 +333,19 @@ function ReportsPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">
-                  {sampleAnalytics.overview.totalUsers.toLocaleString()}
+                  {analyticsData.overview.totalUsers.toLocaleString()}
                 </p>
                 <p className="text-sm text-muted-foreground">Total Users</p>
               </div>
             </div>
             <div className="text-right">
-              <div className={`flex items-center space-x-1 ${getGrowthColor(sampleAnalytics.overview.userGrowth)}`}>
+              <div className={`flex items-center space-x-1 ${getGrowthColor(analyticsData.overview.userGrowth)}`}>
                 {(() => {
-                  const GrowthIcon = getGrowthIcon(sampleAnalytics.overview.userGrowth)
+                  const GrowthIcon = getGrowthIcon(analyticsData.overview.userGrowth)
                   return <GrowthIcon className="h-4 w-4" />
                 })()}
                 <span className="text-sm font-medium">
-                  {Math.abs(sampleAnalytics.overview.userGrowth)}%
+                  {Math.abs(analyticsData.overview.userGrowth)}%
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">vs last month</p>
@@ -235,19 +361,19 @@ function ReportsPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">
-                  {sampleAnalytics.overview.totalOrders.toLocaleString()}
+                  {analyticsData.overview.totalOrders.toLocaleString()}
                 </p>
                 <p className="text-sm text-muted-foreground">Total Orders</p>
               </div>
             </div>
             <div className="text-right">
-              <div className={`flex items-center space-x-1 ${getGrowthColor(sampleAnalytics.overview.orderGrowth)}`}>
+              <div className={`flex items-center space-x-1 ${getGrowthColor(analyticsData.overview.orderGrowth)}`}>
                 {(() => {
-                  const GrowthIcon = getGrowthIcon(sampleAnalytics.overview.orderGrowth)
+                  const GrowthIcon = getGrowthIcon(analyticsData.overview.orderGrowth)
                   return <GrowthIcon className="h-4 w-4" />
                 })()}
                 <span className="text-sm font-medium">
-                  {Math.abs(sampleAnalytics.overview.orderGrowth)}%
+                  {Math.abs(analyticsData.overview.orderGrowth)}%
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">vs last month</p>
@@ -263,19 +389,19 @@ function ReportsPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">
-                  {sampleAnalytics.overview.activeUsers.toLocaleString()}
+                  {analyticsData.overview.activeUsers.toLocaleString()}
                 </p>
                 <p className="text-sm text-muted-foreground">Active Users</p>
               </div>
             </div>
             <div className="text-right">
-              <div className={`flex items-center space-x-1 ${getGrowthColor(sampleAnalytics.overview.activeUserGrowth)}`}>
+              <div className={`flex items-center space-x-1 ${getGrowthColor(analyticsData.overview.activeUserGrowth)}`}>
                 {(() => {
-                  const GrowthIcon = getGrowthIcon(sampleAnalytics.overview.activeUserGrowth)
+                  const GrowthIcon = getGrowthIcon(analyticsData.overview.activeUserGrowth)
                   return <GrowthIcon className="h-4 w-4" />
                 })()}
                 <span className="text-sm font-medium">
-                  {Math.abs(sampleAnalytics.overview.activeUserGrowth)}%
+                  {Math.abs(analyticsData.overview.activeUserGrowth)}%
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">vs last month</p>
@@ -302,21 +428,21 @@ function ReportsPage() {
                 <div>
                   <p className="font-medium text-foreground">App Users</p>
                   <p className="text-sm text-muted-foreground">
-                    ${sampleAnalytics.revenueBreakdown.appUsers.toLocaleString()}
+                    ${analyticsData.revenueBreakdown.appUsers.toLocaleString()}
                   </p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-lg font-bold text-foreground">
-                  {sampleAnalytics.revenueBreakdown.appUsersPercentage}%
+                  {analyticsData.revenueBreakdown.appUsersPercentage}%
                 </p>
-                <div className={`flex items-center space-x-1 ${getGrowthColor(sampleAnalytics.revenueBreakdown.appUsersGrowth)}`}>
+                <div className={`flex items-center space-x-1 ${getGrowthColor(analyticsData.revenueBreakdown.appUsersGrowth)}`}>
                   {(() => {
-                    const GrowthIcon = getGrowthIcon(sampleAnalytics.revenueBreakdown.appUsersGrowth)
+                    const GrowthIcon = getGrowthIcon(analyticsData.revenueBreakdown.appUsersGrowth)
                     return <GrowthIcon className="h-3 w-3" />
                   })()}
                   <span className="text-xs">
-                    {Math.abs(sampleAnalytics.revenueBreakdown.appUsersGrowth)}%
+                    {Math.abs(analyticsData.revenueBreakdown.appUsersGrowth)}%
                   </span>
                 </div>
               </div>
@@ -330,21 +456,21 @@ function ReportsPage() {
                 <div>
                   <p className="font-medium text-foreground">Resellers</p>
                   <p className="text-sm text-muted-foreground">
-                    ${sampleAnalytics.revenueBreakdown.resellers.toLocaleString()}
+                    ${analyticsData.revenueBreakdown.resellers.toLocaleString()}
                   </p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-lg font-bold text-foreground">
-                  {sampleAnalytics.revenueBreakdown.resellersPercentage}%
+                  {analyticsData.revenueBreakdown.resellersPercentage}%
                 </p>
-                <div className={`flex items-center space-x-1 ${getGrowthColor(sampleAnalytics.revenueBreakdown.resellersGrowth)}`}>
+                <div className={`flex items-center space-x-1 ${getGrowthColor(analyticsData.revenueBreakdown.resellersGrowth)}`}>
                   {(() => {
-                    const GrowthIcon = getGrowthIcon(sampleAnalytics.revenueBreakdown.resellersGrowth)
+                    const GrowthIcon = getGrowthIcon(analyticsData.revenueBreakdown.resellersGrowth)
                     return <GrowthIcon className="h-3 w-3" />
                   })()}
                   <span className="text-xs">
-                    {Math.abs(sampleAnalytics.revenueBreakdown.resellersGrowth)}%
+                    {Math.abs(analyticsData.revenueBreakdown.resellersGrowth)}%
                   </span>
                 </div>
               </div>
@@ -367,7 +493,7 @@ function ReportsPage() {
             </select>
           </div>
           <PerformanceChart
-            data={sampleAnalytics.dailyPerformance}
+            data={analyticsData.dailyPerformance}
             metric={selectedMetric}
             theme={resolvedTheme}
           />
@@ -385,7 +511,7 @@ function ReportsPage() {
             </div>
           </div>
           <UserGrowthChart
-            data={sampleAnalytics.userGrowth}
+            data={analyticsData.userGrowth}
             theme={resolvedTheme}
           />
         </div>
@@ -399,7 +525,7 @@ function ReportsPage() {
             </div>
           </div>
           <RevenueChart
-            data={sampleAnalytics.monthlyPerformance}
+            data={analyticsData.monthlyPerformance}
             theme={resolvedTheme}
           />
         </div>
@@ -416,7 +542,7 @@ function ReportsPage() {
             </div>
           </div>
           <div className="space-y-4">
-            {sampleAnalytics.topPackages.slice(0, 5).map((pkg, index) => (
+            {analyticsData.topPackages.slice(0, 5).map((pkg, index) => (
               <div key={pkg.name} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                 <div className="flex items-center space-x-3">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
@@ -460,7 +586,7 @@ function ReportsPage() {
             </div>
           </div>
           <div className="space-y-4">
-            {sampleAnalytics.topNetworks.map((network, index) => (
+            {analyticsData.topNetworks.map((network, index) => (
               <div key={network.name} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                 <div className="flex items-center space-x-3">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
@@ -523,19 +649,19 @@ function ReportsPage() {
                 <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
                   <span className="text-muted-foreground">Avg. Order Value</span>
                   <span className="font-medium text-foreground">
-                    ${(sampleAnalytics.overview.totalRevenue / sampleAnalytics.overview.totalOrders).toFixed(2)}
+                    ${(analyticsData.overview.totalRevenue / analyticsData.overview.totalOrders).toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
                   <span className="text-muted-foreground">User Conversion Rate</span>
                   <span className="font-medium text-foreground">
-                    {((sampleAnalytics.overview.totalOrders / sampleAnalytics.overview.totalUsers) * 100).toFixed(1)}%
+                    {((analyticsData.overview.totalOrders / analyticsData.overview.totalUsers) * 100).toFixed(1)}%
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
                   <span className="text-muted-foreground">Active User Rate</span>
                   <span className="font-medium text-foreground">
-                    {((sampleAnalytics.overview.activeUsers / sampleAnalytics.overview.totalUsers) * 100).toFixed(1)}%
+                    {((analyticsData.overview.activeUsers / analyticsData.overview.totalUsers) * 100).toFixed(1)}%
                   </span>
                 </div>
               </div>
@@ -547,19 +673,19 @@ function ReportsPage() {
                 <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
                   <span className="text-muted-foreground">Daily Avg. Revenue</span>
                   <span className="font-medium text-foreground">
-                    ${(sampleAnalytics.dailyPerformance.reduce((sum, day) => sum + day.revenue, 0) / sampleAnalytics.dailyPerformance.length).toFixed(2)}
+                    ${(analyticsData.dailyPerformance.reduce((sum, day) => sum + day.revenue, 0) / analyticsData.dailyPerformance.length).toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
                   <span className="text-muted-foreground">Peak Revenue Day</span>
                   <span className="font-medium text-foreground">
-                    ${Math.max(...sampleAnalytics.dailyPerformance.map(d => d.revenue)).toFixed(2)}
+                    ${Math.max(...analyticsData.dailyPerformance.map(d => d.revenue)).toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
                   <span className="text-muted-foreground">Revenue Growth</span>
-                  <span className={`font-medium ${getGrowthColor(sampleAnalytics.overview.revenueGrowth)}`}>
-                    +{sampleAnalytics.overview.revenueGrowth}%
+                  <span className={`font-medium ${getGrowthColor(analyticsData.overview.revenueGrowth)}`}>
+                    +{analyticsData.overview.revenueGrowth}%
                   </span>
                 </div>
               </div>
@@ -571,7 +697,7 @@ function ReportsPage() {
                 <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
                   <span className="text-muted-foreground">New Users (30d)</span>
                   <span className="font-medium text-foreground">
-                    {sampleAnalytics.userGrowth[sampleAnalytics.userGrowth.length - 1].new}
+                    {getSafeNewUsersCount()}
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
@@ -580,8 +706,8 @@ function ReportsPage() {
                 </div>
                 <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
                   <span className="text-muted-foreground">User Growth</span>
-                  <span className={`font-medium ${getGrowthColor(sampleAnalytics.overview.userGrowth)}`}>
-                    +{sampleAnalytics.overview.userGrowth}%
+                  <span className={`font-medium ${getGrowthColor(analyticsData.overview.userGrowth)}`}>
+                    +{analyticsData.overview.userGrowth}%
                   </span>
                 </div>
               </div>
@@ -604,7 +730,7 @@ function ReportsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {sampleAnalytics.topPackages.map((pkg, index) => (
+                  {analyticsData.topPackages.map((pkg, index) => (
                     <tr key={pkg.name} className="hover:bg-muted/30 transition-colors">
                       <td className="p-4">
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
@@ -670,7 +796,7 @@ function ReportsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {sampleAnalytics.topNetworks.map((network, index) => (
+                  {analyticsData.topNetworks.map((network, index) => (
                     <tr key={network.name} className="hover:bg-muted/30 transition-colors">
                       <td className="p-4">
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
