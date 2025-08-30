@@ -122,6 +122,11 @@ class ApiService {
         throw new Error(errorData.message || `Request failed: ${response.status}`)
       }
 
+      // Handle blob responses (for file downloads)
+      if (options.responseType === 'blob') {
+        return await response.blob()
+      }
+
       // For DELETE requests, handle 204 No Content responses
       if (method === 'DELETE' && response.status === 204) {
         return { success: true, message: 'Resource deleted successfully' }

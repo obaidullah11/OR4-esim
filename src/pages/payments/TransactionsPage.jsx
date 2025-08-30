@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useTheme } from '../../context/ThemeContext'
 import toast from 'react-hot-toast'
-// BACKEND INTEGRATION ACTIVATED
 import { paymentsService } from '../../services/paymentsService'
 import ScrollableTable from '../../components/common/ScrollableTable'
 import { PaymentsEmptyState } from '../../components/common/EmptyState'
 import { PaymentsLoadingState } from '../../components/common/LoadingState'
+import ConfirmationModal from '../../components/common/ConfirmationModal'
 import {
   Search,
   Filter,
@@ -32,7 +32,8 @@ import {
   RotateCcw,
   TrendingUp,
   TrendingDown,
-  Wallet
+  Wallet,
+  Trash2
 } from 'lucide-react'
 import TransactionDetailsModal from '../../components/transactions/TransactionDetailsModal'
 import RefundModal from '../../components/transactions/RefundModal'
@@ -228,6 +229,9 @@ function TransactionsPage() {
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [showRefundModal, setShowRefundModal] = useState(false)
   const [showApprovalModal, setShowApprovalModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [selectedPaymentForDelete, setSelectedPaymentForDelete] = useState(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -521,14 +525,38 @@ function TransactionsPage() {
     setSelectedTransaction(null)
   }
 
-  const downloadInvoice = (transaction) => {
-    if (!transaction.invoiceNumber) {
-      toast.error('No invoice available for this transaction')
-      return
-    }
+  const downloadInvoice = async (transaction) => {
+    try {
+      if (!transaction.invoiceNumber && !transaction.id) {
+        toast.error('No invoice available for this transaction')
+        return
+      }
 
-    // Simulate invoice download
-    toast.success(`Downloading invoice ${transaction.invoiceNumber}`)
+      console.log('🧾 Generating invoice for payment:', transaction.id)
+      const response = await paymentsService.generateInvoice(transaction.id)
+      
+      if (response.ok) {
+        const blob = await response.blob()
+        
+        // Create download link
+        const downloadUrl = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = downloadUrl
+        link.download = `Invoice_${transaction.transactionId}_${new Date().toISOString().split('T')[0]}.pdf`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(downloadUrl)
+
+        toast.success('Invoice downloaded successfully')
+      } else {
+        const errorData = await response.json()
+        toast.error(errorData.error || 'Failed to generate invoice')
+      }
+    } catch (error) {
+      console.error('❌ Failed to download invoice:', error)
+      toast.error('Failed to download invoice')
+    }
   }
 
   const handleRefresh = async () => {
@@ -541,23 +569,80 @@ function TransactionsPage() {
     try {
       const filters = {
         status: statusFilter !== 'all' ? statusFilter : undefined,
-        payment_method: paymentMethodFilter !== 'all' ? paymentMethodFilter : undefined,
-        payment_type: typeFilter !== 'all' ? typeFilter : undefined
+        payment_type: paymentMethodFilter !== 'all' ? paymentMethodFilter : undefined
       }
 
-      const response = await paymentsService.exportTransactions(filters)
-
-      if (response.success) {
-        toast.success('Transactions exported successfully')
-        console.log('✅ Transactions exported')
-      } else {
-        toast.error('Failed to export transactions')
-        console.error('❌ Export failed:', response.error)
-      }
+      await paymentsService.exportPayments(filters)
+      toast.success('Transactions exported successfully')
+      console.log('✅ Transactions exported')
     } catch (error) {
       console.error('❌ Failed to export transactions:', error)
       toast.error('Failed to export transactions')
     }
+  }
+
+  // Handle delete payment
+  const handleDeletePayment = (transaction) => {
+    setSelectedPaymentForDelete(transaction)
+    setShowDeleteModal(true)
+  }
+
+  const confirmDeletePayment = async () => {
+    if (!selectedPaymentForDelete) return
+
+    try {
+      setIsDeleting(true)
+      console.log('🗑️ Deleting payment:', selectedPaymentForDelete.id)
+
+      const response = await paymentsService.deletePayment(selectedPaymentForDelete.id)
+      
+      if (response.success) {
+        // Remove from local state immediately
+        setTransactions(prev => prev.filter(t => t.id !== selectedPaymentForDelete.id))
+
+        // Update pagination total count
+        setPagination(prev => ({
+          ...prev,
+          total: Math.max(0, prev.total - 1),
+          totalPages: Math.ceil(Math.max(0, prev.total - 1) / prev.limit)
+        }))
+
+        toast.success('Payment record deleted successfully')
+        console.log('✅ Payment deleted:', selectedPaymentForDelete.id)
+
+        // Refresh the payments list from server to ensure consistency
+        setTimeout(() => {
+          fetchTransactions()
+        }, 500)
+      } else {
+        toast.error(response.error || 'Failed to delete payment')
+        console.error('❌ Failed to delete payment:', response.error)
+      }
+    } catch (error) {
+      console.error('❌ Failed to delete payment:', error)
+
+      // Handle specific error types
+      if (error.message === 'Failed to fetch') {
+        toast.error('Connection error. Please check your internet connection and try again.')
+      } else if (error.message?.includes('404')) {
+        toast.error('Payment not found. It may have already been deleted.')
+        // Refresh data on 404 to sync with server state
+        setTimeout(() => {
+          fetchTransactions()
+        }, 500)
+      } else {
+        toast.error(error.message || 'Failed to delete payment')
+      }
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteModal(false)
+      setSelectedPaymentForDelete(null)
+    }
+  }
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false)
+    setSelectedPaymentForDelete(null)
   }
 
   // Handle pagination
@@ -864,99 +949,32 @@ function TransactionsPage() {
                     </td>
                     <td className="p-4">
                       <div className="flex items-center space-x-2">
+                        {/* View Details */}
                         <button
                           onClick={() => handleViewTransaction(transaction)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            resolvedTheme === 'dark'
-                              ? 'hover:bg-slate-700 text-slate-300 hover:text-white'
-                              : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
-                          }`}
-                          title="View Details"
+                          className="text-blue-600 hover:text-blue-800 transition-colors"
+                          title="View Transaction Details"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="w-4 h-4" />
                         </button>
 
-                        {transaction.invoiceNumber && (
-                          <button
-                            onClick={() => downloadInvoice(transaction)}
-                            className={`p-2 rounded-lg transition-colors ${
-                              resolvedTheme === 'dark'
-                                ? 'hover:bg-blue-900/20 text-blue-400 hover:text-blue-300'
-                                : 'hover:bg-blue-50 text-blue-600 hover:text-blue-700'
-                            }`}
-                            title="Download Invoice"
-                          >
-                            <Download className="h-4 w-4" />
-                          </button>
-                        )}
+                        {/* Download Invoice */}
+                        <button
+                          onClick={() => downloadInvoice(transaction)}
+                          className="text-green-600 hover:text-green-800 transition-colors"
+                          title="Download Invoice"
+                        >
+                          <FileText className="w-4 h-4" />
+                        </button>
 
-                        {transaction.status === 'pending_approval' && (
-                          <button
-                            onClick={() => handleApproval(transaction)}
-                            className={`p-2 rounded-lg transition-colors ${
-                              resolvedTheme === 'dark'
-                                ? 'hover:bg-green-900/20 text-green-400 hover:text-green-300'
-                                : 'hover:bg-green-50 text-green-600 hover:text-green-700'
-                            }`}
-                            title="Approve/Reject"
-                          >
-                            <CheckCircle className="h-4 w-4" />
-                          </button>
-                        )}
-
-                        {transaction.status === 'completed' && transaction.type === 'payment' && (
-                          <button
-                            onClick={() => handleRefund(transaction)}
-                            className={`p-2 rounded-lg transition-colors ${
-                              resolvedTheme === 'dark'
-                                ? 'hover:bg-red-900/20 text-red-400 hover:text-red-300'
-                                : 'hover:bg-red-50 text-red-600 hover:text-red-700'
-                            }`}
-                            title="Process Refund"
-                          >
-                            <RotateCcw className="h-4 w-4" />
-                          </button>
-                        )}
-
-                        <div className="relative group">
-                          <button
-                            className={`p-2 rounded-lg transition-colors ${
-                              resolvedTheme === 'dark'
-                                ? 'hover:bg-slate-700 text-slate-300 hover:text-white'
-                                : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
-                            }`}
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </button>
-
-                          {/* Dropdown Menu */}
-                          <div className={`absolute right-0 top-full mt-1 w-48 rounded-lg shadow-lg border border-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 ${
-                            resolvedTheme === 'dark' ? 'bg-slate-800' : 'bg-white'
-                          }`}>
-                            <div className="py-1">
-                              <button
-                                className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center space-x-2 ${
-                                  resolvedTheme === 'dark'
-                                    ? 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                                }`}
-                              >
-                                <Receipt className="h-4 w-4" />
-                                <span>View Receipt</span>
-                              </button>
-                              <button
-                                className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center space-x-2 ${
-                                  resolvedTheme === 'dark'
-                                    ? 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                                }`}
-                              >
-                                <FileText className="h-4 w-4" />
-                                <span>Transaction Log</span>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
+                        {/* Delete Record */}
+                        <button
+                          onClick={() => handleDeletePayment(transaction)}
+                          className="text-red-600 hover:text-red-800 transition-colors"
+                          title="Delete Record"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -1006,6 +1024,19 @@ function TransactionsPage() {
           onReject={handleRejectTransaction}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={handleCancelDelete}
+        onConfirm={confirmDeletePayment}
+        title="Delete Payment Record"
+        message={`Are you sure you want to delete payment ${selectedPaymentForDelete?.transactionId}? This action cannot be undone.`}
+        confirmText={isDeleting ? "Deleting..." : "Delete Payment"}
+        cancelText="Cancel"
+        type="danger"
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

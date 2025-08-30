@@ -351,22 +351,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transaction, onDownloadInvoi
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-border">
-          <div className="flex items-center space-x-3">
-            {transaction.invoiceNumber && (
-              <button
-                onClick={() => onDownloadInvoice(transaction)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                  resolvedTheme === 'dark'
-                    ? 'bg-slate-700 hover:bg-slate-600 text-slate-300'
-                    : 'bg-muted hover:bg-muted/80 text-foreground'
-                }`}
-              >
-                <Receipt className="h-4 w-4" />
-                <span>Download Receipt</span>
-              </button>
-            )}
-          </div>
+        <div className="flex items-center justify-end p-6 border-t border-border">
           <button
             onClick={onClose}
             className={`px-4 py-2 rounded-lg transition-colors ${

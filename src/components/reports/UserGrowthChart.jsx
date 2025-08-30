@@ -11,22 +11,30 @@ const UserGrowthChart = ({ data, theme }) => {
     )
   }
 
-  const maxTotal = Math.max(...data.map(item => item.total))
-  const maxActive = Math.max(...data.map(item => item.active))
+  // Handle different data structures
+  const safeData = data.map(item => ({
+    month: item.month || 'Unknown',
+    total: item.users || item.total || 0,
+    active: item.users || item.active || 0,
+    new: item.growth || item.new || 0
+  }))
+
+  const maxTotal = Math.max(...safeData.map(item => item.total), 1)
+  const maxActive = Math.max(...safeData.map(item => item.active), 1)
 
   const getLinePoints = (values, max) => {
     const width = 100 // percentage
     const height = 180 // pixels
     
     return values.map((value, index) => {
-      const x = (index / (values.length - 1)) * width
+      const x = (index / Math.max(values.length - 1, 1)) * width
       const y = height - ((value / max) * height)
       return `${x},${y}`
     }).join(' ')
   }
 
-  const totalPoints = getLinePoints(data.map(item => item.total), maxTotal)
-  const activePoints = getLinePoints(data.map(item => item.active), maxTotal)
+  const totalPoints = getLinePoints(safeData.map(item => item.total), maxTotal)
+  const activePoints = getLinePoints(safeData.map(item => item.active), maxTotal)
 
   const formatValue = (value) => {
     return value.toLocaleString()
@@ -68,8 +76,8 @@ const UserGrowthChart = ({ data, theme }) => {
         />
 
         {/* Data Points */}
-        {data.map((item, index) => {
-          const x = (index / (data.length - 1)) * 100
+        {safeData.map((item, index) => {
+          const x = (index / Math.max(safeData.length - 1, 1)) * 100
           const totalY = 180 - ((item.total / maxTotal) * 180)
           const activeY = 180 - ((item.active / maxTotal) * 180)
           const isHovered = hoveredIndex === index
@@ -120,19 +128,19 @@ const UserGrowthChart = ({ data, theme }) => {
           theme === 'dark' ? 'bg-slate-800 text-white' : 'bg-white text-gray-900'
         }`}>
           <div className="text-center space-y-1">
-            <p className="text-sm font-medium">{data[hoveredIndex].month}</p>
+            <p className="text-sm font-medium">{safeData[hoveredIndex].month}</p>
             <div className="space-y-1">
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                <span className="text-xs">Total: {formatValue(data[hoveredIndex].total)}</span>
+                <span className="text-xs">Total: {formatValue(safeData[hoveredIndex].total)}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-green-500 rounded"></div>
-                <span className="text-xs">Active: {formatValue(data[hoveredIndex].active)}</span>
+                <span className="text-xs">Active: {formatValue(safeData[hoveredIndex].active)}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-orange-500 rounded"></div>
-                <span className="text-xs">New: {formatValue(data[hoveredIndex].new)}</span>
+                <span className="text-xs">New: {formatValue(safeData[hoveredIndex].new)}</span>
               </div>
             </div>
           </div>
@@ -160,9 +168,9 @@ const UserGrowthChart = ({ data, theme }) => {
 
       {/* X-axis labels */}
       <div className="absolute bottom-0 left-0 w-full flex justify-between px-4 pb-2">
-        {data.map((item, index) => (
+        {safeData.map((item, index) => (
           <span key={index} className="text-xs text-muted-foreground">
-            {item.month.split(' ')[0]}
+            {item.month && typeof item.month === 'string' ? item.month.split(' ')[0] : item.month}
           </span>
         ))}
       </div>

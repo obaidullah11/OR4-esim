@@ -51,9 +51,9 @@ const PerformanceChart = ({ data, metric, theme }) => {
   }
 
   return (
-    <div className="h-64 relative">
+    <div className="h-64 relative overflow-hidden">
       {/* Chart Area */}
-      <div className="h-full flex items-end justify-between space-x-1 px-4 py-4">
+      <div className="h-full flex items-end justify-between gap-0.5 sm:gap-1 pl-12 pr-4 pt-8 pb-12">
         {data.map((item, index) => {
           const value = getMetricValue(item)
           const height = getBarHeight(value)
@@ -96,8 +96,8 @@ const PerformanceChart = ({ data, metric, theme }) => {
               />
               
               {/* Date Label */}
-              <div className="mt-2 text-center">
-                <p className="text-xs text-muted-foreground transform -rotate-45 origin-center">
+              <div className="mt-2 text-center w-full">
+                <p className="text-xs text-muted-foreground transform -rotate-45 origin-center whitespace-nowrap">
                   {formatDate(item.date)}
                 </p>
               </div>
@@ -107,15 +107,15 @@ const PerformanceChart = ({ data, metric, theme }) => {
       </div>
 
       {/* Y-axis labels */}
-      <div className="absolute left-0 top-0 h-full flex flex-col justify-between py-4 pr-2">
-        <span className="text-xs text-muted-foreground">{formatValue(maxValue)}</span>
-        <span className="text-xs text-muted-foreground">{formatValue((maxValue + minValue) / 2)}</span>
-        <span className="text-xs text-muted-foreground">{formatValue(minValue)}</span>
+      <div className="absolute left-0 top-8 h-full flex flex-col justify-between py-4 pr-2 pb-12">
+        <span className="text-xs text-muted-foreground text-right w-10">{formatValue(maxValue)}</span>
+        <span className="text-xs text-muted-foreground text-right w-10">{formatValue((maxValue + minValue) / 2)}</span>
+        <span className="text-xs text-muted-foreground text-right w-10">{formatValue(minValue)}</span>
       </div>
 
       {/* Chart Title */}
-      <div className="absolute top-0 left-1/2 transform -translate-x-1/2">
-        <p className="text-sm font-medium text-muted-foreground">{getMetricLabel()} - Last 15 Days</p>
+      <div className="absolute top-2 left-1/2 transform -translate-x-1/2">
+        <p className="text-sm font-medium text-muted-foreground whitespace-nowrap">{getMetricLabel()} - Last 15 Days</p>
       </div>
     </div>
   )

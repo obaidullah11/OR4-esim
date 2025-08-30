@@ -119,20 +119,22 @@ export const reportsService = {
     }
   },
 
-  // Get comprehensive analytics (use dashboard endpoint since analytics doesn't exist yet)
+  // Get comprehensive analytics from dedicated analytics endpoint
   async getAnalytics(params = {}) {
     try {
       const queryParams = new URLSearchParams()
       
+      // Map frontend date range to backend parameter
+      if (params.date_range) queryParams.append('date_range', params.date_range)
       if (params.date_from) queryParams.append('date_from', params.date_from)
       if (params.date_to) queryParams.append('date_to', params.date_to)
       if (params.period) queryParams.append('period', params.period)
       if (params.metrics) queryParams.append('metrics', params.metrics.join(','))
       
-      // Use dashboard endpoint for now since analytics endpoint doesn't exist
+      // Use dedicated analytics endpoint
       const url = queryParams.toString() ? 
-        `${buildApiUrl(API_ENDPOINTS.REPORTS.DASHBOARD)}?${queryParams.toString()}` : 
-        buildApiUrl(API_ENDPOINTS.REPORTS.DASHBOARD)
+        `${buildApiUrl(API_ENDPOINTS.REPORTS.ANALYTICS)}?${queryParams.toString()}` : 
+        buildApiUrl(API_ENDPOINTS.REPORTS.ANALYTICS)
       
       const response = await apiService.get(url, { requiresAuth: true })
       
@@ -166,10 +168,7 @@ export const reportsService = {
       const url = `${buildApiUrl('reports/reports/')}?${queryParams.toString()}`
       
       const response = await apiService.get(url, { 
-        requiresAuth: true,
-        headers: {
-          'Accept': format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        }
+        requiresAuth: true
       })
       
       return {
@@ -182,6 +181,471 @@ export const reportsService = {
       return {
         success: false,
         error: error.message || 'Failed to export report'
+      }
+    }
+  },
+
+  // Get financial report data
+  async getFinancialReport(params = {}) {
+    try {
+      const queryParams = new URLSearchParams()
+      
+      if (params.period) queryParams.append('period', params.period)
+      if (params.date_from) queryParams.append('date_from', params.date_from)
+      if (params.date_to) queryParams.append('date_to', params.date_to)
+      
+      const url = `${API_ENDPOINTS.REPORTS.FINANCIAL_REPORT}?${queryParams.toString()}`
+      
+      const response = await apiService.get(url, { requiresAuth: true })
+      
+      return {
+        success: true,
+        data: response.data
+      }
+    } catch (error) {
+      console.error('❌ Failed to fetch financial report:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to fetch financial report'
+      }
+    }
+  },
+
+  // Get user report data
+  async getUserReport(params = {}) {
+    try {
+      const queryParams = new URLSearchParams()
+      
+      if (params.period) queryParams.append('period', params.period)
+      if (params.date_from) queryParams.append('date_from', params.date_from)
+      if (params.date_to) queryParams.append('date_to', params.date_to)
+      
+      const url = `${API_ENDPOINTS.REPORTS.USER_REPORT}?${queryParams.toString()}`
+      
+      const response = await apiService.get(url, { requiresAuth: true })
+      
+      return {
+        success: true,
+        data: response.data
+      }
+    } catch (error) {
+      console.error('❌ Failed to fetch user report:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to fetch user report'
+      }
+    }
+  },
+
+  // Export financial report to PDF
+  async exportFinancialReport(params = {}) {
+    try {
+      const queryParams = new URLSearchParams()
+      
+      if (params.period) queryParams.append('period', params.period)
+      if (params.date_from) queryParams.append('date_from', params.date_from)
+      if (params.date_to) queryParams.append('date_to', params.date_to)
+      
+      const url = `${API_ENDPOINTS.REPORTS.EXPORT_FINANCIAL}?${queryParams.toString()}`
+      
+      const response = await apiService.get(url, { 
+        requiresAuth: true,
+        responseType: 'blob'
+      })
+      
+      // Create download link
+      const blob = new Blob([response], { type: 'application/pdf' })
+      const downloadUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      
+      // Generate filename with current date
+      const now = new Date()
+      const dateStr = now.toISOString().split('T')[0]
+      link.download = `financial-report-${dateStr}.pdf`
+      
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(downloadUrl)
+      
+      return {
+        success: true,
+        message: 'Financial report exported successfully'
+      }
+    } catch (error) {
+      console.error('❌ Failed to export financial report:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to export financial report'
+      }
+    }
+  },
+
+  // Export user report to PDF
+  async exportUserReport(params = {}) {
+    try {
+      const queryParams = new URLSearchParams()
+      
+      if (params.period) queryParams.append('period', params.period)
+      if (params.date_from) queryParams.append('date_from', params.date_from)
+      if (params.date_to) queryParams.append('date_to', params.date_to)
+      
+      const url = `${API_ENDPOINTS.REPORTS.EXPORT_USERS_PDF}?${queryParams.toString()}`
+      
+      const response = await apiService.get(url, { 
+        requiresAuth: true,
+        responseType: 'blob'
+      })
+      
+      // Create download link
+      const blob = new Blob([response], { type: 'application/pdf' })
+      const downloadUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      
+      // Generate filename with current date
+      const now = new Date()
+      const dateStr = now.toISOString().split('T')[0]
+      link.download = `users-report-${dateStr}.pdf`
+      
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(downloadUrl)
+      
+      return {
+        success: true,
+        message: 'User report exported successfully'
+      }
+    } catch (error) {
+      console.error('❌ Failed to export user report:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to export user report'
+      }
+    }
+  },
+
+  // Export overview report to PDF
+  async exportOverviewReport(params = {}) {
+    try {
+      const queryParams = new URLSearchParams()
+      
+      if (params.period) queryParams.append('period', params.period)
+      if (params.date_from) queryParams.append('date_from', params.date_from)
+      if (params.date_to) queryParams.append('date_to', params.date_to)
+      
+      const url = `${API_ENDPOINTS.REPORTS.EXPORT_OVERVIEW_PDF}?${queryParams.toString()}`
+      
+      const response = await apiService.get(url, { 
+        requiresAuth: true,
+        responseType: 'blob'
+      })
+      
+      // Create download link
+      const blob = new Blob([response], { type: 'application/pdf' })
+      const downloadUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      
+      // Generate filename with current date
+      const now = new Date()
+      const dateStr = now.toISOString().split('T')[0]
+      link.download = `overview-report-${dateStr}.pdf`
+      
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(downloadUrl)
+      
+      return {
+        success: true,
+        message: 'Overview report exported successfully'
+      }
+    } catch (error) {
+      console.error('❌ Failed to export overview report:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to export overview report'
+      }
+    }
+  },
+
+  // Export revenue report to PDF
+  async exportRevenueReport(params = {}) {
+    try {
+      const queryParams = new URLSearchParams()
+      
+      if (params.period) queryParams.append('period', params.period)
+      if (params.date_from) queryParams.append('date_from', params.date_from)
+      if (params.date_to) queryParams.append('date_to', params.date_to)
+      
+      const url = `${API_ENDPOINTS.REPORTS.EXPORT_REVENUE_PDF}?${queryParams.toString()}`
+      
+      const response = await apiService.get(url, { 
+        requiresAuth: true,
+        responseType: 'blob'
+      })
+      
+      // Create download link
+      const blob = new Blob([response], { type: 'application/pdf' })
+      const downloadUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      
+      // Generate filename with current date
+      const now = new Date()
+      const dateStr = now.toISOString().split('T')[0]
+      link.download = `revenue-report-${dateStr}.pdf`
+      
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(downloadUrl)
+      
+      return {
+        success: true,
+        message: 'Revenue report exported successfully'
+      }
+    } catch (error) {
+      console.error('❌ Failed to export revenue report:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to export revenue report'
+      }
+    }
+  },
+
+  // Export packages report to PDF
+  async exportPackagesReport(params = {}) {
+    try {
+      const queryParams = new URLSearchParams()
+      
+      if (params.period) queryParams.append('period', params.period)
+      if (params.date_from) queryParams.append('date_from', params.date_from)
+      if (params.date_to) queryParams.append('date_to', params.date_to)
+      
+      const url = `${API_ENDPOINTS.REPORTS.EXPORT_PACKAGES_PDF}?${queryParams.toString()}`
+      
+      const response = await apiService.get(url, { 
+        requiresAuth: true,
+        responseType: 'blob'
+      })
+      
+      // Create download link
+      const blob = new Blob([response], { type: 'application/pdf' })
+      const downloadUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      
+      // Generate filename with current date
+      const now = new Date()
+      const dateStr = now.toISOString().split('T')[0]
+      link.download = `packages-report-${dateStr}.pdf`
+      
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(downloadUrl)
+      
+      return {
+        success: true,
+        message: 'Packages report exported successfully'
+      }
+    } catch (error) {
+      console.error('❌ Failed to export packages report:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to export packages report'
+      }
+    }
+  },
+
+  // Export networks report to PDF
+  async exportNetworksReport(params = {}) {
+    try {
+      const queryParams = new URLSearchParams()
+      
+      if (params.period) queryParams.append('period', params.period)
+      if (params.date_from) queryParams.append('date_from', params.date_from)
+      if (params.date_to) queryParams.append('date_to', params.date_to)
+      
+      const url = `${API_ENDPOINTS.REPORTS.EXPORT_NETWORKS_PDF}?${queryParams.toString()}`
+      
+      const response = await apiService.get(url, { 
+        requiresAuth: true,
+        responseType: 'blob'
+      })
+      
+      // Create download link
+      const blob = new Blob([response], { type: 'application/pdf' })
+      const downloadUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      
+      // Generate filename with current date
+      const now = new Date()
+      const dateStr = now.toISOString().split('T')[0]
+      link.download = `networks-report-${dateStr}.pdf`
+      
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(downloadUrl)
+      
+      return {
+        success: true,
+        message: 'Networks report exported successfully'
+      }
+    } catch (error) {
+      console.error('❌ Failed to export networks report:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to export networks report'
+      }
+    }
+  },
+
+  // Export transactions report to PDF
+  async exportTransactionsReport(params = {}) {
+    try {
+      const queryParams = new URLSearchParams()
+      
+      if (params.period) queryParams.append('period', params.period)
+      if (params.date_from) queryParams.append('date_from', params.date_from)
+      if (params.date_to) queryParams.append('date_to', params.date_to)
+      
+      const url = `${API_ENDPOINTS.REPORTS.EXPORT_TRANSACTIONS_PDF}?${queryParams.toString()}`
+      
+      const response = await apiService.get(url, { 
+        requiresAuth: true,
+        responseType: 'blob'
+      })
+      
+      // Create download link
+      const blob = new Blob([response], { type: 'application/pdf' })
+      const downloadUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      
+      // Generate filename with current date
+      const now = new Date()
+      const dateStr = now.toISOString().split('T')[0]
+      link.download = `transactions-report-${dateStr}.pdf`
+      
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(downloadUrl)
+      
+      return {
+        success: true,
+        message: 'Transactions report exported successfully'
+      }
+    } catch (error) {
+      console.error('❌ Failed to export transactions report:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to export transactions report'
+      }
+    }
+  },
+
+  // Get revenue report data
+  async getRevenueReport(params = {}) {
+    try {
+      const queryParams = new URLSearchParams()
+      
+      if (params.period) queryParams.append('period', params.period)
+      if (params.date_from) queryParams.append('date_from', params.date_from)
+      if (params.date_to) queryParams.append('date_to', params.date_to)
+      
+      const url = `${API_ENDPOINTS.REPORTS.REVENUE_REPORT}?${queryParams.toString()}`
+      
+      const response = await apiService.get(url, { requiresAuth: true })
+      
+      return {
+        success: true,
+        data: response.data
+      }
+    } catch (error) {
+      console.error('❌ Failed to fetch revenue report:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to fetch revenue report'
+      }
+    }
+  },
+
+  // Get user growth report data
+  async getUserGrowthReport(params = {}) {
+    try {
+      const queryParams = new URLSearchParams()
+      
+      if (params.period) queryParams.append('period', params.period)
+      if (params.date_from) queryParams.append('date_from', params.date_from)
+      if (params.date_to) queryParams.append('date_to', params.date_to)
+      
+      const url = `${API_ENDPOINTS.REPORTS.USER_GROWTH_REPORT}?${queryParams.toString()}`
+      
+      const response = await apiService.get(url, { requiresAuth: true })
+      
+      return {
+        success: true,
+        data: response.data
+      }
+    } catch (error) {
+      console.error('❌ Failed to fetch user growth report:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to fetch user growth report'
+      }
+    }
+  },
+
+  // Get sales report data
+  async getSalesReport(params = {}) {
+    try {
+      const queryParams = new URLSearchParams()
+      
+      if (params.period) queryParams.append('period', params.period)
+      if (params.date_from) queryParams.append('date_from', params.date_from)
+      if (params.date_to) queryParams.append('date_to', params.date_to)
+      
+      const url = `${API_ENDPOINTS.REPORTS.SALES_REPORT}?${queryParams.toString()}`
+      
+      const response = await apiService.get(url, { requiresAuth: true })
+      
+      return {
+        success: true,
+        data: response.data
+      }
+    } catch (error) {
+      console.error('❌ Failed to fetch sales report:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to fetch sales report'
+      }
+    }
+  },
+
+  // Get system performance metrics
+  async getSystemPerformance() {
+    try {
+      const url = API_ENDPOINTS.REPORTS.SYSTEM_PERFORMANCE
+      
+      const response = await apiService.get(url, { requiresAuth: true })
+      
+      return {
+        success: true,
+        data: response.data
+      }
+    } catch (error) {
+      console.error('❌ Failed to fetch system performance:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to fetch system performance'
       }
     }
   },
@@ -218,13 +682,46 @@ export const reportsService = {
     }
   },
 
-  // Format analytics data for frontend consumption (handle dashboard format)
+  // Format analytics data for frontend consumption (handle both dashboard and analytics formats)
   formatAnalyticsData(data) {
     if (!data) return null
     
-    // Handle dashboard response format
+    // Handle both dashboard response format and new analytics format
     const metrics = data.metrics || {}
+    const isAnalyticsFormat = data.monthly_trends || data.daily_performance
     
+    if (isAnalyticsFormat) {
+      // New analytics format
+      return {
+        overview: {
+          totalRevenue: this.safeNumber(data.total_revenue),
+          totalUsers: this.safeNumber(data.total_users),
+          totalOrders: this.safeNumber(data.total_orders),
+          activeUsers: this.safeNumber(data.total_resellers),
+          totalClients: this.safeNumber(data.total_clients),
+          pendingRevenue: this.safeNumber(data.pending_revenue),
+          revenueGrowth: this.safeNumber(data.revenue_growth),
+          userGrowth: this.safeNumber(data.user_growth),
+          orderGrowth: this.safeNumber(data.order_growth),
+          activeUserGrowth: this.safeNumber(data.user_growth)
+        },
+        revenueBreakdown: {
+          avgOrderValue: this.safeNumber(data.avg_order_value),
+          conversionRate: this.safeNumber(data.conversion_rate),
+          activeResellerPercentage: this.safeNumber(data.active_reseller_percentage)
+        },
+        dailyPerformance: this.formatTimeSeriesData(data.daily_performance),
+        monthlyPerformance: this.formatTimeSeriesData(data.monthly_trends),
+        userGrowth: this.formatUserGrowthData(data.monthly_trends),
+        topPackages: this.formatTopItemsData(data.popular_packages),
+        topNetworks: this.formatTopItemsData(data.top_resellers),
+        orderStatusDistribution: data.order_status_distribution || [],
+        paymentMethodDistribution: data.payment_method_distribution || [],
+        dateRange: data.date_range,
+        generatedAt: data.generated_at
+      }
+    } else {
+      // Legacy dashboard format
     return {
       overview: {
         totalRevenue: this.safeNumber(metrics.revenueGenerated || data.total_revenue),
@@ -250,6 +747,18 @@ export const reportsService = {
       topPackages: this.formatTopItemsData(data.topPackages || data.top_packages),
       topNetworks: this.formatTopItemsData(data.topResellers || data.top_networks)
     }
+    }
+  },
+
+  // Format user growth data from monthly trends
+  formatUserGrowthData(data) {
+    if (!Array.isArray(data)) return []
+    
+    return data.map(item => ({
+      month: item.month,
+      users: this.safeNumber(item.users || 0),
+      growth: this.safeNumber(item.growth || 0)
+    }))
   },
 
   // Format time series data
@@ -273,13 +782,23 @@ export const reportsService = {
   formatTopItemsData(data) {
     if (!Array.isArray(data)) return []
     
-    return data.map(item => ({
-      name: item.name,
-      sales: this.safeNumber(item.sales),
-      revenue: this.safeNumber(item.revenue),
-      percentage: this.safeNumber(item.percentage),
-      growth: this.safeNumber(item.growth)
-    }))
+    // Calculate total for percentage calculation
+    const totalSales = data.reduce((sum, item) => sum + this.safeNumber(item.count || item.sales || 0), 0)
+    const totalRevenue = data.reduce((sum, item) => sum + this.safeNumber(item.total_revenue || item.revenue || 0), 0)
+    
+    return data.map((item, index) => {
+      const sales = this.safeNumber(item.count || item.sales || 0)
+      const revenue = this.safeNumber(item.total_revenue || item.revenue || 0)
+      const percentage = totalSales > 0 ? ((sales / totalSales) * 100) : 0
+      
+      return {
+        name: item.product_name || item.name || `Item ${index + 1}`,
+        sales: sales,
+        revenue: revenue,
+        percentage: Math.round(percentage * 10) / 10, // Round to 1 decimal place
+        growth: this.safeNumber(item.growth || 0)
+      }
+    })
   },
 
   // Safe number conversion
@@ -360,18 +879,33 @@ export const reportsService = {
       if (params.period) queryParams.append('period', params.period)
       queryParams.append('format', format)
 
-      const url = queryParams.toString() ?
-        `${buildApiUrl(`reports/export/${reportType}/`)}?${queryParams.toString()}` :
-        buildApiUrl(`reports/export/${reportType}/`)
+      // Map report types to specific endpoints
+      const exportEndpoints = {
+        'comprehensive': API_ENDPOINTS.REPORTS.EXPORT.COMPREHENSIVE,
+        'overview': API_ENDPOINTS.REPORTS.EXPORT.OVERVIEW,
+        'revenue': API_ENDPOINTS.REPORTS.EXPORT.REVENUE,
+        'users': API_ENDPOINTS.REPORTS.EXPORT.USERS,
+        'packages': API_ENDPOINTS.REPORTS.EXPORT.PACKAGES,
+        'networks': API_ENDPOINTS.REPORTS.EXPORT.NETWORKS,
+        'transactions': API_ENDPOINTS.REPORTS.EXPORT.TRANSACTIONS,
+      }
 
-      const response = await apiService.get(url, {
+      const endpoint = exportEndpoints[reportType]
+      if (!endpoint) {
+        throw new Error(`Unknown report type: ${reportType}`)
+      }
+
+      const url = queryParams.toString() ?
+        `${buildApiUrl(endpoint)}?${queryParams.toString()}` :
+        buildApiUrl(endpoint)
+
+      const blob = await apiService.get(url, {
         requiresAuth: true,
         responseType: 'blob'
       })
 
-      if (response.success || response instanceof Blob) {
+      if (blob instanceof Blob) {
         // Create download link
-        const blob = response instanceof Blob ? response : new Blob([response.data])
         const downloadUrl = window.URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = downloadUrl
@@ -383,9 +917,9 @@ export const reportsService = {
 
         console.log('✅ Report exported successfully')
         return { success: true }
+      } else {
+        throw new Error('Invalid response format - expected blob')
       }
-
-      return response
     } catch (error) {
       console.error('❌ Failed to export report:', error)
       return {
