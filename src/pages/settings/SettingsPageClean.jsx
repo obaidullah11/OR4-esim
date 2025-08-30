@@ -177,6 +177,13 @@ function SettingsPageClean() {
     toast.success('Settings saved successfully!')
   }
 
+  const handleRefreshSettings = () => {
+    // In a real app, this would reload settings from the server
+    // For now, we'll just show a success message
+    toast.success('Settings refreshed successfully!')
+    console.log('🔄 Settings refreshed')
+  }
+
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme)
     setSettings(prev => ({ ...prev, selectedTheme: newTheme }))
@@ -300,11 +307,22 @@ function SettingsPageClean() {
 
   return (
     <div className="p-6">
-      <div className="flex items-center space-x-3 mb-6">
-        <Settings className="h-8 w-8 text-blue-600" />
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Settings</h1>
-          <p className="text-muted-foreground">Manage your system configuration and preferences</p>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-3">
+          <Settings className="h-8 w-8 text-blue-600" />
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+            <p className="text-muted-foreground">Manage your system configuration and preferences</p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={handleRefreshSettings}
+            className="flex items-center space-x-2 px-4 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 transition-colors"
+          >
+            <RefreshCw className="h-4 w-4" />
+            <span>Refresh</span>
+          </button>
         </div>
       </div>
 

@@ -18,7 +18,7 @@ function SignupPage() {
     first_name: '',
     last_name: '',
     role: 'public_user',
-    phone_country_code: 'US',
+    phone_country_code: 'PK', // Default to Pakistan since user mentioned +92
     phone_number: '',
     password: '',
     confirm_password: '',
@@ -143,13 +143,13 @@ function SignupPage() {
       const response = await authService.signup(formData)
       
       if (formData.role === 'reseller') {
-        toast.success(`Registration successful! Your request has been sent for admin approval. You will be notified once approved. Phone: ${getFullPhoneNumber()}`)
+        toast.success(`Registration successful! Your request has been sent for admin approval. You will be notified at ${formData.email} once approved.`)
         // Small delay to show the toast before navigation
         setTimeout(() => {
           navigate('/login')
         }, 2000)
       } else {
-        toast.success(`Registration successful! You can now login with your credentials. Phone: ${getFullPhoneNumber()}`)
+        toast.success(`Registration successful! You can now login with your credentials using ${formData.email}`)
         // Small delay to show the toast before navigation
         setTimeout(() => {
           navigate('/login')

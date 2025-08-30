@@ -26,6 +26,7 @@ import AddEditResellerModal from '../../components/resellers/AddEditResellerModa
 import ResellerDetailsModal from '../../components/resellers/ResellerDetailsModal'
 import DeleteConfirmationModal from '../../components/resellers/DeleteConfirmationModal'
 import SuspensionReasonModal from '../../components/resellers/SuspensionReasonModal'
+import ConfirmationModal from '../../components/common/ConfirmationModal'
 import Tooltip from '../../components/common/Tooltip'
 // BACKEND INTEGRATION ACTIVATED
 import { resellerService } from '../../services/resellerService'
@@ -211,6 +212,8 @@ function ResellersPage() {
   const [isSuspending, setIsSuspending] = useState(false)
   const [activeTab, setActiveTab] = useState('resellers')
   const [resellerRequests, setResellerRequests] = useState(sampleResellerRequests)
+  const [showRejectModal, setShowRejectModal] = useState(false)
+  const [selectedRequestForRejection, setSelectedRequestForRejection] = useState(null)
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 20,
@@ -460,8 +463,22 @@ function ResellersPage() {
   }
 
   // Refresh function
-  const handleRefresh = () => {
-    fetchResellers()
+  const handleRefresh = async () => {
+    try {
+      setLoading(true)
+      // Refresh both resellers and activation requests
+      await Promise.all([
+        fetchResellers(),
+        fetchActivationRequests()
+      ])
+      toast.success('Data refreshed successfully')
+      console.log('🔄 Resellers and activation requests refreshed')
+    } catch (error) {
+      console.error('Failed to refresh data:', error)
+      toast.error('Failed to refresh data')
+    } finally {
+      setLoading(false)
+    }
   }
 
   // Handle search with debouncing
@@ -492,11 +509,11 @@ function ResellersPage() {
       const response = await resellerService.approveActivationRequest(requestId, approvalData)
 
       if (response.success) {
-        // Remove from requests list
-        setResellerRequests(prev => prev.filter(r => r.id !== requestId))
-
-        // Refresh resellers list to include the new reseller
-        await fetchResellers()
+        // Refresh both lists to ensure data consistency
+        await Promise.all([
+          fetchResellers(),
+          fetchActivationRequests()
+        ])
 
         toast.success(`Reseller ${request.name} activated successfully`)
         console.log('✅ Reseller activated:', request.name)
@@ -510,27 +527,28 @@ function ResellersPage() {
     }
   }
 
-  const handleRejectRequest = async (requestId) => {
+  const handleRejectRequest = (requestId) => {
+    const request = resellerRequests.find(r => r.id === requestId)
+    if (!request) {
+      toast.error('Request not found')
+      return
+    }
+    setSelectedRequestForRejection(request)
+    setShowRejectModal(true)
+  }
+
+  const confirmRejectRequest = async (rejectionReason) => {
+    if (!selectedRequestForRejection) return
+
     try {
-      const request = resellerRequests.find(r => r.id === requestId)
-      if (!request) {
-        toast.error('Request not found')
-        return
-      }
-
-      const rejectionReason = prompt('Please provide a reason for rejection:')
-      if (!rejectionReason) {
-        return // User cancelled
-      }
-
-      const response = await resellerService.rejectActivationRequest(requestId, rejectionReason)
+      const response = await resellerService.rejectActivationRequest(selectedRequestForRejection.id, rejectionReason)
 
       if (response.success) {
-        // Remove from requests list
-        setResellerRequests(prev => prev.filter(r => r.id !== requestId))
+        // Refresh activation requests to ensure data consistency
+        await fetchActivationRequests()
 
-        toast.success(`Request from ${request.name} rejected`)
-        console.log('✅ Reseller request rejected:', request.name)
+        toast.success(`Request from ${selectedRequestForRejection.name} rejected`)
+        console.log('✅ Reseller request rejected:', selectedRequestForRejection.name)
       } else {
         toast.error(response.error || 'Failed to reject request')
         console.error('❌ Failed to reject request:', response.error)
@@ -538,6 +556,9 @@ function ResellersPage() {
     } catch (error) {
       console.error('❌ Failed to reject request:', error)
       toast.error('Failed to reject request')
+    } finally {
+      setShowRejectModal(false)
+      setSelectedRequestForRejection(null)
     }
   }
 
@@ -979,6 +1000,26 @@ function ResellersPage() {
         onConfirm={handleConfirmSuspension}
         reseller={selectedResellerForSuspension}
         isLoading={isSuspending}
+      />
+
+      {/* Rejection Reason Modal */}
+      <ConfirmationModal
+        isOpen={showRejectModal}
+        onClose={() => {
+          setShowRejectModal(false)
+          setSelectedRequestForRejection(null)
+        }}
+        onConfirm={confirmRejectRequest}
+        title="Reject Reseller Request"
+        message={`Are you sure you want to reject the reseller request from ${selectedRequestForRejection?.name}? This action cannot be undone and the applicant will be notified.`}
+        type="danger"
+        confirmText="Reject Request"
+        cancelText="Cancel"
+        showInput={true}
+        inputLabel="Rejection Reason"
+        inputPlaceholder="Please provide a reason for rejection..."
+        inputType="textarea"
+        inputRequired={true}
       />
     </div>
   )

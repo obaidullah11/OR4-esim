@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 // import { useTheme } from '../../context/ThemeContext' // No longer needed with unified theme system
 import toast from 'react-hot-toast'
 import { userService } from '../../services/userService'
+import ConfirmationModal from '../../components/common/ConfirmationModal'
 import {
   Search,
   Users,
@@ -17,6 +18,7 @@ import {
   History,
   Ban,
   CheckCircle,
+  RefreshCw,
   XCircle,
   Clock,
   DollarSign,
@@ -117,6 +119,8 @@ function UsersPageSimple() {
   const [roleFilter, setRoleFilter] = useState('all')
   const [cityFilter, setCityFilter] = useState('all')
   const [packageFilter, setPackageFilter] = useState('all')
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [selectedUserForDelete, setSelectedUserForDelete] = useState(null)
   const [selectedUser, setSelectedUser] = useState(null)
   const [showUserDetails, setShowUserDetails] = useState(false)
   const [pagination, setPagination] = useState({
@@ -290,19 +294,25 @@ function UsersPageSimple() {
     }
   }
 
-  const handleDeleteUser = async (userId) => {
-    if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
-      return
-    }
+  const handleDeleteUser = (userId) => {
+    const user = users.find(u => u.id === userId)
+    if (!user) return
+    
+    setSelectedUserForDelete(user)
+    setShowDeleteModal(true)
+  }
+
+  const confirmDeleteUser = async () => {
+    if (!selectedUserForDelete) return
 
     try {
-      const response = await userService.deleteUser(userId)
+      const response = await userService.deleteUser(selectedUserForDelete.id)
 
       if (response.success) {
         // Remove from local state
-        setUsers(prev => prev.filter(u => u.id !== userId))
+        setUsers(prev => prev.filter(u => u.id !== selectedUserForDelete.id))
         toast.success('User deleted successfully')
-        console.log('✅ User deleted:', userId)
+        console.log('✅ User deleted:', selectedUserForDelete.id)
       } else {
         toast.error(response.error || 'Failed to delete user')
         console.error('❌ Failed to delete user:', response.error)
@@ -310,6 +320,9 @@ function UsersPageSimple() {
     } catch (error) {
       console.error('❌ Failed to delete user:', error)
       toast.error('Failed to delete user')
+    } finally {
+      setShowDeleteModal(false)
+      setSelectedUserForDelete(null)
     }
   }
 
@@ -376,6 +389,16 @@ function UsersPageSimple() {
             <h1 className="text-2xl font-bold text-foreground">Public Users Management</h1>
             <p className="text-muted-foreground">App SIM Buyers - {filteredUsers.length} users</p>
           </div>
+        </div>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={handleRefresh}
+            disabled={loading}
+            className="flex items-center space-x-2 px-4 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
         </div>
       </div>
 
@@ -706,6 +729,21 @@ function UsersPageSimple() {
           </div>
         </div>
       )}
+
+      {/* Delete User Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false)
+          setSelectedUserForDelete(null)
+        }}
+        onConfirm={confirmDeleteUser}
+        title="Delete User"
+        message={`Are you sure you want to delete ${selectedUserForDelete?.fullName || 'this user'}? This action cannot be undone and will permanently remove all user data.`}
+        type="danger"
+        confirmText="Delete User"
+        cancelText="Cancel"
+      />
     </div>
   )
 }

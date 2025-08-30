@@ -256,7 +256,7 @@ function UsersPage() {
     // TEMPORARILY COMMENTED OUT - Modal causing issues
     // setShowDetailsModal(true)
     console.log('View user:', user.name)
-    alert(`Viewing user: ${user.name} (Backend integration active)`)
+    toast.info(`Viewing user: ${user.name} (Backend integration active)`)
   }
 
   const handleBlockUser = async (userId) => {
