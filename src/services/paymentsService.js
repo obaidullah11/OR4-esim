@@ -462,6 +462,31 @@ export const paymentsService = {
       style: 'currency',
       currency: currency
     }).format(amount)
+  },
+
+  // Generate invoice for a payment
+  async generateInvoice(paymentId) {
+    try {
+      const url = replaceUrlParams(buildApiUrl(API_ENDPOINTS.PAYMENTS.GENERATE_INVOICE), { id: paymentId })
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to generate invoice')
+      }
+
+      return response // Return the response for blob handling
+    } catch (error) {
+      console.error('❌ Failed to generate invoice:', error)
+      throw error
+    }
   }
 }
 

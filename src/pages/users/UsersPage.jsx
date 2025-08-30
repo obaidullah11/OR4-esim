@@ -3,6 +3,7 @@ import { useTheme } from '../../context/ThemeContext'
 import toast from 'react-hot-toast'
 // BACKEND INTEGRATION ACTIVATED
 import { usersService } from '../../services/usersService'
+import ScrollableTable from '../../components/common/ScrollableTable'
 import {
   Search,
   Filter,
@@ -158,7 +159,7 @@ function UsersPage() {
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 20,
+    limit: 10,
     total: 0,
     totalPages: 0
   })
@@ -183,16 +184,15 @@ function UsersPage() {
         setUsers(formattedUsers)
         setPagination(response.data.pagination)
       } else {
-        // Fallback to sample data if API fails
-        console.error('API failed, using sample data:', response.error)
-        toast.error('Failed to load users - using sample data')
-        setUsers(sampleUsers)
+        // No fallback to sample data - show error
+        console.error('API failed to load users:', response.error)
+        toast.error('Failed to load users from server')
+        setUsers([])
       }
     } catch (error) {
       console.error('Failed to fetch users:', error)
-      toast.error('Failed to load users - using sample data')
-      // Fallback to sample data
-      setUsers(sampleUsers)
+      toast.error('Failed to load users from server')
+      setUsers([])
     } finally {
       setLoading(false)
     }
@@ -256,7 +256,7 @@ function UsersPage() {
     // TEMPORARILY COMMENTED OUT - Modal causing issues
     // setShowDetailsModal(true)
     console.log('View user:', user.name)
-    toast.info(`Viewing user: ${user.name} (Backend integration active)`)
+    toast(`Viewing user: ${user.name} (Backend integration active)`)
   }
 
   const handleBlockUser = async (userId) => {
@@ -325,6 +325,17 @@ function UsersPage() {
     setTimeout(() => {
       fetchUsers({ page: 1, search: searchValue })
     }, 500)
+  }
+
+  // Handle pagination
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, page: newPage }))
+    fetchUsers({ page: newPage })
+  }
+
+  const handleLimitChange = (newLimit) => {
+    setPagination(prev => ({ ...prev, limit: newLimit, page: 1 }))
+    fetchUsers({ page: 1, limit: newLimit })
   }
 
   return (
@@ -453,196 +464,201 @@ function UsersPage() {
       </div>
 
       {/* Users Table */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="text-left p-4 font-medium text-foreground">User</th>
-                <th className="text-left p-4 font-medium text-foreground">Status</th>
-                <th className="text-left p-4 font-medium text-foreground">City</th>
-                <th className="text-left p-4 font-medium text-foreground">Package</th>
-                <th className="text-left p-4 font-medium text-foreground">Orders</th>
-                <th className="text-left p-4 font-medium text-foreground">Total Spent</th>
-                <th className="text-left p-4 font-medium text-foreground">Last Activity</th>
-                <th className="text-left p-4 font-medium text-foreground">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {loading ? (
-                // Loading skeleton rows
-                [...Array(5)].map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td className="p-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-muted rounded-full"></div>
-                        <div className="space-y-2">
-                          <div className="h-4 bg-muted rounded w-32"></div>
-                          <div className="h-3 bg-muted rounded w-48"></div>
-                          <div className="h-3 bg-muted rounded w-28"></div>
-                        </div>
+      <ScrollableTable
+        pagination={pagination}
+        onPageChange={handlePageChange}
+        onLimitChange={handleLimitChange}
+        loading={loading}
+        maxHeight="600px"
+        showPagination={true}
+        showEntries={true}
+        showPageInfo={true}
+      >
+        <table className="w-full">
+          <thead className="bg-muted/50">
+            <tr>
+              <th className="text-left p-4 font-medium text-foreground">User</th>
+              <th className="text-left p-4 font-medium text-foreground">Status</th>
+              <th className="text-left p-4 font-medium text-foreground">City</th>
+              <th className="text-left p-4 font-medium text-foreground">Package</th>
+              <th className="text-left p-4 font-medium text-foreground">Orders</th>
+              <th className="text-left p-4 font-medium text-foreground">Total Spent</th>
+              <th className="text-left p-4 font-medium text-foreground">Last Activity</th>
+              <th className="text-left p-4 font-medium text-foreground">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {loading ? (
+              // Loading skeleton rows
+              [...Array(5)].map((_, i) => (
+                <tr key={i} className="animate-pulse">
+                  <td className="p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-muted rounded-full"></div>
+                      <div className="space-y-2">
+                        <div className="h-4 bg-muted rounded w-32"></div>
+                        <div className="h-3 bg-muted rounded w-48"></div>
+                        <div className="h-3 bg-muted rounded w-28"></div>
                       </div>
-                    </td>
-                    <td className="p-4"><div className="h-6 bg-muted rounded w-20"></div></td>
-                    <td className="p-4"><div className="h-4 bg-muted rounded w-16"></div></td>
-                    <td className="p-4"><div className="h-4 bg-muted rounded w-24"></div></td>
-                    <td className="p-4"><div className="h-4 bg-muted rounded w-8"></div></td>
-                    <td className="p-4"><div className="h-4 bg-muted rounded w-16"></div></td>
-                    <td className="p-4"><div className="h-4 bg-muted rounded w-20"></div></td>
-                    <td className="p-4"><div className="h-8 bg-muted rounded w-24"></div></td>
-                  </tr>
-                ))
-              ) : filteredUsers.length === 0 ? (
-                <tr>
-                  <td colSpan="8" className="p-8 text-center">
-                    <div className="flex flex-col items-center space-y-2">
-                      <Users className="h-12 w-12 text-muted-foreground opacity-50" />
-                      <p className="text-muted-foreground">No users found</p>
-                      <p className="text-sm text-muted-foreground">Try adjusting your search or filters</p>
                     </div>
                   </td>
+                  <td className="p-4"><div className="h-6 bg-muted rounded w-20"></div></td>
+                  <td className="p-4"><div className="h-4 bg-muted rounded w-16"></div></td>
+                  <td className="p-4"><div className="h-4 bg-muted rounded w-24"></div></td>
+                  <td className="p-4"><div className="h-4 bg-muted rounded w-8"></div></td>
+                  <td className="p-4"><div className="h-4 bg-muted rounded w-16"></div></td>
+                  <td className="p-4"><div className="h-4 bg-muted rounded w-20"></div></td>
+                  <td className="p-4"><div className="h-8 bg-muted rounded w-24"></div></td>
                 </tr>
-              ) : filteredUsers.map((user) => {
-                const statusDisplay = getStatusDisplay(user.status)
-                const StatusIcon = statusDisplay.icon
+              ))
+            ) : filteredUsers.length === 0 ? (
+              <tr>
+                <td colSpan="8" className="p-8 text-center">
+                  <div className="flex flex-col items-center space-y-2">
+                    <Users className="h-12 w-12 text-muted-foreground opacity-50" />
+                    <p className="text-muted-foreground">No users found</p>
+                    <p className="text-sm text-muted-foreground">Try adjusting your search or filters</p>
+                  </div>
+                </td>
+              </tr>
+            ) : filteredUsers.map((user) => {
+              const statusDisplay = getStatusDisplay(user.status)
+              const StatusIcon = statusDisplay.icon
 
-                return (
-                  <tr key={user.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="p-4">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${
-                          resolvedTheme === 'dark' ? 'bg-slate-600' : 'bg-gray-400'
-                        }`}>
-                          {user.firstName[0]}{user.lastName[0]}
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">{user.name}</p>
-                          <p className="text-sm text-muted-foreground">{user.email}</p>
-                          <p className="text-sm text-muted-foreground">{user.phone}</p>
-                        </div>
+              return (
+                <tr key={user.id} className="hover:bg-muted/30 transition-colors">
+                  <td className="p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${
+                        resolvedTheme === 'dark' ? 'bg-slate-600' : 'bg-gray-400'
+                      }`}>
+                        {user.firstName[0]}{user.lastName[0]}
                       </div>
-                    </td>
-                    <td className="p-4">
-                      <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-medium ${statusDisplay.bg} ${statusDisplay.color}`}>
-                        <StatusIcon className="h-4 w-4" />
-                        <span>{statusDisplay.label}</span>
+                      <div>
+                        <p className="font-medium text-foreground">{user.name}</p>
+                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                        <p className="text-sm text-muted-foreground">{user.phone}</p>
                       </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-foreground">{user.city}</span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center space-x-2">
-                        <Package className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-foreground">{user.currentPackage}</span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <p className="font-medium text-foreground">{user.totalOrders}</p>
-                    </td>
-                    <td className="p-4">
-                      <p className="font-medium text-foreground">${user.totalSpent}</p>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center space-x-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">{user.lastActivity}</span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center space-x-2">
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-medium ${statusDisplay.bg} ${statusDisplay.color}`}>
+                      <StatusIcon className="h-4 w-4" />
+                      <span>{statusDisplay.label}</span>
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-foreground">{user.city}</span>
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <Package className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-foreground">{user.currentPackage}</span>
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <p className="font-medium text-foreground">{user.totalOrders}</p>
+                  </td>
+                  <td className="p-4">
+                    <p className="font-medium text-foreground">${user.totalSpent}</p>
+                  </td>
+                  <td className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">{user.lastActivity}</span>
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => handleViewUser(user)}
+                        className={`p-2 rounded-lg transition-colors ${
+                          resolvedTheme === 'dark'
+                            ? 'hover:bg-slate-700 text-slate-300 hover:text-white'
+                            : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
+                        }`}
+                        title="View Details"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+
+                      <button
+                        onClick={() => handleBlockUser(user.id)}
+                        className={`p-2 rounded-lg transition-colors ${
+                          user.status === 'blocked'
+                            ? resolvedTheme === 'dark'
+                              ? 'hover:bg-green-900/20 text-green-400 hover:text-green-300'
+                              : 'hover:bg-green-50 text-green-600 hover:text-green-700'
+                            : resolvedTheme === 'dark'
+                              ? 'hover:bg-red-900/20 text-red-400 hover:text-red-300'
+                              : 'hover:bg-red-50 text-red-600 hover:text-red-700'
+                        }`}
+                        title={user.status === 'blocked' ? 'Unblock User' : 'Block User'}
+                      >
+                        {user.status === 'blocked' ? <Shield className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
+                      </button>
+
+                      <div className="relative group">
                         <button
-                          onClick={() => handleViewUser(user)}
                           className={`p-2 rounded-lg transition-colors ${
                             resolvedTheme === 'dark'
                               ? 'hover:bg-slate-700 text-slate-300 hover:text-white'
                               : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
                           }`}
-                          title="View Details"
                         >
-                          <Eye className="h-4 w-4" />
+                          <MoreHorizontal className="h-4 w-4" />
                         </button>
 
-                        <button
-                          onClick={() => handleBlockUser(user.id)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            user.status === 'blocked'
-                              ? resolvedTheme === 'dark'
-                                ? 'hover:bg-green-900/20 text-green-400 hover:text-green-300'
-                                : 'hover:bg-green-50 text-green-600 hover:text-green-700'
-                              : resolvedTheme === 'dark'
-                                ? 'hover:bg-red-900/20 text-red-400 hover:text-red-300'
-                                : 'hover:bg-red-50 text-red-600 hover:text-red-700'
-                          }`}
-                          title={user.status === 'blocked' ? 'Unblock User' : 'Block User'}
-                        >
-                          {user.status === 'blocked' ? <Shield className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
-                        </button>
-
-                        <div className="relative group">
-                          <button
-                            className={`p-2 rounded-lg transition-colors ${
-                              resolvedTheme === 'dark'
-                                ? 'hover:bg-slate-700 text-slate-300 hover:text-white'
-                                : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
-                            }`}
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </button>
-
-                          {/* Dropdown Menu */}
-                          <div className={`absolute right-0 top-full mt-1 w-48 rounded-lg shadow-lg border border-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 ${
-                            resolvedTheme === 'dark' ? 'bg-slate-800' : 'bg-white'
-                          }`}>
-                            <div className="py-1">
-                              <button
-                                onClick={() => handleSuspendUser(user.id)}
-                                className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center space-x-2 ${
-                                  resolvedTheme === 'dark'
-                                    ? 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                                }`}
-                              >
-                                <AlertCircle className="h-4 w-4" />
-                                <span>{user.status === 'suspended' ? 'Unsuspend' : 'Suspend'} User</span>
-                              </button>
-                              <button
-                                className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center space-x-2 ${
-                                  resolvedTheme === 'dark'
-                                    ? 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                                }`}
-                              >
-                                <History className="h-4 w-4" />
-                                <span>View Order History</span>
-                              </button>
-                              <button
-                                className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center space-x-2 ${
-                                  resolvedTheme === 'dark'
-                                    ? 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                                }`}
-                              >
-                                <MessageSquare className="h-4 w-4" />
-                                <span>Support Tickets ({user.supportTickets})</span>
-                              </button>
-                            </div>
+                        {/* Dropdown Menu */}
+                        <div className={`absolute right-0 top-full mt-1 w-48 rounded-lg shadow-lg border border-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 ${
+                          resolvedTheme === 'dark' ? 'bg-slate-800' : 'bg-white'
+                        }`}>
+                          <div className="py-1">
+                            <button
+                              onClick={() => handleSuspendUser(user.id)}
+                              className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center space-x-2 ${
+                                resolvedTheme === 'dark'
+                                  ? 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                              }`}
+                            >
+                              <AlertCircle className="h-4 w-4" />
+                              <span>{user.status === 'suspended' ? 'Unsuspend' : 'Suspend'} User</span>
+                            </button>
+                            <button
+                              className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center space-x-2 ${
+                                resolvedTheme === 'dark'
+                                  ? 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                              }`}
+                            >
+                              <History className="h-4 w-4" />
+                              <span>View Order History</span>
+                            </button>
+                            <button
+                              className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center space-x-2 ${
+                                resolvedTheme === 'dark'
+                                  ? 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                              }`}
+                            >
+                              <MessageSquare className="h-4 w-4" />
+                              <span>Support Tickets ({user.supportTickets})</span>
+                            </button>
                           </div>
                         </div>
                       </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-
-
-      </div>
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </ScrollableTable>
 
       {/* User Details Modal - TEMPORARILY COMMENTED OUT */}
       {/*

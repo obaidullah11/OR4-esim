@@ -3,6 +3,9 @@ import { useTheme } from '../../context/ThemeContext'
 import toast from 'react-hot-toast'
 // BACKEND INTEGRATION ACTIVATED
 import { paymentsService } from '../../services/paymentsService'
+import ScrollableTable from '../../components/common/ScrollableTable'
+import { PaymentsEmptyState } from '../../components/common/EmptyState'
+import { PaymentsLoadingState } from '../../components/common/LoadingState'
 import {
   Search,
   Filter,
@@ -227,7 +230,7 @@ function TransactionsPage() {
   const [showApprovalModal, setShowApprovalModal] = useState(false)
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 20,
+    limit: 10,
     total: 0,
     totalPages: 0
   })
@@ -252,16 +255,15 @@ function TransactionsPage() {
         setTransactions(formattedTransactions)
         setPagination(response.data.pagination)
       } else {
-        // Fallback to sample data if API fails
-        console.error('API failed, using sample data:', response.error)
-        toast.error('Failed to load transactions - using sample data')
-        setTransactions(sampleTransactions)
+        // No fallback to sample data - show error
+        console.error('API failed to load transactions:', response.error)
+        toast.error('Failed to load transactions from server')
+        setTransactions([])
       }
     } catch (error) {
       console.error('Failed to fetch transactions:', error)
-      toast.error('Failed to load transactions - using sample data')
-      // Fallback to sample data
-      setTransactions(sampleTransactions)
+      toast.error('Failed to load transactions from server')
+      setTransactions([])
     } finally {
       setLoading(false)
     }
@@ -558,6 +560,17 @@ function TransactionsPage() {
     }
   }
 
+  // Handle pagination
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, page: newPage }))
+    fetchTransactions({ page: newPage })
+  }
+
+  const handleLimitChange = (newLimit) => {
+    setPagination(prev => ({ ...prev, limit: newLimit, page: 1 }))
+    fetchTransactions({ page: 1, limit: newLimit })
+  }
+
   // Calculate statistics
   const stats = {
     totalTransactions: transactions.length,
@@ -730,9 +743,17 @@ function TransactionsPage() {
       </div>
 
       {/* Transactions Table */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+      <ScrollableTable
+        pagination={pagination}
+        onPageChange={handlePageChange}
+        onLimitChange={handleLimitChange}
+        loading={loading}
+        maxHeight="600px"
+        showPagination={true}
+        showEntries={true}
+        showPageInfo={true}
+      >
+        <table className="w-full">
             <thead className="bg-muted/50">
               <tr>
                 <th className="text-left p-4 font-medium text-foreground">Transaction</th>
@@ -746,7 +767,12 @@ function TransactionsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filteredTransactions.map((transaction) => {
+              {loading ? (
+                <PaymentsLoadingState />
+              ) : filteredTransactions.length === 0 ? (
+                <PaymentsEmptyState />
+              ) : (
+              filteredTransactions.map((transaction) => {
                 const statusDisplay = getStatusDisplay(transaction.status)
                 const typeDisplay = getTypeDisplay(transaction.type)
                 const StatusIcon = statusDisplay.icon
@@ -935,24 +961,13 @@ function TransactionsPage() {
                     </td>
                   </tr>
                 )
-              })}
+              })
+              )}
             </tbody>
-          </table>
-        </div>
+        </table>
 
-        {/* Empty State */}
-        {filteredTransactions.length === 0 && (
-          <div className="text-center py-12">
-            <CreditCard className={`mx-auto h-12 w-12 ${resolvedTheme === 'dark' ? 'text-slate-600' : 'text-gray-400'}`} />
-            <h3 className="mt-2 text-sm font-medium text-foreground">No transactions found</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {searchTerm || statusFilter !== 'all' || typeFilter !== 'all' || sourceFilter !== 'all' || paymentMethodFilter !== 'all'
-                ? 'Try adjusting your search or filters'
-                : 'No transactions have been processed yet'}
-            </p>
-          </div>
-        )}
-      </div>
+
+      </ScrollableTable>
 
       {/* Modals */}
       {showDetailsModal && selectedTransaction && (

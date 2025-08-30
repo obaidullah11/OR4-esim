@@ -423,16 +423,15 @@ function EsimHistoryPage() {
         setPagination(response.data.pagination)
         console.log('✅ eSIM history loaded:', transformedHistory.length, 'records')
       } else {
-        // Fallback to sample data if API fails
-        console.warn('eSIM API failed, using sample data:', response.error)
-        setEsimHistory(sampleEsimHistory)
-        toast.error('Failed to load eSIM history from server, showing sample data')
+        // No fallback to sample data - show error
+        console.error('API failed to load eSIM history:', response.error)
+        toast.error('Failed to load eSIM history from server')
+        setEsimHistory([])
       }
     } catch (error) {
       console.error('❌ Failed to fetch eSIM history:', error)
-      // Fallback to sample data
-      setEsimHistory(sampleEsimHistory)
-      toast.error('Failed to load eSIM history, showing sample data')
+      toast.error('Failed to load eSIM history from server')
+      setEsimHistory([])
     } finally {
       setLoading(false)
     }

@@ -34,9 +34,11 @@ export const ordersService = {
         buildApiUrl(API_ENDPOINTS.ORDERS.LIST)
       
       const response = await apiService.get(url, { requiresAuth: true })
+      console.log('🔍 Raw API response:', response)
       
       // Handle both wrapped and direct response formats
       const data = response.data || response
+      console.log('📊 Processed data:', data)
       
       return {
         success: true,
@@ -260,17 +262,17 @@ export const ordersService = {
   // ===== Order Export =====
 
   /**
-   * Export orders to CSV
+   * Export orders to PDF
    */
   async exportOrders(filters = {}) {
     try {
-      console.log('🔄 Exporting orders to CSV')
+      console.log('🔄 Exporting orders to PDF')
 
       const queryParams = new URLSearchParams()
 
       if (filters.status) queryParams.append('status', filters.status)
       if (filters.order_type) queryParams.append('order_type', filters.order_type)
-      if (filters.payment_status) queryParams.append('payment_status', filters.payment_status)
+      if (filters.order_source) queryParams.append('order_source', filters.order_source)
       if (filters.date_from) queryParams.append('date_from', filters.date_from)
       if (filters.date_to) queryParams.append('date_to', filters.date_to)
 
@@ -278,18 +280,23 @@ export const ordersService = {
         `${buildApiUrl(API_ENDPOINTS.ORDERS.EXPORT)}?${queryParams.toString()}` :
         buildApiUrl(API_ENDPOINTS.ORDERS.EXPORT)
 
-      const response = await apiService.get(url, {
-        requiresAuth: true,
-        responseType: 'blob'
+      // Make request to get PDF blob
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Content-Type': 'application/json',
+        },
       })
 
-      if (response.success || response instanceof Blob) {
+      if (response.ok) {
+        const blob = await response.blob()
+        
         // Create download link
-        const blob = response instanceof Blob ? response : new Blob([response.data])
         const downloadUrl = window.URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = downloadUrl
-        link.download = `orders-export-${new Date().toISOString().split('T')[0]}.csv`
+        link.download = `Orders_Report_${new Date().toISOString().split('T')[0]}.pdf`
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
@@ -297,9 +304,10 @@ export const ordersService = {
 
         console.log('✅ Orders exported successfully')
         return { success: true }
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to export orders')
       }
-
-      return response
     } catch (error) {
       console.error('❌ Failed to export orders:', error)
       return {

@@ -167,7 +167,7 @@ export const traveRoamService = {
         notes: assignmentData.notes || ''
       }
 
-      const url = buildApiUrl(`api/v1/esim/reseller/clients/${clientId}/assign_esim/`)
+      const url = buildApiUrl(API_ENDPOINTS.UTILS.ASSIGN_ESIM_TO_CLIENT.replace('{id}', clientId))
       const response = await apiService.post(url, payload, { requiresAuth: true })
 
       const data = response.data || response

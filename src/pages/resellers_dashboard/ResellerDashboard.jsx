@@ -362,10 +362,14 @@ function ResellerDashboard() {
       setLoading(false)
     } catch (error) {
       console.error('❌ Failed to fetch dashboard data:', error)
-      // Fallback to sample data on error
-      setDashboardData(sampleData)
+      // No fallback to sample data - show error
+      setDashboardData({
+        metrics: { totalClients: 0, totalEsims: 0, activeEsims: 0, totalRevenue: 0, monthlyGrowth: 0 },
+        recentActivity: [], topPlans: [], monthlyStats: []
+      })
       setLastUpdated(new Date())
-      setError(`API Error: ${error.message} - Using sample data`)
+      setError(`API Error: ${error.message}`)
+      toast.error('Failed to load dashboard data from server')
       setLoading(false)
     }
   }

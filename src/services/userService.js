@@ -1,4 +1,5 @@
 import { apiService } from './apiService'
+import { API_ENDPOINTS } from '../config/api'
 
 /**
  * User Management Service
@@ -33,7 +34,7 @@ export const userService = {
       if (role) queryParams.append('role', role)
       if (status) queryParams.append('is_active', status === 'active' ? 'true' : 'false')
 
-      const response = await apiService.get(`/api/v1/accounts/users/?${queryParams}`, { requiresAuth: true })
+      const response = await apiService.get(`${API_ENDPOINTS.USERS.LIST}?${queryParams}`, { requiresAuth: true })
       
       // Check if response has the expected Django REST framework pagination structure
       if (response && (response.results || response.count !== undefined)) {
@@ -86,7 +87,7 @@ export const userService = {
   async getUserById(userId) {
     try {
       console.log('🔄 Fetching user by ID:', userId)
-      const response = await apiService.get(`/api/v1/accounts/users/${userId}/`, { requiresAuth: true })
+      const response = await apiService.get(API_ENDPOINTS.USERS.DETAIL.replace('{id}', userId), { requiresAuth: true })
       return response
     } catch (error) {
       console.error('❌ Failed to fetch user:', error)
@@ -114,7 +115,7 @@ export const userService = {
         }
       }
 
-      const response = await apiService.post('/api/v1/accounts/users/', userData, { requiresAuth: true })
+      const response = await apiService.post(API_ENDPOINTS.USERS.CREATE, userData, { requiresAuth: true })
       
       if (response.success) {
         console.log('✅ User created successfully:', response.data)
@@ -137,7 +138,7 @@ export const userService = {
     try {
       console.log('🔄 Updating user:', userId, userData)
       
-      const response = await apiService.patch(`/api/v1/accounts/users/${userId}/`, userData, { requiresAuth: true })
+      const response = await apiService.patch(API_ENDPOINTS.USERS.UPDATE.replace('{id}', userId), userData, { requiresAuth: true })
       
       if (response.success) {
         console.log('✅ User updated successfully:', response.data)
@@ -159,7 +160,7 @@ export const userService = {
   async deleteUser(userId) {
     try {
       console.log('🔄 Deleting user:', userId)
-      const response = await apiService.delete(`/api/v1/accounts/users/${userId}/`, { requiresAuth: true })
+      const response = await apiService.delete(API_ENDPOINTS.USERS.DELETE.replace('{id}', userId), { requiresAuth: true })
       
       if (response.success) {
         console.log('✅ User deleted successfully')
@@ -183,7 +184,7 @@ export const userService = {
   async getUserProfile(userId) {
     try {
       console.log('🔄 Fetching user profile:', userId)
-      const response = await apiService.get(`/api/v1/accounts/user-profiles/${userId}/`, { requiresAuth: true })
+      const response = await apiService.get(API_ENDPOINTS.USERS.PROFILE.replace('{id}', userId), { requiresAuth: true })
       return response
     } catch (error) {
       console.error('❌ Failed to fetch user profile:', error)
@@ -200,7 +201,7 @@ export const userService = {
   async updateUserProfile(userId, profileData) {
     try {
       console.log('🔄 Updating user profile:', userId, profileData)
-      const response = await apiService.patch(`/api/v1/accounts/user-profiles/${userId}/`, profileData, { requiresAuth: true })
+      const response = await apiService.patch(API_ENDPOINTS.USERS.PROFILE_UPDATE.replace('{id}', userId), profileData, { requiresAuth: true })
       
       if (response.success) {
         console.log('✅ User profile updated successfully')
