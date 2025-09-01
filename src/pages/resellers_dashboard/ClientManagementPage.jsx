@@ -24,10 +24,12 @@ import {
   Globe,
   Download,
   Upload,
+  FileText,
   X
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { clientService } from '../../services/clientService'
+import ExportClientsModal from '../../components/clients/ExportClientsModal'
 
 // Sample client data with eSIM history
 const sampleClients = [
@@ -222,10 +224,16 @@ function ClientDetailsModal({ isOpen, onClose, client, onEdit, onAssignEsim }) {
             </button>
             <button
               onClick={() => onAssignEsim(client)}
-              className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              disabled={client.activeEsims > 0}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                client.activeEsims > 0
+                  ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
+              }`}
+              title={client.activeEsims > 0 ? "Client already has active eSIM" : "Assign eSIM"}
             >
               <Smartphone className="h-4 w-4" />
-              <span>Assign eSIM</span>
+              <span>{client.activeEsims > 0 ? 'eSIM Active' : 'Assign eSIM'}</span>
             </button>
           </div>
         </div>
@@ -253,6 +261,8 @@ function ClientManagementPage() {
     total: 0,
     totalPages: 0
   })
+  const [isExporting, setIsExporting] = useState(false)
+  const [showExportModal, setShowExportModal] = useState(false)
 
   // Fetch clients from API
   const fetchClients = async (params = {}) => {
@@ -339,8 +349,11 @@ function ClientManagementPage() {
   }
 
   const handleAssignEsim = (client) => {
+    if (client.activeEsims > 0) {
+      toast.error(`${client.fullName} already has ${client.activeEsims} active eSIM(s). Cannot assign another eSIM.`)
+      return
+    }
     console.log('Assign eSIM to client:', client)
-    // TODO: Navigate to assign eSIM page with pre-selected client
     navigate('/reseller-dashboard/assign-esim', { state: { selectedClient: client } })
   }
 
@@ -373,9 +386,7 @@ function ClientManagementPage() {
     }
   }
 
-  const handleAddClient = () => {
-    navigate('/reseller-dashboard/add-client')
-  }
+
 
   const handleRefresh = async () => {
     await fetchClients({ page: 1 })
@@ -383,9 +394,37 @@ function ClientManagementPage() {
     console.log('🔄 Client list refreshed')
   }
 
-  const handleExportClients = () => {
-    // TODO: Implement export functionality
-    toast.success('Export functionality coming soon')
+  const handleQuickExport = async (format = 'csv') => {
+    if (isExporting) return // Prevent multiple concurrent exports
+    
+    try {
+      setIsExporting(true)
+      console.log(`📄 Quick exporting clients as ${format.toUpperCase()}...`)
+      
+      // Apply current filters to export
+      const filters = {
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        search: searchTerm || undefined
+      }
+
+      // Show initial loading toast
+      toast.loading(`Preparing client export as ${format.toUpperCase()}...`, { duration: 2000 })
+
+      const result = await clientService.exportClients(filters, format)
+      
+      if (result.success) {
+        toast.success(result.message || 'Clients exported successfully!')
+        console.log('✅ Clients exported successfully')
+      } else {
+        toast.error(result.error || 'Failed to export clients')
+        console.error('❌ Export failed:', result.error)
+      }
+    } catch (error) {
+      console.error('❌ Failed to export clients:', error)
+      toast.error('Failed to export clients. Please try again.')
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   // Get status display
@@ -413,20 +452,41 @@ function ClientManagementPage() {
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </button>
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={() => handleQuickExport('csv')}
+              disabled={isExporting}
+              className="flex items-center space-x-2 px-3 py-2 border border-border text-muted-foreground rounded-l-lg hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isExporting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
+                  <span>Exporting...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4" />
+                  <span>Quick CSV</span>
+                </>
+              )}
+            </button>
+            <button
+              onClick={() => handleQuickExport('pdf')}
+              disabled={isExporting}
+              className="flex items-center space-x-2 px-3 py-2 border border-l-0 border-border text-muted-foreground rounded-r-lg hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FileText className="h-4 w-4" />
+              <span>Quick PDF</span>
+            </button>
+          </div>
           <button
-            onClick={handleExportClients}
+            onClick={() => setShowExportModal(true)}
             className="flex items-center space-x-2 px-3 py-2 border border-border text-muted-foreground rounded-lg hover:text-foreground hover:bg-muted transition-colors"
           >
-            <Download className="h-4 w-4" />
-            <span>Export</span>
+            <Filter className="h-4 w-4" />
+            <span>Advanced Export</span>
           </button>
-          <button
-            onClick={handleAddClient}
-            className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-          >
-            <UserPlus className="h-4 w-4" />
-            <span>Add Client</span>
-          </button>
+
         </div>
       </div>
 
@@ -624,9 +684,17 @@ function ClientManagementPage() {
                           <p className="text-sm text-foreground">
                             <span className="font-medium">{client.totalEsims}</span> total
                           </p>
-                          <p className="text-sm text-green-500">
-                            <span className="font-medium">{client.activeEsims}</span> active
-                          </p>
+                          <div className="flex items-center space-x-2">
+                            <p className="text-sm text-green-500">
+                              <span className="font-medium">{client.activeEsims}</span> active
+                            </p>
+                            {client.activeEsims > 0 && (
+                              <div className="inline-flex items-center px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 text-xs">
+                                <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+                                eSIM Active
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td className="p-4">
@@ -662,8 +730,13 @@ function ClientManagementPage() {
                           </button>
                           <button
                             onClick={() => handleAssignEsim(client)}
-                            className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                            title="Assign eSIM"
+                            disabled={client.activeEsims > 0}
+                            className={`p-2 rounded-lg transition-colors ${
+                              client.activeEsims > 0 
+                                ? 'text-muted-foreground/50 cursor-not-allowed' 
+                                : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
+                            }`}
+                            title={client.activeEsims > 0 ? `Client has ${client.activeEsims} active eSIM(s) - Cannot assign more` : "Assign eSIM to this client"}
                           >
                             <Smartphone className="h-4 w-4" />
                           </button>
@@ -710,6 +783,16 @@ function ClientManagementPage() {
         type="danger"
         confirmText="Delete Client"
         cancelText="Cancel"
+      />
+
+      {/* Export Modal */}
+      <ExportClientsModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        currentFilters={{
+          status: statusFilter,
+          search: searchTerm
+        }}
       />
     </div>
   )

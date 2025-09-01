@@ -452,6 +452,74 @@ export const clientService = {
     }
   },
 
+  // ===== Export Functions =====
+
+  /**
+   * Export clients in specified format (CSV or PDF)
+   */
+  async exportClients(filters = {}, format = 'csv') {
+    try {
+      console.log(`🔄 Exporting clients to ${format.toUpperCase()}`)
+
+      const queryParams = new URLSearchParams()
+
+      // Add filters to query parameters
+      if (filters.status) queryParams.append('status', filters.status)
+      if (filters.client_type) queryParams.append('client_type', filters.client_type)
+      if (filters.search) queryParams.append('search', filters.search)
+      if (filters.date_from) queryParams.append('date_from', filters.date_from)
+      if (filters.date_to) queryParams.append('date_to', filters.date_to)
+
+      // Choose endpoint based on format
+      const endpoint = format === 'pdf' ? 
+        API_ENDPOINTS.CLIENTS.EXPORT_CLIENTS_PDF : 
+        API_ENDPOINTS.CLIENTS.EXPORT_CLIENTS
+
+      const url = queryParams.toString() ?
+        `${buildApiUrl(endpoint)}?${queryParams.toString()}` :
+        buildApiUrl(endpoint)
+
+      const response = await apiService.get(url, {
+        requiresAuth: true,
+        responseType: 'blob'
+      })
+
+      if (response.success || response instanceof Blob) {
+        // Create download link
+        const blob = response instanceof Blob ? response : new Blob([response.data])
+        const downloadUrl = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = downloadUrl
+        
+        // Generate filename based on format
+        const timestamp = new Date().toISOString().split('T')[0]
+        const filename = format === 'pdf' ? 
+          `clients-report-${timestamp}.pdf` : 
+          `clients-export-${timestamp}.csv`
+        
+        link.download = filename
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(downloadUrl)
+
+        console.log(`✅ Clients exported successfully as ${format.toUpperCase()}`)
+        return { 
+          success: true, 
+          message: `Clients exported successfully as ${format.toUpperCase()}` 
+        }
+      }
+
+      return response
+    } catch (error) {
+      console.error('❌ Failed to export clients:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to export clients'
+      }
+    }
+  },
+
   // Format clients list for frontend consumption
   formatClientsList(clients) {
     if (!Array.isArray(clients)) {

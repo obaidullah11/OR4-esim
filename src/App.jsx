@@ -10,6 +10,7 @@ import { USER_ROLES } from './utils/auth'
 // Import the real pages
 import LoginPage from './pages/auth/LoginPage'
 import SignupPage from './pages/auth/SignupPage'
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import ResellersPage from './pages/resellers/ResellersPage'
 import UsersPageSimple from './pages/users/UsersPageSimple'
@@ -22,7 +23,7 @@ import DockSidebar from './components/common/DockSidebar/DockSidebar'
 // Import reseller dashboard pages
 import {
   ResellerDashboard,
-  AddClientPage,
+  EditClientPage,
   AssignEsimPage,
   ClientManagementPage,
   EsimHistoryPage
@@ -172,6 +173,9 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             
+            {/* Forgot Password Route */}
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            
             {/* Admin Dashboard Routes - Protected for Admin users only */}
             <Route path="/dashboard" element={
               <AdminRoute>
@@ -215,11 +219,7 @@ function App() {
                 <ResellerLayout><ResellerDashboard /></ResellerLayout>
               </ResellerRoute>
             } />
-            <Route path="/reseller-dashboard/add-client" element={
-              <ResellerRoute>
-                <ResellerLayout><AddClientPage /></ResellerLayout>
-              </ResellerRoute>
-            } />
+
             <Route path="/reseller-dashboard/assign-esim" element={
               <ResellerRoute>
                 <ResellerLayout><AssignEsimPage /></ResellerLayout>
@@ -230,9 +230,25 @@ function App() {
                 <ResellerLayout><ClientManagementPage /></ResellerLayout>
               </ResellerRoute>
             } />
+            <Route path="/reseller-dashboard/edit-client/:id" element={
+              <ResellerRoute>
+                <ResellerLayout><EditClientPage /></ResellerLayout>
+              </ResellerRoute>
+            } />
             <Route path="/reseller-dashboard/history" element={
               <ResellerRoute>
                 <ResellerLayout><EsimHistoryPage /></ResellerLayout>
+              </ResellerRoute>
+            } />
+            <Route path="/reseller-dashboard/reports" element={
+              <ResellerRoute>
+                <ResellerLayout>
+                  <div className="p-6">
+                    <h1 className="text-2xl font-bold mb-4">Reseller Reports</h1>
+                    <p>Reports page is working! Now loading the full reports component...</p>
+                    <ReportsPage />
+                  </div>
+                </ResellerLayout>
               </ResellerRoute>
             } />
 

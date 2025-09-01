@@ -1,16 +1,18 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { 
-  LayoutDashboard, 
-  Users, 
-  UserCheck, 
-  ShoppingCart, 
-  CreditCard, 
-  BarChart3, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Users,
+  UserCheck,
+  ShoppingCart,
+  CreditCard,
+  BarChart3,
+  Settings,
   Smartphone,
-  LogOut
+  LogOut,
+  Shield,
+  TrendingUp
 } from 'lucide-react'
-import { Dock, DockIcon, DockItem, DockLabel } from '../../ui/dock'
+import { EnhancedDock } from '../../ui/dock-two'
 import { useAuth } from '../../../context/AuthContext'
 import { useTheme } from '../../../context/ThemeContext'
 import { cn } from '../../../lib/utils'
@@ -21,53 +23,67 @@ import ThemeToggle from '../ThemeToggle/ThemeToggle'
 const getNavigationData = (userRole) => {
   const adminNavigation = [
     {
-      title: 'Dashboard',
+      label: 'Dashboard',
       icon: LayoutDashboard,
       href: '/dashboard',
       color: 'text-blue-600 dark:text-blue-400',
-      roles: [USER_ROLES.ADMIN]
+      gradient: 'from-blue-500 to-cyan-500',
+      roles: [USER_ROLES.ADMIN],
+      onClick: () => {}
     },
     {
-      title: 'Resellers',
+      label: 'Resellers',
       icon: UserCheck,
       href: '/resellers',
-      color: 'text-green-600 dark:text-green-400',
-      roles: [USER_ROLES.ADMIN]
+      color: 'text-emerald-600 dark:text-emerald-400',
+      gradient: 'from-emerald-500 to-teal-500',
+      roles: [USER_ROLES.ADMIN],
+      onClick: () => {}
     },
     {
-      title: 'Users',
+      label: 'Users',
       icon: Users,
       href: '/users',
       color: 'text-purple-600 dark:text-purple-400',
-      roles: [USER_ROLES.ADMIN]
+      gradient: 'from-purple-500 to-pink-500',
+      roles: [USER_ROLES.ADMIN],
+      onClick: () => {}
     },
     {
-      title: 'Orders',
+      label: 'Orders',
       icon: ShoppingCart,
       href: '/orders',
       color: 'text-orange-600 dark:text-orange-400',
-      roles: [USER_ROLES.ADMIN]
+      gradient: 'from-orange-500 to-red-500',
+      roles: [USER_ROLES.ADMIN],
+      onClick: () => {}
     },
     {
-      title: 'Transactions',
+      label: 'Transactions',
       icon: CreditCard,
       href: '/transactions',
-      color: 'text-emerald-600 dark:text-emerald-400',
-      roles: [USER_ROLES.ADMIN]
+      color: 'text-green-600 dark:text-green-400',
+      gradient: 'from-green-500 to-emerald-500',
+      roles: [USER_ROLES.ADMIN],
+      onClick: () => {}
     },
     {
-      title: 'Reports',
-      icon: BarChart3,
+      label: 'Analytics',
+      icon: TrendingUp,
       href: '/reports',
       color: 'text-indigo-600 dark:text-indigo-400',
-      roles: [USER_ROLES.ADMIN]
+      gradient: 'from-indigo-500 to-blue-500',
+      roles: [USER_ROLES.ADMIN],
+      onClick: () => {}
     },
     {
-      title: 'Settings',
+      label: 'Settings',
       icon: Settings,
       href: '/settings',
       color: 'text-gray-600 dark:text-gray-400',
-      roles: [USER_ROLES.ADMIN]
+      gradient: 'from-gray-500 to-slate-500',
+      roles: [USER_ROLES.ADMIN],
+      onClick: () => {}
     },
   ]
 
@@ -94,110 +110,22 @@ function DockSidebar({ className }) {
     logout()
   }
 
-  const isActive = (href) => {
-    return location.pathname.startsWith(href)
-  }
+  // Add onClick handlers to navigation items
+  const enhancedNavigationData = navigationData.map(item => ({
+    ...item,
+    onClick: () => handleNavigation(item.href)
+  }))
 
   return (
     <div className={cn(
-      'fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50',
+      'fixed bottom-2 left-1/2 transform -translate-x-1/2 z-40',
       className
     )}>
-      <Dock 
-        className={cn(
-          'items-end pb-3 transition-colors duration-300',
-          resolvedTheme === 'dark' 
-            ? 'bg-slate-800/90 backdrop-blur-md border border-slate-700/50' 
-            : 'bg-white/90 backdrop-blur-md border border-gray-200/50 shadow-lg'
-        )}
-        magnification={70}
-        distance={120}
-        panelHeight={56}
-      >
-        {/* Logo/Brand */}
-        <DockItem className="aspect-square rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg">
-          <DockLabel>SIM Admin</DockLabel>
-          <DockIcon>
-            <Smartphone className="h-full w-full text-white p-2" />
-          </DockIcon>
-        </DockItem>
-
-        {/* Navigation Items */}
-        {navigationData.map((item) => {
-          const Icon = item.icon
-          const active = isActive(item.href)
-
-          return (
-            <div
-              key={item.href}
-              onClick={() => handleNavigation(item.href)}
-              className="cursor-pointer"
-            >
-              <DockItem
-                className={cn(
-                  'aspect-square rounded-full transition-all duration-200',
-                  active
-                    ? resolvedTheme === 'dark'
-                      ? 'bg-slate-700 ring-2 ring-blue-400 shadow-lg'
-                      : 'bg-blue-50 ring-2 ring-blue-500 shadow-lg'
-                    : resolvedTheme === 'dark'
-                      ? 'bg-slate-700/80 hover:bg-slate-600'
-                      : 'bg-gray-100 hover:bg-gray-200'
-                )}
-              >
-                <DockLabel>{item.title}</DockLabel>
-                <DockIcon>
-                  <Icon
-                    className={cn(
-                      'h-full w-full p-2 transition-colors duration-200',
-                      active
-                        ? item.color
-                        : resolvedTheme === 'dark'
-                          ? 'text-slate-300'
-                          : 'text-gray-600'
-                    )}
-                  />
-                </DockIcon>
-              </DockItem>
-            </div>
-          )
-        })}
-
-        {/* Theme Toggle */}
-        <DockItem className={cn(
-          'aspect-square rounded-full transition-all duration-200',
-          resolvedTheme === 'dark'
-            ? 'bg-slate-700/80 hover:bg-slate-600'
-            : 'bg-gray-100 hover:bg-gray-200'
-        )}>
-          <DockLabel>Theme</DockLabel>
-          <DockIcon>
-            <div className="h-full w-full p-2 flex items-center justify-center">
-              <ThemeToggle variant="simple" className="p-0 h-full w-full" />
-            </div>
-          </DockIcon>
-        </DockItem>
-
-        {/* Logout */}
-        <div onClick={handleLogout} className="cursor-pointer">
-          <DockItem
-            className={cn(
-              'aspect-square rounded-full transition-all duration-200',
-              resolvedTheme === 'dark'
-                ? 'bg-red-900/80 hover:bg-red-800'
-                : 'bg-red-100 hover:bg-red-200'
-            )}
-          >
-            <DockLabel>Logout</DockLabel>
-            <DockIcon>
-              <LogOut className={cn(
-                'h-full w-full p-2 transition-colors duration-200',
-                resolvedTheme === 'dark' ? 'text-red-400' : 'text-red-600'
-              )} />
-            </DockIcon>
-          </DockItem>
-        </div>
-      </Dock>
+      <EnhancedDock
+        items={enhancedNavigationData}
+        activeItem={location.pathname}
+        className="transition-all duration-300"
+      />
     </div>
   )
 }

@@ -118,6 +118,74 @@ export const paymentsService = {
     }
   },
 
+  // Create Stripe checkout session
+  async createStripeCheckoutSession(checkoutData) {
+    try {
+      // Use the correct Stripe bundle checkout endpoint
+      const url = buildApiUrl('api/v1/stripe/checkout/bundle/')
+      const response = await apiService.post(url, checkoutData, { requiresAuth: true })
+      
+      const data = response.data || response
+      
+      return {
+        success: true,
+        data: data,
+        message: 'Checkout session created successfully'
+      }
+    } catch (error) {
+      console.error('❌ Failed to create Stripe checkout session:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to create checkout session'
+      }
+    }
+  },
+
+  // Verify Stripe checkout session
+  async verifyStripeCheckoutSession(sessionId) {
+    try {
+      const url = buildApiUrl(`api/v1/stripe/payment-status/?session_id=${sessionId}`)
+      const response = await apiService.get(url, { requiresAuth: true })
+      
+      const data = response.data || response
+      
+      return {
+        success: true,
+        data: data,
+        message: 'Session verified successfully'
+      }
+    } catch (error) {
+      console.error('❌ Failed to verify checkout session:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to verify session'
+      }
+    }
+  },
+
+  // Test Stripe service connectivity
+  async testStripeService() {
+    try {
+      // Test endpoint to verify Stripe service is working
+      const url = buildApiUrl('api/v1/stripe/payment-status/')
+      const response = await apiService.get(url, { requiresAuth: true })
+      
+      const data = response.data || response
+      
+      return {
+        success: true,
+        data: data,
+        message: 'Stripe service is operational'
+      }
+    } catch (error) {
+      console.error('❌ Stripe service test failed:', error)
+      return {
+        success: false,
+        error: error.message || 'Stripe service test failed'
+      }
+    }
+  },
+
   // Update payment status
   async updatePaymentStatus(paymentId, status, notes = '') {
     try {

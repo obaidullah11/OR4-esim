@@ -268,12 +268,24 @@
     @apply bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent;
   }
 
+  .text-gradient-colorful {
+    @apply bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent;
+  }
+
   .glass-effect {
     @apply backdrop-blur-sm bg-background/80 border border-border/50;
   }
 
+  .glass-effect-strong {
+    @apply backdrop-blur-lg bg-background/60 border border-border/30;
+  }
+
   .hover-lift {
     @apply transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg;
+  }
+
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
   }
 
   .fade-in {
@@ -282,5 +294,94 @@
 
   .slide-in {
     @apply animate-slide-in;
+  }
+
+  .slide-up {
+    @apply animate-slide-up;
+  }
+
+  .scale-in {
+    @apply animate-scale-in;
+  }
+
+  .float {
+    @apply animate-float;
+  }
+
+  .glow {
+    @apply animate-glow;
+  }
+
+  /* Gradient Backgrounds */
+  .bg-gradient-primary {
+    @apply bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700;
+  }
+
+  .bg-gradient-success {
+    @apply bg-gradient-to-br from-green-500 via-emerald-600 to-teal-700;
+  }
+
+  .bg-gradient-warning {
+    @apply bg-gradient-to-br from-amber-500 via-orange-600 to-red-700;
+  }
+
+  .bg-gradient-info {
+    @apply bg-gradient-to-br from-cyan-500 via-blue-600 to-indigo-700;
+  }
+
+  .bg-gradient-reseller {
+    @apply bg-gradient-to-br from-emerald-500 via-green-600 to-teal-700;
+  }
+
+  /* Interactive Card Effects */
+  .card-interactive {
+    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-2 cursor-pointer;
+  }
+
+  .card-glow {
+    @apply relative overflow-hidden;
+  }
+
+  .card-glow::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -translate-x-full transition-transform duration-700;
+  }
+
+  .card-glow:hover::before {
+    @apply translate-x-full;
+  }
+
+  /* Loading States */
+  .skeleton {
+    @apply animate-pulse bg-muted rounded;
+  }
+
+  .shimmer {
+    @apply relative overflow-hidden;
+  }
+
+  .shimmer::after {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-full animate-shimmer;
+  }
+
+  /* Status Indicators */
+  .status-online {
+    @apply relative;
+  }
+
+  .status-online::after {
+    content: '';
+    @apply absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse-soft;
+  }
+
+  /* Custom Focus States */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background;
+  }
+
+  /* Smooth Transitions */
+  .transition-smooth {
+    @apply transition-all duration-300 ease-in-out;
   }
 }
