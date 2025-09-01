@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTheme } from '../../context/ThemeContext'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { cn } from '../../lib/utils'
 import {
   ArrowLeft,
   Users,
@@ -21,18 +22,27 @@ import {
   QrCode,
   RefreshCw,
   CreditCard,
-  UserPlus
+  UserPlus,
+  Zap,
+  Star,
+  Sparkles,
+  User,
+  Phone,
+  MapPin
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { clientService } from '../../services/clientService'
 import { traveRoamService } from '../../services/traveRoamService'
 import { esimService } from '../../services/esimService'
 import { integrationService } from '../../services/integrationService'
+import { paymentsService } from '../../services/paymentsService'
 import { API_CONFIG } from '../../config/api'
+import WorkflowStepIndicator from '../../components/esim/WorkflowStepIndicator'
 
 function AssignEsimPage() {
   const { resolvedTheme } = useTheme()
   const navigate = useNavigate()
+  const location = useLocation()
   
   // Workflow state - matching HTML test file structure (6 steps)
   const [workflowData, setWorkflowData] = useState({
@@ -74,6 +84,183 @@ function AssignEsimPage() {
   const validatePhone = (phone) => {
     const cleanPhone = phone.replace(/[\s\-\(\)]/g, '')
     return cleanPhone.startsWith('+') && cleanPhone.length >= 10
+  }
+
+  // Handle pre-selected client from navigation state
+  useEffect(() => {
+    const selectedClient = location.state?.selectedClient
+    if (selectedClient) {
+      console.log('📋 Pre-selected client detected:', selectedClient)
+      
+      // Pre-populate user form with client data
+      setUserForm({
+        fullName: selectedClient.fullName || selectedClient.full_name || '',
+        phoneNumber: selectedClient.phone || selectedClient.phone_number || '',
+        email: selectedClient.email || '',
+        passportId: selectedClient.passportNumber || selectedClient.passport_id || selectedClient.nationalId || selectedClient.national_id || '',
+        travelDate: selectedClient.dateOfTravel || selectedClient.date_of_travel || ''
+      })
+
+      // Detect proper country and region information from phone number
+      const phoneNumber = selectedClient.phone || selectedClient.phone_number
+      if (phoneNumber) {
+        detectCountryFromPhone(phoneNumber, false)
+          .then(countryInfo => {
+            console.log('🌍 Detected country info for pre-selected client:', countryInfo)
+            
+            // Set up workflow data with existing client and proper country info
+            const userData = {
+              fullName: selectedClient.fullName || selectedClient.full_name,
+              phoneNumber: phoneNumber,
+              email: selectedClient.email,
+              passportId: selectedClient.passportNumber || selectedClient.passport_id || selectedClient.nationalId || selectedClient.national_id || '',
+              countryOfTravel: countryInfo,
+              travelDate: selectedClient.dateOfTravel || selectedClient.date_of_travel || null,
+              clientId: selectedClient.id
+            }
+
+            setWorkflowData(prev => ({ ...prev, userData }))
+            setCountryInfo(countryInfo)
+            setValidationStatus('success')
+            
+            // Skip to step 2 (Fetch Plans) since client is already selected
+            setCurrentStep(2)
+            
+            toast.success(`Client ${userData.fullName} selected for eSIM assignment`)
+          })
+          .catch(error => {
+            console.warn('Failed to detect country for pre-selected client:', error)
+            
+            // Fallback: Set up with basic country data
+            const countryData = selectedClient.countryOfTravel || selectedClient.country_of_travel || 'Unknown'
+            const userData = {
+              fullName: selectedClient.fullName || selectedClient.full_name,
+              phoneNumber: phoneNumber,
+              email: selectedClient.email,
+              passportId: selectedClient.passportNumber || selectedClient.passport_id || selectedClient.nationalId || selectedClient.national_id || '',
+              countryOfTravel: typeof countryData === 'string' ? { name: countryData, code: countryData, region: 'Unknown' } : countryData,
+              travelDate: selectedClient.dateOfTravel || selectedClient.date_of_travel || null,
+              clientId: selectedClient.id
+            }
+
+            setWorkflowData(prev => ({ ...prev, userData }))
+            setValidationStatus('success')
+            setCurrentStep(2)
+            
+            toast.success(`Client ${userData.fullName} selected for eSIM assignment`)
+            toast.warning('Could not detect region automatically. Please verify country information before fetching plans.')
+          })
+      } else {
+        // No phone number available, use fallback
+        const countryData = selectedClient.countryOfTravel || selectedClient.country_of_travel || 'Unknown'
+        const userData = {
+          fullName: selectedClient.fullName || selectedClient.full_name,
+          phoneNumber: '',
+          email: selectedClient.email,
+          passportId: selectedClient.passportNumber || selectedClient.passport_id || selectedClient.nationalId || selectedClient.national_id || '',
+          countryOfTravel: typeof countryData === 'string' ? { name: countryData, code: countryData, region: 'Unknown' } : countryData,
+          travelDate: selectedClient.dateOfTravel || selectedClient.date_of_travel || null,
+          clientId: selectedClient.id
+        }
+
+        setWorkflowData(prev => ({ ...prev, userData }))
+        setValidationStatus('success')
+        setCurrentStep(2)
+        
+        toast.success(`Client ${userData.fullName} selected for eSIM assignment`)
+        toast.warning('No phone number available for region detection. Please verify country information.')
+      }
+    }
+  }, [location.state])
+
+  // Handle Stripe checkout success/failure on page load
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const success = urlParams.get('success')
+    const canceled = urlParams.get('canceled')
+    const sessionId = urlParams.get('session_id')
+
+    if (success === '1' && sessionId) {
+      // Payment was successful, verify and continue workflow
+      handleStripeCheckoutSuccess(sessionId)
+    } else if (canceled === '1') {
+      // Payment was canceled
+      handleStripeCheckoutCancel()
+    }
+  }, [])
+
+  // Handle successful Stripe checkout
+  const handleStripeCheckoutSuccess = async (sessionId) => {
+    try {
+      console.log('✅ Stripe checkout successful, verifying session:', sessionId)
+      
+      // Show loading state
+      setIsProcessingPayment(true)
+      toast.loading('Verifying payment...', { duration: 2000 })
+
+      // Verify the checkout session
+      const verificationResponse = await paymentsService.verifyStripeCheckoutSession(sessionId)
+
+      if (verificationResponse.success) {
+        console.log('✅ Payment verified successfully:', verificationResponse.data)
+
+        // Restore workflow data from localStorage
+        const savedWorkflowData = localStorage.getItem('workflowData')
+        const savedCheckoutData = localStorage.getItem('stripeCheckoutData')
+
+        if (savedWorkflowData && savedCheckoutData) {
+          const workflowData = JSON.parse(savedWorkflowData)
+          const checkoutData = JSON.parse(savedCheckoutData)
+
+          // Update workflow with payment data
+          const paymentData = {
+            ...checkoutData,
+            payment_id: verificationResponse.data.payment_id,
+            status: 'completed',
+            verified_at: new Date().toISOString()
+          }
+
+          setWorkflowData(prev => ({ ...workflowData, paymentData }))
+          setCurrentStep(4) // Move to next step (Provision eSIM)
+          
+          toast.success('Payment completed successfully!')
+        }
+
+        // Clean up localStorage
+        localStorage.removeItem('stripeSessionId')
+        localStorage.removeItem('stripeCheckoutData')
+        localStorage.removeItem('workflowData')
+
+        // Clear URL parameters
+        window.history.replaceState({}, '', window.location.pathname)
+
+      } else {
+        throw new Error(verificationResponse.error || 'Payment verification failed')
+      }
+
+    } catch (error) {
+      console.error('❌ Payment verification failed:', error)
+      toast.error(`Payment verification failed: ${error.message}`)
+    } finally {
+      setIsProcessingPayment(false)
+    }
+  }
+
+  // Handle canceled Stripe checkout
+  const handleStripeCheckoutCancel = () => {
+    console.log('⚠️ Stripe checkout was canceled')
+    toast.error('Payment was canceled. You can try again when ready.')
+    
+    // Clean up localStorage
+    localStorage.removeItem('stripeSessionId')
+    localStorage.removeItem('stripeCheckoutData')
+    localStorage.removeItem('workflowData')
+
+    // Clear URL parameters
+    window.history.replaceState({}, '', window.location.pathname)
+    
+    // Stay on payment step
+    setCurrentStep(3)
   }
 
   // Helper function for authenticated API requests (matching HTML logic)
@@ -320,40 +507,101 @@ function AssignEsimPage() {
     }
   }
 
-  // Process payment function from HTML file
+  // Process payment function with Stripe Checkout Session
   const processPayment = async () => {
     if (!workflowData.selectedBundle) {
       toast.error('Please select a bundle first.')
       return
     }
 
+    if (!workflowData.userData) {
+      toast.error('Please validate user data first.')
+      return
+    }
+
     setIsProcessingPayment(true)
     try {
-      console.log('💳 Processing payment...')
+      console.log('💳 Creating Stripe checkout session...')
       
       const basePrice = parseFloat(workflowData.selectedBundle.price) || 0
       const markupAmount = (basePrice * resellerMarkup / 100)
       const finalPrice = basePrice + markupAmount
 
-      const paymentData = {
-        amount: finalPrice,
-        currency: workflowData.selectedBundle.currency,
-        bundle_id: workflowData.selectedBundle.bundle_id,
-        user_data: workflowData.userData,
-        markup_percentage: resellerMarkup
+      // Prepare checkout data for Stripe hosted checkout (console script format)
+      const checkoutData = {
+        bundle_details: {
+          bundle_id: workflowData.selectedBundle.bundle_id || workflowData.selectedBundle.name,
+          name: workflowData.selectedBundle.name,
+          price: basePrice,
+          currency: workflowData.selectedBundle.currency || 'USD',
+          country: workflowData.userData.countryOfTravel?.name || 'Unknown'
+        },
+        client_data: {
+          id: workflowData.userData.clientId,
+          full_name: workflowData.userData.fullName,
+          email: workflowData.userData.email,
+          phone: workflowData.userData.phoneNumber,
+          country: workflowData.userData.countryOfTravel?.name || 'Unknown'
+        },
+        markup_percent: resellerMarkup,
+        success_url: `${window.location.origin}/reseller-dashboard/assign-esim?success=1&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${window.location.origin}/reseller-dashboard/assign-esim?canceled=1`
       }
 
-      // For now, simulate successful payment
-      // In real implementation, this would integrate with Stripe
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      setWorkflowData(prev => ({ ...prev, paymentData }))
-      toast.success('Payment processed successfully!')
+      console.log('🔄 Creating Stripe checkout session:', checkoutData)
+
+      // Create Stripe checkout session through backend
+      const checkoutResponse = await paymentsService.createStripeCheckoutSession(checkoutData)
+
+      if (checkoutResponse.success) {
+        console.log('✅ Checkout session created:', checkoutResponse.data)
+        
+        // Store checkout session data for verification later
+        const checkoutSessionData = {
+          session_id: checkoutResponse.data.session_id,
+          checkout_url: checkoutResponse.data.checkout_url,
+          amount: finalPrice,
+          currency: workflowData.selectedBundle.currency || 'USD',
+          markup_percent: resellerMarkup,
+          base_price: basePrice,
+          final_price: finalPrice,
+          created_at: new Date().toISOString()
+        }
+
+        // Store in localStorage for verification after redirect
+        localStorage.setItem('stripeSessionId', checkoutResponse.data.session_id)
+        localStorage.setItem('stripeCheckoutData', JSON.stringify(checkoutSessionData))
+        localStorage.setItem('workflowData', JSON.stringify(workflowData))
+
+        // Show redirect message
+        toast.success('Redirecting to Stripe checkout...', { duration: 2000 })
+        
+        // Redirect to Stripe hosted checkout after short delay
+        setTimeout(() => {
+          console.log('🌐 Redirecting to Stripe checkout:', checkoutResponse.data.checkout_url)
+          window.location.href = checkoutResponse.data.checkout_url
+        }, 1500)
+        
+      } else {
+        throw new Error(checkoutResponse.error || 'Failed to create checkout session')
+      }
       
     } catch (error) {
-      console.error('❌ Payment processing failed:', error)
-      toast.error('Payment failed: ' + error.message)
-    } finally {
+      console.error('❌ Stripe checkout session creation failed:', error)
+      
+      // Handle specific checkout errors
+      let errorMessage = 'Failed to create payment session. Please try again.'
+      if (error.message) {
+        if (error.message.includes('network')) {
+          errorMessage = 'Network error. Please check your connection and try again.'
+        } else if (error.message.includes('authentication')) {
+          errorMessage = 'Authentication error. Please refresh the page and try again.'
+        } else {
+          errorMessage = `Checkout failed: ${error.message}`
+        }
+      }
+      
+      toast.error(errorMessage, { duration: 6000 })
       setIsProcessingPayment(false)
     }
   }
@@ -561,86 +809,84 @@ function AssignEsimPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+    <div className="space-y-8">
+      {/* Enhanced Header */}
+      <div className="relative slide-down">
+        <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => navigate('/reseller-dashboard')}
-            className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors"
+            className={`
+              flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 
+              hover-scale focus-ring
+              ${resolvedTheme === 'dark' 
+                ? 'text-slate-300 hover:text-white hover:bg-slate-700/50' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/50'
+              }
+            `}
           >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Back to Dashboard</span>
+            <ArrowLeft className="h-5 w-5" />
+            <span className="font-medium">Back to Dashboard</span>
           </button>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">eSIM Assignment Workflow</h1>
-            <p className="text-muted-foreground">Complete 6-step workflow for eSIM assignment via TraveRoam</p>
+          
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={resetWorkflow}
+              className={`
+                flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 
+                hover-scale focus-ring
+                ${resolvedTheme === 'dark' 
+                  ? 'bg-slate-700/50 hover:bg-slate-600/60 text-slate-300' 
+                  : 'bg-gray-100/50 hover:bg-gray-200/60 text-gray-700'
+                }
+              `}
+            >
+              <RefreshCw className="h-4 w-4" />
+              <span className="font-medium">Reset Workflow</span>
+            </button>
+            
+            <div className={`
+              px-4 py-2 rounded-xl border transition-all duration-300
+              ${resolvedTheme === 'dark' 
+                ? 'bg-slate-800/50 border-slate-700/50 text-slate-300' 
+                : 'bg-white/50 border-gray-200/50 text-gray-600'
+              }
+            `}>
+              <div className="flex items-center space-x-2">
+                <Zap className="w-4 h-4 text-purple-500" />
+                <span className="text-sm font-medium">Step {currentStep} of 6</span>
+              </div>
+            </div>
           </div>
         </div>
-        <button
-          onClick={resetWorkflow}
-          className="flex items-center space-x-2 px-4 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 transition-colors"
-        >
-          <RefreshCw className="h-4 w-4" />
-          <span>Reset Workflow</span>
-        </button>
+
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gradient-colorful mb-2">
+            eSIM Assignment Workflow
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Complete the streamlined workflow for eSIM assignment via TraveRoam
+          </p>
+          <div className="flex items-center justify-center space-x-4 mt-4">
+            <div className="flex items-center space-x-2 text-sm">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse-soft"></div>
+              <span className="text-emerald-600 font-medium">Workflow Active</span>
+            </div>
+            <div className="flex items-center space-x-2 text-sm">
+              <Sparkles className="w-4 h-4 text-purple-500" />
+              <span className="text-purple-600 font-medium">Enhanced Experience</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Progress Steps - 6 steps like HTML file */}
-      <div className="bg-card border border-border rounded-lg p-6">
-        <div className="flex items-center justify-between">
-          {[
-            { step: 1, title: 'Add New User', icon: UserPlus },
-            { step: 2, title: 'Fetch eSIM Plans', icon: Smartphone },
-            { step: 3, title: 'Payment Processing', icon: CreditCard },
-            { step: 4, title: 'Provision eSIM', icon: Wifi },
-            { step: 5, title: 'QR & Email Delivery', icon: QrCode },
-            { step: 6, title: 'Save to Database', icon: CheckCircle }
-          ].map((item, index) => {
-            const Icon = item.icon
-            const isActive = currentStep === item.step
-            const isCompleted = currentStep > item.step
-            const isLast = index === 5
-
-            return (
-              <div key={item.step} className="flex items-center">
-                <div className={`flex items-center space-x-3 ${
-                  isActive ? 'text-primary' : 
-                  isCompleted ? 'text-green-500' : 
-                  'text-muted-foreground'
-                }`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
-                    isActive ? 'border-primary bg-primary/10' :
-                    isCompleted ? 'border-green-500 bg-green-500/10' :
-                    'border-muted-foreground/30 bg-muted/30'
-                  }`}>
-                    {isCompleted ? (
-                      <Check className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <Icon className="h-4 w-4" />
-                    )}
-                  </div>
-                  <span className="text-sm font-medium">{item.title}</span>
-                </div>
-                {!isLast && (
-                  <div className={`w-12 h-0.5 mx-4 ${
-                    isCompleted ? 'bg-green-500' : 'bg-muted-foreground/30'
-                  }`} />
-                )}
-              </div>
-            )
-          })}
-        </div>
-        
-        {/* Progress Bar */}
-        <div className="mt-4">
-          <div className="w-full bg-muted-foreground/20 rounded-full h-2">
-            <div 
-              className="bg-primary h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(currentStep / 6) * 100}%` }}
-            />
-          </div>
-        </div>
+      {/* Enhanced Progress Steps */}
+      <div className="slide-up" style={{ animationDelay: '0.2s' }}>
+        <WorkflowStepIndicator 
+          currentStep={currentStep}
+          completedSteps={Array.from({ length: currentStep - 1 }, (_, i) => i + 1)}
+          errorStep={error ? currentStep : null}
+          className="mb-8"
+        />
       </div>
 
       {error && (
@@ -652,156 +898,303 @@ function AssignEsimPage() {
         </div>
       )}
 
-      {/* Step 1: Add New User */}
+      {/* Step 1: Add New User - Enhanced Design */}
       {currentStep === 1 && (
-        <div className="bg-card border border-border rounded-lg p-6">
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-foreground flex items-center space-x-2">
-              <UserPlus className="h-5 w-5" />
-              <span>Step 1: Add New User</span>
-            </h2>
+        <div className={cn(
+          'relative overflow-hidden rounded-2xl shadow-xl transition-all duration-300',
+          resolvedTheme === 'dark'
+            ? 'bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/50'
+            : 'bg-gradient-to-br from-white to-gray-50/50 border border-gray-200/50'
+        )}>
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]"></div>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    👤 Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={userForm.fullName}
-                    onChange={(e) => setUserForm(prev => ({ ...prev, fullName: e.target.value }))}
-                    placeholder="Enter full name"
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    required
-                  />
-                </div>
+          <div className="relative p-8">
+            {/* Header Section */}
+            <div className="text-center mb-8">
+              <div className={cn(
+                'inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-lg',
+                'bg-gradient-to-br from-blue-500 to-purple-600'
+              )}>
+                <UserPlus className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">
+                Add New Client
+              </h2>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                Enter client details to begin the eSIM assignment process
+              </p>
+            </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    📞 Phone Number (with country code) *
-                  </label>
-                  <input
-                    type="tel"
-                    value={userForm.phoneNumber}
-                    onChange={(e) => setUserForm(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                    placeholder="+91XXXXXXXXXX"
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    required
-                  />
-                  {countryInfo && (
-                    <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700">
-                      🌍 Detected Country: {countryInfo.name} ({countryInfo.code}) - Region: {countryInfo.region}
+            {/* Form Section */}
+            <div className="max-w-4xl mx-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Left Column */}
+                <div className="space-y-6">
+                  {/* Full Name Field */}
+                  <div className="group">
+                    <label className="flex items-center space-x-2 text-sm font-semibold text-foreground mb-3">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span>Full Name</span>
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <User className="h-5 w-5 text-muted-foreground group-focus-within:text-blue-500 transition-colors" />
+                      </div>
+                      <input
+                        type="text"
+                        value={userForm.fullName}
+                        onChange={(e) => setUserForm(prev => ({ ...prev, fullName: e.target.value }))}
+                        placeholder="Enter client's full name"
+                        className={cn(
+                          'w-full pl-12 pr-4 py-4 rounded-xl border-2 transition-all duration-300',
+                          'bg-background/50 backdrop-blur-sm',
+                          'placeholder:text-muted-foreground/70',
+                          'focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500',
+                          'hover:border-blue-400/50',
+                          resolvedTheme === 'dark'
+                            ? 'border-slate-600 text-white'
+                            : 'border-gray-300 text-gray-900'
+                        )}
+                        required
+                      />
                     </div>
-                  )}
+                  </div>
+
+                  {/* Phone Number Field */}
+                  <div className="group">
+                    <label className="flex items-center space-x-2 text-sm font-semibold text-foreground mb-3">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>Phone Number</span>
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <Phone className="h-5 w-5 text-muted-foreground group-focus-within:text-green-500 transition-colors" />
+                      </div>
+                      <input
+                        type="tel"
+                        value={userForm.phoneNumber}
+                        onChange={(e) => setUserForm(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                        placeholder="+1 234 567 8900"
+                        className={cn(
+                          'w-full pl-12 pr-4 py-4 rounded-xl border-2 transition-all duration-300',
+                          'bg-background/50 backdrop-blur-sm',
+                          'placeholder:text-muted-foreground/70',
+                          'focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500',
+                          'hover:border-green-400/50',
+                          resolvedTheme === 'dark'
+                            ? 'border-slate-600 text-white'
+                            : 'border-gray-300 text-gray-900'
+                        )}
+                        required
+                      />
+                    </div>
+                    {countryInfo && (
+                      <div className={cn(
+                        'mt-3 p-4 rounded-xl border transition-all duration-300',
+                        'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200',
+                        'dark:from-green-900/20 dark:to-emerald-900/20 dark:border-green-800'
+                      )}>
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                            <Globe className="w-4 h-4 text-white" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-green-800 dark:text-green-200">
+                              {countryInfo.name} ({countryInfo.code})
+                            </p>
+                            <p className="text-sm text-green-600 dark:text-green-400">
+                              Region: {countryInfo.region}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Email Field */}
+                  <div className="group">
+                    <label className="flex items-center space-x-2 text-sm font-semibold text-foreground mb-3">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      <span>Email Address</span>
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <Mail className="h-5 w-5 text-muted-foreground group-focus-within:text-purple-500 transition-colors" />
+                      </div>
+                      <input
+                        type="email"
+                        value={userForm.email}
+                        onChange={(e) => setUserForm(prev => ({ ...prev, email: e.target.value }))}
+                        placeholder="client@example.com"
+                        className={cn(
+                          'w-full pl-12 pr-4 py-4 rounded-xl border-2 transition-all duration-300',
+                          'bg-background/50 backdrop-blur-sm',
+                          'placeholder:text-muted-foreground/70',
+                          'focus:outline-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500',
+                          'hover:border-purple-400/50',
+                          resolvedTheme === 'dark'
+                            ? 'border-slate-600 text-white'
+                            : 'border-gray-300 text-gray-900'
+                        )}
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    📧 Email *
-                  </label>
-                  <input
-                    type="email"
-                    value={userForm.email}
-                    onChange={(e) => setUserForm(prev => ({ ...prev, email: e.target.value }))}
-                    placeholder="user@example.com"
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    required
-                  />
+                {/* Right Column */}
+                <div className="space-y-6">
+                  {/* Passport/ID Field */}
+                  <div className="group">
+                    <label className="flex items-center space-x-2 text-sm font-semibold text-foreground mb-3">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                      <span>Passport / National ID</span>
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <CreditCard className="h-5 w-5 text-muted-foreground group-focus-within:text-orange-500 transition-colors" />
+                      </div>
+                      <input
+                        type="text"
+                        value={userForm.passportId}
+                        onChange={(e) => setUserForm(prev => ({ ...prev, passportId: e.target.value }))}
+                        placeholder="Enter passport or ID number"
+                        className={cn(
+                          'w-full pl-12 pr-4 py-4 rounded-xl border-2 transition-all duration-300',
+                          'bg-background/50 backdrop-blur-sm',
+                          'placeholder:text-muted-foreground/70',
+                          'focus:outline-none focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500',
+                          'hover:border-orange-400/50',
+                          resolvedTheme === 'dark'
+                            ? 'border-slate-600 text-white'
+                            : 'border-gray-300 text-gray-900'
+                        )}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Travel Date Field */}
+                  <div className="group">
+                    <label className="flex items-center space-x-2 text-sm font-semibold text-foreground mb-3">
+                      <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                      <span>Travel Date</span>
+                      <span className="text-xs text-muted-foreground">(Optional)</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <Calendar className="h-5 w-5 text-muted-foreground group-focus-within:text-indigo-500 transition-colors" />
+                      </div>
+                      <input
+                        type="date"
+                        value={userForm.travelDate}
+                        onChange={(e) => setUserForm(prev => ({ ...prev, travelDate: e.target.value }))}
+                        className={cn(
+                          'w-full pl-12 pr-4 py-4 rounded-xl border-2 transition-all duration-300',
+                          'bg-background/50 backdrop-blur-sm',
+                          'focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500',
+                          'hover:border-indigo-400/50',
+                          resolvedTheme === 'dark'
+                            ? 'border-slate-600 text-white'
+                            : 'border-gray-300 text-gray-900'
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Info Card */}
+                  <div className={cn(
+                    'p-6 rounded-xl border transition-all duration-300',
+                    'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200',
+                    'dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-800'
+                  )}>
+                    <div className="flex items-start space-x-3">
+                      <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                        <MapPin className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-1">
+                          Country Detection
+                        </h4>
+                        <p className="text-sm text-blue-600 dark:text-blue-400">
+                          We'll automatically detect the destination country from the phone number to show relevant eSIM plans.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    🛂 Passport Number / National ID *
-                  </label>
-                  <input
-                    type="text"
-                    value={userForm.passportId}
-                    onChange={(e) => setUserForm(prev => ({ ...prev, passportId: e.target.value }))}
-                    placeholder="Passport or ID number"
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    📅 Date of Travel (optional)
-                  </label>
-                  <input
-                    type="date"
-                    value={userForm.travelDate}
-                    onChange={(e) => setUserForm(prev => ({ ...prev, travelDate: e.target.value }))}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                </div>
-
-                <div className="pt-4">
+              {/* Action Buttons */}
+              <div className="mt-8 pt-6 border-t border-border/50">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <button
                     onClick={validateUserData}
                     disabled={validationStatus === 'detecting' || validationStatus === 'creating'}
-                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+                    className={cn(
+                      'flex-1 flex items-center justify-center space-x-3 px-6 py-4 rounded-xl font-semibold transition-all duration-300',
+                      'bg-gradient-to-r from-blue-600 to-purple-600 text-white',
+                      'hover:from-blue-700 hover:to-purple-700 hover:shadow-lg hover:shadow-blue-500/25',
+                      'focus:outline-none focus:ring-4 focus:ring-blue-500/20',
+                      'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none',
+                      'transform hover:scale-[1.02] active:scale-[0.98]'
+                    )}
                   >
                     {validationStatus === 'detecting' ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         <span>Detecting Country...</span>
                       </>
                     ) : validationStatus === 'creating' ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         <span>Creating Client...</span>
                       </>
                     ) : (
                       <>
-                        <CheckCircle className="h-4 w-4" />
-                        <span>Validate User Data</span>
+                        <CheckCircle className="h-5 w-5" />
+                        <span>Validate & Continue</span>
+                        <ArrowLeft className="h-4 w-4 rotate-180" />
                       </>
                     )}
                   </button>
-
-                  {/* Validation Status Display */}
-                  {validationStatus === 'success' && workflowData.userData && (
-                    <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
-                      <div className="flex items-center space-x-2 text-green-800">
-                        <CheckCircle className="h-5 w-5" />
-                        <span className="font-medium">Client Created Successfully!</span>
-                      </div>
-                      <div className="mt-2 text-sm text-green-700">
-                        <p>📍 Country: {countryInfo?.name} ({countryInfo?.code})</p>
-                        <p>🌍 Region: {countryInfo?.region}</p>
-                        {workflowData.userData.clientId && (
-                          <p>🆔 Client ID: {workflowData.userData.clientId}</p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {validationStatus === 'error' && (
-                    <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
-                      <div className="flex items-center space-x-2 text-red-800">
-                        <X className="h-5 w-5" />
-                        <span className="font-medium">Validation Failed</span>
-                      </div>
-                      <p className="text-red-600 text-sm mt-1">Please check your information and try again.</p>
-                    </div>
-                  )}
                 </div>
               </div>
-            </div>
 
-            <div className="flex justify-between pt-4 border-t border-border">
-              <div></div>
-              <button
-                onClick={nextStep}
-                disabled={!workflowData.userData}
-                className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
-              >
-                <span>Next: Fetch eSIM Plans</span>
-                <ArrowLeft className="h-4 w-4 rotate-180" />
-              </button>
+              {/* Validation Status Display */}
+              {validationStatus === 'success' && workflowData.userData && (
+                <div className="mt-6 bg-green-50 border border-green-200 rounded-xl p-4 dark:bg-green-900/20 dark:border-green-800">
+                  <div className="flex items-center space-x-2 text-green-800 dark:text-green-200">
+                    <CheckCircle className="h-5 w-5" />
+                    <span className="font-medium">Client Created Successfully!</span>
+                  </div>
+                  <div className="mt-2 text-sm text-green-700 dark:text-green-300">
+                    <p>📍 Country: {countryInfo?.name} ({countryInfo?.code})</p>
+                    <p>🌍 Region: {countryInfo?.region}</p>
+                    {workflowData.userData.clientId && (
+                      <p>🆔 Client ID: {workflowData.userData.clientId}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {validationStatus === 'error' && (
+                <div className="mt-6 bg-red-50 border border-red-200 rounded-xl p-4 dark:bg-red-900/20 dark:border-red-800">
+                  <div className="flex items-center space-x-2 text-red-800 dark:text-red-200">
+                    <X className="h-5 w-5" />
+                    <span className="font-medium">Validation Failed</span>
+                  </div>
+                  <p className="text-red-600 dark:text-red-400 text-sm mt-1">Please check your information and try again.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -909,9 +1302,16 @@ function AssignEsimPage() {
             {workflowData.selectedBundle && workflowData.userData && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h4 className="font-medium text-blue-900 mb-2">💳 Payment Summary</h4>
-                <p className="text-blue-700"><strong>Client:</strong> {workflowData.userData.fullName} ({workflowData.userData.email})</p>
-                <p className="text-blue-700"><strong>Plan:</strong> {workflowData.selectedBundle.name}</p>
-                <p className="text-blue-700"><strong>Base Price:</strong> ${workflowData.selectedBundle.price} {workflowData.selectedBundle.currency}</p>
+                <div className="space-y-1 text-blue-700">
+                  <p><strong>Client:</strong> {workflowData.userData.fullName}</p>
+                  <p><strong>Email:</strong> {workflowData.userData.email}</p>
+                  <p><strong>Plan:</strong> {workflowData.selectedBundle.name}</p>
+                  <p><strong>Country:</strong> {workflowData.userData.countryOfTravel?.name || 'Unknown'}</p>
+                  <p><strong>Base Price:</strong> ${workflowData.selectedBundle.price} {workflowData.selectedBundle.currency || 'USD'}</p>
+                  <p className="text-sm text-blue-600 mt-2">
+                    <strong>Payment Method:</strong> Stripe (Secure Card Processing) 🔒
+                  </p>
+                </div>
               </div>
             )}
 
@@ -949,23 +1349,51 @@ function AssignEsimPage() {
               </div>
             )}
 
-            <button
-              onClick={processPayment}
-              disabled={isProcessingPayment || !workflowData.selectedBundle}
-              className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-            >
-              {isProcessingPayment ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Processing Payment...</span>
-                </>
-              ) : (
-                <>
-                  <CreditCard className="h-4 w-4" />
-                  <span>Process Payment</span>
-                </>
-              )}
-            </button>
+            {/* Payment Information */}
+            {!workflowData.paymentData && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-start space-x-2">
+                  <div className="text-yellow-600 mt-0.5">ℹ️</div>
+                  <div className="text-sm text-yellow-700">
+                    <p className="font-medium mb-1">Secure Payment with Stripe</p>
+                    <p>You'll be redirected to Stripe's secure checkout page to complete your payment. After successful payment, you'll return here to continue the eSIM provisioning process.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {workflowData.paymentData ? (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 text-green-800 mb-2">
+                  <CheckCircle className="h-5 w-5" />
+                  <span className="font-medium">Payment Completed Successfully!</span>
+                </div>
+                <div className="text-sm text-green-700 space-y-1">
+                  <p><strong>Amount:</strong> ${workflowData.paymentData.final_price || workflowData.paymentData.amount}</p>
+                  <p><strong>Payment ID:</strong> {workflowData.paymentData.payment_id || 'Generated'}</p>
+                  <p><strong>Status:</strong> {workflowData.paymentData.status || 'Completed'}</p>
+                  <p><strong>Processed:</strong> {workflowData.paymentData.processed_at ? new Date(workflowData.paymentData.processed_at).toLocaleString() : 'Just now'}</p>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={processPayment}
+                disabled={isProcessingPayment || !workflowData.selectedBundle}
+                className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+              >
+                {isProcessingPayment ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Creating Secure Checkout...</span>
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="h-4 w-4" />
+                    <span>Pay with Stripe (Secure Checkout)</span>
+                  </>
+                )}
+              </button>
+            )}
 
             <div className="flex justify-between pt-4 border-t border-border">
               <button

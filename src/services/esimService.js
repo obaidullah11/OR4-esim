@@ -808,6 +808,93 @@ export const esimService = {
     }
   },
 
+  // ===== Export Functions =====
+
+  // Export eSIM history data
+  async exportHistory(filters = {}, format = 'csv') {
+    try {
+      const queryParams = new URLSearchParams()
+
+      // Add filters
+      if (filters.status) queryParams.append('status', filters.status)
+      if (filters.search) queryParams.append('search', filters.search)
+      if (filters.date_from) queryParams.append('date_from', filters.date_from)
+      if (filters.date_to) queryParams.append('date_to', filters.date_to)
+
+      // Determine the endpoint based on format
+      const endpoint = format === 'pdf' ? 'export_pdf' : 'export_esims'
+      const url = queryParams.toString() ? 
+        `${ESIM_RESELLER_ESIMS_URL}${endpoint}/?${queryParams.toString()}` : 
+        `${ESIM_RESELLER_ESIMS_URL}${endpoint}/`
+
+      console.log(`📄 Exporting eSIM history as ${format.toUpperCase()} from:`, url)
+
+      // Make request with blob response type for file download
+      const response = await apiService.request(url, {
+        method: 'GET',
+        responseType: 'blob',
+        requiresAuth: true
+      })
+
+      // Create download link
+      const blob = new Blob([response], {
+        type: format === 'pdf' ? 'application/pdf' : 'text/csv'
+      })
+      const downloadUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = downloadUrl
+
+      // Generate filename with timestamp
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-T]/g, '')
+      const filename = format === 'pdf' 
+        ? `esim_history_report_${timestamp}.pdf`
+        : `esim_history_export_${timestamp}.csv`
+      
+      link.setAttribute('download', filename)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(downloadUrl)
+
+      console.log(`✅ eSIM history exported successfully as ${filename}`)
+
+      return {
+        success: true,
+        message: `eSIM history exported successfully as ${format.toUpperCase()}`,
+        filename: filename
+      }
+    } catch (error) {
+      console.error('❌ Failed to export eSIM history:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to export eSIM history'
+      }
+    }
+  },
+
+  // Quick export eSIM history with current filters
+  async quickExportHistory(currentFilters = {}, format = 'csv') {
+    try {
+      console.log(`📄 Quick export eSIM history as ${format.toUpperCase()}...`)
+
+      const filters = {}
+      if (currentFilters.status && currentFilters.status !== 'all') {
+        filters.status = currentFilters.status
+      }
+      if (currentFilters.search) {
+        filters.search = currentFilters.search
+      }
+
+      return await this.exportHistory(filters, format)
+    } catch (error) {
+      console.error('❌ Failed to quick export eSIM history:', error)
+      return {
+        success: false,
+        error: error.message || 'Failed to export eSIM history'
+      }
+    }
+  },
+
   // ===== Data Formatting and Validation =====
 
   // Format eSIM data for frontend consumption

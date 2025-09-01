@@ -1,4 +1,4 @@
-import { LOGIN_URL, SIGNUP_URL, LOGOUT_URL, REFRESH_URL, VERIFY_URL, GET_CURRENT_USER_URL, PASSWORD_RESET_REQUEST_URL, PASSWORD_RESET_CONFIRM_URL } from '../config/api'
+import { LOGIN_URL, SIGNUP_URL, LOGOUT_URL, REFRESH_URL, VERIFY_URL, GET_CURRENT_USER_URL, PASSWORD_RESET_REQUEST_URL, PASSWORD_RESET_CONFIRM_URL, API_ENDPOINTS, API_CONFIG } from '../config/api'
 import { apiService } from './apiService'
 import { tokenService } from './tokenService'
 
@@ -155,6 +155,72 @@ export const authService = {
       })
       return response
     } catch (error) {
+      throw error
+    }
+  },
+
+  // Change password for authenticated users
+  changePassword: async (currentPassword, newPassword, confirmPassword) => {
+    try {
+      console.log('🔐 Changing password for authenticated user')
+
+      const response = await apiService.post(API_ENDPOINTS.AUTH.PASSWORD_CHANGE, {
+        old_password: currentPassword,  // Backend expects 'old_password'
+        new_password: newPassword,
+        confirm_password: confirmPassword
+      }, { requiresAuth: true })
+
+      console.log('✅ Password changed successfully')
+      return response
+    } catch (error) {
+      console.error('❌ Password change failed:', error)
+      throw error
+    }
+  },
+
+  // Update user profile
+  updateProfile: async (profileData) => {
+    try {
+      console.log('🔄 Updating current user profile:', profileData)
+
+      // Make a custom request to preserve the full response
+      const authHeaders = await apiService.getAuthHeaders()
+      const fullUrl = `${API_CONFIG.BASE_URL}/${API_ENDPOINTS.AUTH.UPDATE_PROFILE}`
+
+      const response = await fetch(fullUrl, {
+        method: 'PUT',
+        headers: {
+          ...authHeaders,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(profileData)
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Profile update failed')
+      }
+
+      console.log('✅ Profile updated successfully:', data)
+      return data // Return the full response with success status
+    } catch (error) {
+      console.error('❌ Profile update failed:', error)
+      throw error
+    }
+  },
+
+  // Get current user profile
+  getUserProfile: async () => {
+    try {
+      console.log('🔄 Fetching user profile')
+
+      const response = await apiService.get(API_ENDPOINTS.AUTH.PROFILE, { requiresAuth: true })
+
+      console.log('✅ Profile fetched successfully')
+      return response
+    } catch (error) {
+      console.error('❌ Failed to fetch profile:', error)
       throw error
     }
   },

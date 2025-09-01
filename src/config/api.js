@@ -25,7 +25,13 @@ export const API_ENDPOINTS = {
     REFRESH: 'api/v1/auth/refresh/',
     VERIFY: 'api/v1/auth/verify/',
     PASSWORD_RESET_REQUEST: 'api/v1/auth/password-reset-request/',
+    OTP_VERIFY: 'api/v1/auth/otp-verify/',
+    RESEND_OTP: 'api/v1/auth/resend-otp/',
     PASSWORD_RESET_CONFIRM: 'api/v1/auth/password-reset-confirm/',
+    PASSWORD_CHANGE: 'api/v1/auth/password-change/',
+    PROFILE: 'api/v1/auth/profile/',
+    UPDATE_PROFILE: 'api/v1/auth/update-profile/',
+    EDIT_PROFILE: 'api/v1/auth/edit-profile/{email}/',
     VERIFY_EMAIL: 'api/v1/auth/verify-email/',
     GET_CURRENT_USER: 'api/v1/auth/me/',
   },
@@ -108,6 +114,8 @@ export const API_ENDPOINTS = {
     DELETE: 'api/v1/clients/{id}/',
     MY_CLIENTS: 'api/v1/clients/my_clients/',
     RESELLER_CLIENTS: 'api/v1/clients/reseller-clients/',
+    EXPORT_CLIENTS: 'api/v1/clients/reseller-clients/export_clients/',
+    EXPORT_CLIENTS_PDF: 'api/v1/clients/reseller-clients/export_pdf/',
     SUPPORT_TICKETS: 'api/v1/clients/support-tickets/',
   },
   ESIM: {
@@ -211,6 +219,7 @@ export const CLIENT_UPDATE_URL = buildApiUrl(API_ENDPOINTS.CLIENTS.UPDATE)
 export const CLIENT_DELETE_URL = buildApiUrl(API_ENDPOINTS.CLIENTS.DELETE)
 export const MY_CLIENTS_URL = buildApiUrl(API_ENDPOINTS.CLIENTS.MY_CLIENTS)
 export const RESELLER_CLIENTS_URL = buildApiUrl(API_ENDPOINTS.CLIENTS.RESELLER_CLIENTS)
+export const EXPORT_CLIENTS_URL = buildApiUrl(API_ENDPOINTS.CLIENTS.EXPORT_CLIENTS)
 
 // eSIM Management URLs
 export const ESIMS_URL = buildApiUrl(API_ENDPOINTS.ESIM.LIST)

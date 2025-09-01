@@ -70,7 +70,7 @@ export const canAccessRoute = (user, route) => {
   const adminRoutes = ['/dashboard', '/resellers', '/users', '/orders', '/transactions', '/reports', '/settings']
   
   // Reseller routes  
-  const resellerRoutes = ['/reseller-dashboard', '/reseller-dashboard/add-client', '/reseller-dashboard/assign-esim', '/reseller-dashboard/clients', '/reseller-dashboard/history']
+  const resellerRoutes = ['/reseller-dashboard', '/reseller-dashboard/assign-esim', '/reseller-dashboard/clients', '/reseller-dashboard/history']
   
   // Client routes
   const clientRoutes = ['/client-dashboard', '/client-dashboard/orders', '/client-dashboard/esims']

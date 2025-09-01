@@ -133,7 +133,12 @@ class ApiService {
       }
 
       // For empty responses, return success
-      if (response.status === 204 || response.status === 200) {
+      if (response.status === 204) {
+        return { success: true, message: 'Operation completed successfully' }
+      }
+      
+      // For 200 responses with no content
+      if (response.status === 200) {
         const text = await response.text()
         if (!text) {
           return { success: true, message: 'Operation completed successfully' }
@@ -141,6 +146,12 @@ class ApiService {
         // Try to parse as JSON if there's content
         try {
           const data = JSON.parse(text)
+          
+          // Return full response if it has success field, otherwise return data
+          if (data.hasOwnProperty('success')) {
+            return data
+          }
+          
           return data.data || data
         } catch {
           return { success: true, message: text || 'Operation completed successfully' }
@@ -155,7 +166,12 @@ class ApiService {
         throw new Error(data.message || 'Request failed')
       }
 
-      // Return data (either wrapped or direct response)
+      // Return full response if it has success field, otherwise return data
+      if (data.hasOwnProperty('success')) {
+        return data
+      }
+      
+      // Return data for non-wrapper responses
       return data.data || data
     } catch (error) {
       if (error.name === 'AbortError') {

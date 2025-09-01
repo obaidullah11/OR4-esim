@@ -21,11 +21,14 @@ import {
   Mail,
   Phone,
   Wifi,
-  BarChart3
+  BarChart3,
+  X,
+  FileText
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { esimService } from '../../services/esimService'
 import { clientService } from '../../services/clientService'
+import ExportHistoryModal from '../../components/esim/ExportHistoryModal'
 
 // Sample eSIM history data
 const sampleEsimHistory = [
@@ -375,6 +378,8 @@ function EsimHistoryPage() {
     total: 0,
     totalPages: 0
   })
+  const [isExporting, setIsExporting] = useState(false)
+  const [showExportModal, setShowExportModal] = useState(false)
 
   // Fetch eSIM history from API
   const fetchEsimHistory = async (params = {}) => {
@@ -521,9 +526,36 @@ function EsimHistoryPage() {
     console.log('🔄 eSIM history refreshed')
   }
 
-  const handleExportHistory = () => {
-    // TODO: Implement export functionality
-    toast.success('Export functionality coming soon')
+  // Quick export function
+  const handleQuickExport = async (format) => {
+    if (isExporting) return
+
+    try {
+      setIsExporting(true)
+      console.log(`📄 Quick exporting eSIM history as ${format.toUpperCase()}...`)
+
+      const currentFilters = {
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        search: searchTerm || undefined
+      }
+
+      toast.loading(`Preparing eSIM history export as ${format.toUpperCase()}...`, { duration: 2000 })
+
+      const result = await esimService.quickExportHistory(currentFilters, format)
+
+      if (result.success) {
+        toast.success(result.message || 'eSIM history exported successfully!')
+        console.log('✅ eSIM history exported successfully')
+      } else {
+        toast.error(result.error || 'Failed to export eSIM history')
+        console.error('❌ Export failed:', result.error)
+      }
+    } catch (error) {
+      console.error('❌ Failed to export eSIM history:', error)
+      toast.error('Failed to export eSIM history. Please try again.')
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   // Calculate stats
@@ -552,12 +584,40 @@ function EsimHistoryPage() {
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </button>
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={() => handleQuickExport('csv')}
+              disabled={isExporting}
+              className="flex items-center space-x-2 px-3 py-2 border border-border text-muted-foreground rounded-l-lg hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isExporting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
+                  <span>Exporting...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4" />
+                  <span>Quick CSV</span>
+                </>
+              )}
+            </button>
+            <button
+              onClick={() => handleQuickExport('pdf')}
+              disabled={isExporting}
+              className="flex items-center space-x-2 px-3 py-2 border border-l-0 border-border text-muted-foreground rounded-r-lg hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FileText className="h-4 w-4" />
+              <span>Quick PDF</span>
+            </button>
+          </div>
           <button
-            onClick={handleExportHistory}
-            className="flex items-center space-x-2 px-3 py-2 border border-border text-muted-foreground rounded-lg hover:text-foreground hover:bg-muted transition-colors"
+            onClick={() => setShowExportModal(true)}
+            disabled={isExporting}
+            className="flex items-center space-x-2 px-3 py-2 border border-border text-muted-foreground rounded-lg hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Download className="h-4 w-4" />
-            <span>Export</span>
+            <span>Advanced Export</span>
           </button>
         </div>
       </div>
@@ -841,6 +901,16 @@ function EsimHistoryPage() {
           setSelectedEsim(null)
         }}
         esim={selectedEsim}
+      />
+
+      {/* Export History Modal */}
+      <ExportHistoryModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        currentFilters={{
+          status: statusFilter !== 'all' ? statusFilter : undefined,
+          search: searchTerm || undefined
+        }}
       />
     </div>
   )

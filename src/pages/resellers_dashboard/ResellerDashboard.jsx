@@ -16,14 +16,15 @@ import {
   Clock,
   Wifi,
   Globe,
-  CreditCard
+  CreditCard,
+  Zap
 } from 'lucide-react'
 
 // Import services
 import { clientService } from '../../services/clientService'
 import { esimService } from '../../services/esimService'
 
-// Key Metrics Cards Component for Reseller Dashboard
+// Enhanced Key Metrics Cards Component for Reseller Dashboard
 function ResellerMetricsCards({ metrics, loading }) {
   const { resolvedTheme } = useTheme()
 
@@ -31,14 +32,14 @@ function ResellerMetricsCards({ metrics, loading }) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="bg-card border border-border rounded-lg p-6 animate-pulse">
+          <div key={i} className="bg-card border border-border rounded-2xl p-6 shimmer">
             <div className="flex items-center justify-between">
-              <div className="w-12 h-12 bg-muted rounded-lg"></div>
-              <div className="w-16 h-6 bg-muted rounded"></div>
+              <div className="w-14 h-14 bg-muted rounded-2xl skeleton"></div>
+              <div className="w-16 h-6 bg-muted rounded-lg skeleton"></div>
             </div>
-            <div className="mt-4">
-              <div className="w-20 h-8 bg-muted rounded mb-2"></div>
-              <div className="w-24 h-4 bg-muted rounded"></div>
+            <div className="mt-6">
+              <div className="w-24 h-8 bg-muted rounded-lg skeleton mb-3"></div>
+              <div className="w-32 h-4 bg-muted rounded skeleton"></div>
             </div>
           </div>
         ))}
@@ -118,22 +119,41 @@ function ResellerMetricsCards({ metrics, loading }) {
           <div
             key={metric.title}
             className={`
-              bg-card border border-border rounded-lg p-6 transition-all duration-300 hover:shadow-lg
-              ${resolvedTheme === 'dark' ? 'hover:bg-card/80' : 'hover:bg-card/50'}
+              bg-card border border-border rounded-2xl p-6 transition-all duration-500 
+              card-interactive card-glow group relative overflow-hidden
+              ${resolvedTheme === 'dark' ? 'hover:bg-card/90' : 'hover:bg-card/70'}
             `}
+            style={{
+              animationDelay: `${index * 0.1}s`
+            }}
           >
-            <div className="flex items-center justify-between">
-              <div className={`p-3 rounded-lg ${colorClasses.bg}`}>
-                <Icon className={`h-6 w-6 ${colorClasses.icon}`} />
+            {/* Background Gradient Effect */}
+            <div className={`absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-500 ${colorClasses.bg}`}></div>
+            
+            <div className="relative z-10">
+              <div className="flex items-center justify-between">
+                <div className={`p-4 rounded-2xl ${colorClasses.bg} transition-all duration-300 group-hover:scale-110`}>
+                  <Icon className={`h-7 w-7 ${colorClasses.icon} transition-all duration-300`} />
+                </div>
+                <div className={`flex items-center space-x-2 ${colorClasses.trend} transition-all duration-300 group-hover:scale-105`}>
+                  <TrendIcon className="h-5 w-5" />
+                  <span className="text-sm font-semibold">{metric.change}</span>
+                </div>
               </div>
-              <div className={`flex items-center space-x-1 ${colorClasses.trend}`}>
-                <TrendIcon className="h-4 w-4" />
-                <span className="text-sm font-medium">{metric.change}</span>
+              <div className="mt-6">
+                <h3 className="text-3xl font-bold text-foreground transition-all duration-300 group-hover:text-gradient-colorful">
+                  {metric.value}
+                </h3>
+                <p className="text-sm text-muted-foreground mt-2 font-medium">{metric.title}</p>
               </div>
             </div>
-            <div className="mt-4">
-              <h3 className="text-2xl font-bold text-foreground">{metric.value}</h3>
-              <p className="text-sm text-muted-foreground mt-1">{metric.title}</p>
+
+            {/* Floating Animation Dots */}
+            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-30 transition-opacity duration-500">
+              <div className={`w-2 h-2 ${colorClasses.bg} rounded-full animate-float`}></div>
+            </div>
+            <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-20 transition-opacity duration-700">
+              <div className={`w-1 h-1 ${colorClasses.bg} rounded-full animate-float`} style={{ animationDelay: '0.5s' }}></div>
             </div>
           </div>
         )
@@ -143,17 +163,11 @@ function ResellerMetricsCards({ metrics, loading }) {
 }
 
 // Quick Actions Component
-function QuickActions({ onAddClient, onAssignEsim, onViewClients, onViewHistory }) {
+function QuickActions({ onAssignEsim, onViewClients, onViewHistory }) {
   const { resolvedTheme } = useTheme()
 
   const actions = [
-    {
-      title: 'Add New Client',
-      description: 'Register a new client for eSIM services',
-      icon: UserPlus,
-      color: 'blue',
-      onClick: onAddClient
-    },
+
     {
       title: 'Assign eSIM',
       description: 'Assign an eSIM plan to existing client',
@@ -208,8 +222,8 @@ function QuickActions({ onAddClient, onAssignEsim, onViewClients, onViewHistory 
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {actions.map((action) => {
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {actions.map((action, index) => {
         const Icon = action.icon
         const colorClasses = getColorClasses(action.color)
 
@@ -218,21 +232,51 @@ function QuickActions({ onAddClient, onAssignEsim, onViewClients, onViewHistory 
             key={action.title}
             onClick={action.onClick}
             className={`
-              p-6 rounded-lg border-2 transition-all duration-200 text-left
+              group relative p-8 rounded-2xl border-2 transition-all duration-500 text-left
+              card-interactive card-glow overflow-hidden
               ${colorClasses.bg} ${colorClasses.border}
+              hover:border-opacity-60 focus-ring
             `}
+            style={{
+              animationDelay: `${index * 0.15}s`
+            }}
           >
-            <div className="flex items-center space-x-3 mb-3">
-              <div className={`p-2 rounded-lg ${colorClasses.bg}`}>
-                <Icon className={`h-6 w-6 ${colorClasses.icon}`} />
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
+              <div className="absolute inset-0" style={{
+                backgroundImage: `radial-gradient(circle at 1px 1px, ${resolvedTheme === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.05)'} 1px, transparent 0)`,
+                backgroundSize: '20px 20px'
+              }}></div>
+            </div>
+
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-6">
+                <div className={`p-4 rounded-2xl ${colorClasses.bg} transition-all duration-300 group-hover:scale-110 group-hover:rotate-3`}>
+                  <Icon className={`h-8 w-8 ${colorClasses.icon}`} />
+                </div>
+                <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+                  <div className={`w-3 h-3 ${colorClasses.bg} rounded-full animate-pulse-soft`}></div>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className={`text-xl font-bold mb-3 ${colorClasses.text} transition-all duration-300 group-hover:text-gradient-colorful`}>
+                  {action.title}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {action.description}
+                </p>
+              </div>
+
+              {/* Hover Arrow */}
+              <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                <div className={`w-8 h-8 ${colorClasses.bg} rounded-full flex items-center justify-center`}>
+                  <svg className={`w-4 h-4 ${colorClasses.icon}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </div>
               </div>
             </div>
-            <h3 className={`font-semibold mb-2 ${colorClasses.text}`}>
-              {action.title}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {action.description}
-            </p>
           </button>
         )
       })}
@@ -379,9 +423,6 @@ function ResellerDashboard() {
   }, [])
 
   // Quick action handlers
-  const handleAddClient = () => {
-    navigate('/reseller-dashboard/add-client')
-  }
 
   const handleAssignEsim = () => {
     navigate('/reseller-dashboard/assign-esim')
@@ -413,94 +454,170 @@ function ResellerDashboard() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Reseller Dashboard</h1>
-          <p className="text-muted-foreground">Manage your clients and eSIM services</p>
-        </div>
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={fetchDashboardData}
-            disabled={loading}
-            className="flex items-center space-x-2 px-3 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
-          </button>
-          <div className="flex items-center space-x-2 text-muted-foreground">
-            <Calendar className="h-4 w-4" />
-            <span className="text-sm">
-              Last updated: {lastUpdated ? lastUpdated.toLocaleTimeString() : 'Never'}
-            </span>
+    <div className="space-y-10">
+      {/* Enhanced Header */}
+      <div className="relative">
+        <div className="flex items-center justify-between">
+          <div className="slide-down">
+            <h1 className="text-4xl font-bold text-gradient-colorful mb-2">
+              Reseller Dashboard
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              Manage your clients and eSIM services with ease
+            </p>
+            <div className="flex items-center space-x-4 mt-3">
+              <div className="flex items-center space-x-2 text-sm">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse-soft"></div>
+                <span className="text-emerald-600 font-medium">System Online</span>
+              </div>
+              <div className="flex items-center space-x-2 text-sm">
+                <Wifi className="w-4 h-4 text-blue-500" />
+                <span className="text-blue-600 font-medium">Connected</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center space-x-4 slide-down" style={{ animationDelay: '0.2s' }}>
+            <button
+              onClick={fetchDashboardData}
+              disabled={loading}
+              className={`
+                flex items-center space-x-2 px-4 py-3 rounded-xl transition-all duration-300 
+                focus-ring hover-scale disabled:opacity-50 disabled:hover:scale-100
+                ${resolvedTheme === 'dark' 
+                  ? 'bg-slate-700/50 hover:bg-slate-600/60 text-slate-300' 
+                  : 'bg-gray-100/50 hover:bg-gray-200/60 text-gray-700'
+                }
+              `}
+            >
+              <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+              <span className="font-medium">Refresh</span>
+            </button>
+            <div className={`
+              flex items-center space-x-3 px-4 py-3 rounded-xl border
+              ${resolvedTheme === 'dark' 
+                ? 'bg-slate-800/50 border-slate-700/50 text-slate-300' 
+                : 'bg-white/50 border-gray-200/50 text-gray-600'
+              }
+            `}>
+              <Calendar className="h-5 w-5" />
+              <div className="text-sm">
+                <div className="font-medium">Last updated</div>
+                <div className="text-xs text-muted-foreground">
+                  {lastUpdated ? lastUpdated.toLocaleTimeString() : 'Never'}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Key Metrics */}
-      <ResellerMetricsCards metrics={dashboardData?.metrics} loading={loading} />
+      {/* Key Metrics with Enhanced Spacing */}
+      <div className="slide-up">
+        <ResellerMetricsCards metrics={dashboardData?.metrics} loading={loading} />
+      </div>
 
-      {/* Quick Actions */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-foreground">Quick Actions</h2>
+      {/* Quick Actions with Enhanced Styling */}
+      <div className="space-y-6 slide-up" style={{ animationDelay: '0.3s' }}>
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-foreground">Quick Actions</h2>
+          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+            <Zap className="w-4 h-4" />
+            <span>Fast workflow tools</span>
+          </div>
+        </div>
         <QuickActions
-          onAddClient={handleAddClient}
           onAssignEsim={handleAssignEsim}
           onViewClients={handleViewClients}
           onViewHistory={handleViewHistory}
         />
       </div>
 
-      {/* Recent Activities */}
-      <div className="bg-card border border-border rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-foreground mb-4">Recent Activities</h3>
-        {loading ? (
-          <div className="space-y-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex items-center space-x-4 p-3 rounded-lg bg-muted/50 animate-pulse">
-                <div className="w-10 h-10 bg-muted rounded-full"></div>
-                <div className="flex-1 space-y-2">
-                  <div className="w-32 h-4 bg-muted rounded"></div>
-                  <div className="w-24 h-3 bg-muted rounded"></div>
-                </div>
-                <div className="w-20 h-3 bg-muted rounded"></div>
-              </div>
-            ))}
+      {/* Enhanced Recent Activities */}
+      <div className="slide-up" style={{ animationDelay: '0.4s' }}>
+        <div className={`
+          bg-card border border-border rounded-2xl p-8 transition-all duration-300
+          ${resolvedTheme === 'dark' ? 'bg-slate-800/50' : 'bg-white/50'}
+          backdrop-blur-lg
+        `}>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-2xl font-bold text-foreground">Recent Activities</h3>
+            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+              <Activity className="w-4 h-4" />
+              <span>Live updates</span>
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse-soft"></div>
+            </div>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {dashboardData?.recentActivities?.length > 0 ? (
-              dashboardData.recentActivities.map((activity, index) => (
-                <div key={activity.id || index} className="flex items-center space-x-4 p-3 rounded-lg bg-muted/50">
-                  <div className={`p-2 rounded-full ${
-                    activity.type === 'client' ? 'bg-blue-500/10 text-blue-500' :
-                    activity.type === 'esim' ? 'bg-green-500/10 text-green-500' :
-                    activity.type === 'payment' ? 'bg-orange-500/10 text-orange-500' :
-                    'bg-purple-500/10 text-purple-500'
-                  }`}>
-                    {activity.type === 'client' && <UserPlus className="h-4 w-4" />}
-                    {activity.type === 'esim' && <Smartphone className="h-4 w-4" />}
-                    {activity.type === 'payment' && <DollarSign className="h-4 w-4" />}
-                    {activity.type === 'activation' && <CheckCircle className="h-4 w-4" />}
+          
+          {loading ? (
+            <div className="space-y-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex items-center space-x-4 p-4 rounded-xl shimmer">
+                  <div className="w-12 h-12 bg-muted rounded-2xl skeleton"></div>
+                  <div className="flex-1 space-y-3">
+                    <div className="w-40 h-4 bg-muted rounded-lg skeleton"></div>
+                    <div className="w-32 h-3 bg-muted rounded skeleton"></div>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-foreground">{activity.action}</p>
-                    <p className="text-xs text-muted-foreground">{activity.user}</p>
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    {activity.time ? new Date(activity.time).toLocaleString() : 'Unknown time'}
-                  </span>
+                  <div className="w-24 h-3 bg-muted rounded skeleton"></div>
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <Activity className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>No recent activities</p>
-              </div>
-            )}
-          </div>
-        )}
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {dashboardData?.recentActivities?.length > 0 ? (
+                dashboardData.recentActivities.map((activity, index) => (
+                  <div 
+                    key={activity.id || index} 
+                    className={`
+                      group flex items-center space-x-4 p-4 rounded-xl transition-all duration-300
+                      hover:bg-muted/20 hover:shadow-md border border-transparent hover:border-border/30
+                    `}
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
+                    <div className={`
+                      p-3 rounded-2xl transition-all duration-300 group-hover:scale-110
+                      ${activity.type === 'client' ? 'bg-blue-500/10 text-blue-500 group-hover:bg-blue-500/20' :
+                        activity.type === 'esim' ? 'bg-green-500/10 text-green-500 group-hover:bg-green-500/20' :
+                        activity.type === 'payment' ? 'bg-orange-500/10 text-orange-500 group-hover:bg-orange-500/20' :
+                        'bg-purple-500/10 text-purple-500 group-hover:bg-purple-500/20'
+                      }
+                    `}>
+                      {activity.type === 'client' && <UserPlus className="h-5 w-5" />}
+                      {activity.type === 'esim' && <Smartphone className="h-5 w-5" />}
+                      {activity.type === 'payment' && <DollarSign className="h-5 w-5" />}
+                      {activity.type === 'activation' && <CheckCircle className="h-5 w-5" />}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-foreground group-hover:text-gradient-colorful transition-all duration-300">
+                        {activity.action}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1 font-medium">
+                        by {activity.user}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs text-muted-foreground font-medium">
+                        {activity.time ? new Date(activity.time).toLocaleTimeString() : 'Unknown'}
+                      </span>
+                      <div className="text-xs text-muted-foreground/70 mt-1">
+                        {activity.time ? new Date(activity.time).toLocaleDateString() : ''}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-12">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-muted/20 rounded-2xl mb-4">
+                    <Activity className="h-8 w-8 text-muted-foreground/50" />
+                  </div>
+                  <p className="text-lg font-medium text-muted-foreground">No recent activities</p>
+                  <p className="text-sm text-muted-foreground/70 mt-1">
+                    Your activities will appear here as you use the system
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
