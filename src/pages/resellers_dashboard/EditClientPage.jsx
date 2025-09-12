@@ -19,6 +19,7 @@ import {
 import toast from 'react-hot-toast'
 import { clientService } from '../../services/clientService'
 import ClientVerification from '../../components/clients/ClientVerification'
+import { extractFieldErrors, getErrorToastConfig } from '../../utils/errorHandler'
 
 function EditClientPage() {
   const { resolvedTheme } = useTheme()
@@ -61,7 +62,7 @@ function EditClientPage() {
             notes: client.admin_notes || '',
             status: client.status || 'active'
           })
-          console.log('✅ Loaded client data:', client)
+          console.log('Loaded client data:', client)
         } else {
           toast.error('Failed to load client data')
           navigate('/reseller-dashboard/clients')
@@ -170,12 +171,30 @@ function EditClientPage() {
         }, 2000)
       } else {
         console.error('Client update failed:', response.error)
-        toast.error(response.error || 'Failed to update client')
+        
+        // Handle field-specific errors from the API
+        if (response.details) {
+          const fieldErrors = extractFieldErrors(response.details)
+          setErrors(fieldErrors)
+        }
+        
+        // Show user-friendly error message
+        const toastConfig = getErrorToastConfig(response)
+        toast.error(toastConfig.message, { duration: toastConfig.duration })
       }
       
     } catch (error) {
       console.error('Failed to update client:', error)
-      toast.error('Failed to update client. Please try again.')
+      
+      // Handle field-specific errors from the API
+      if (error.details) {
+        const fieldErrors = extractFieldErrors(error.details)
+        setErrors(fieldErrors)
+      }
+      
+      // Show user-friendly error message
+      const toastConfig = getErrorToastConfig(error)
+      toast.error(toastConfig.message, { duration: toastConfig.duration })
     } finally {
       setIsSubmitting(false)
     }

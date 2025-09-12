@@ -53,7 +53,7 @@ export const usersService = {
         }
       }
     } catch (error) {
-      console.error('❌ Failed to fetch users:', error)
+      console.error('Failed to fetch users:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch users',
@@ -84,7 +84,7 @@ export const usersService = {
         data: data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch user:', error)
+      console.error('Failed to fetch user:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch user'
@@ -106,7 +106,7 @@ export const usersService = {
         message: 'User created successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to create user:', error)
+      console.error('Failed to create user:', error)
       return {
         success: false,
         error: error.message || 'Failed to create user'
@@ -128,7 +128,7 @@ export const usersService = {
         message: 'User updated successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to update user:', error)
+      console.error('Failed to update user:', error)
       return {
         success: false,
         error: error.message || 'Failed to update user'
@@ -147,7 +147,7 @@ export const usersService = {
         message: 'User deleted successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to delete user:', error)
+      console.error('Failed to delete user:', error)
       return {
         success: false,
         error: error.message || 'Failed to delete user'
@@ -169,7 +169,7 @@ export const usersService = {
         message: `User ${isActive ? 'activated' : 'blocked'} successfully`
       }
     } catch (error) {
-      console.error('❌ Failed to update user status:', error)
+      console.error('Failed to update user status:', error)
       return {
         success: false,
         error: error.message || 'Failed to update user status'
@@ -237,7 +237,7 @@ export const usersService = {
         data: data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch user statistics:', error)
+      console.error('Failed to fetch user statistics:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch user statistics',

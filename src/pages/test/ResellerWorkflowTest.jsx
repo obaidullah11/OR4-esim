@@ -284,9 +284,9 @@ function ResellerWorkflowTest() {
       }))
 
       if (result.success) {
-        toast.success(`✅ ${test.name} passed`)
+        toast.success(`${test.name} passed`)
       } else {
-        toast.error(`❌ ${test.name} failed: ${result.error}`)
+        toast.error(`${test.name} failed: ${result.error}`)
       }
     } catch (error) {
       const endTime = Date.now()
@@ -302,7 +302,7 @@ function ResellerWorkflowTest() {
         }
       }))
 
-      toast.error(`❌ ${test.name} failed: ${error.message}`)
+      toast.error(`${test.name} failed: ${error.message}`)
     }
   }
 
@@ -318,7 +318,7 @@ function ResellerWorkflowTest() {
     }
     
     setIsRunning(false)
-    toast.success('🎉 Reseller workflow tests completed!')
+    toast.success('Reseller workflow tests completed!')
   }
 
   // Get test status

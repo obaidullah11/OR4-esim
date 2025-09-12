@@ -22,7 +22,7 @@ export const userService = {
         ordering = '-date_joined'
       } = params
 
-      console.log('🔄 Fetching users from API:', params)
+      console.log('Fetching users from API:', params)
 
       const queryParams = new URLSearchParams({
         page: page.toString(),
@@ -73,7 +73,7 @@ export const userService = {
         error: 'Invalid response format'
       }
     } catch (error) {
-      console.error('❌ Failed to fetch users:', error)
+      console.error('Failed to fetch users:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch users'
@@ -86,11 +86,11 @@ export const userService = {
    */
   async getUserById(userId) {
     try {
-      console.log('🔄 Fetching user by ID:', userId)
+      console.log('Fetching user by ID:', userId)
       const response = await apiService.get(API_ENDPOINTS.USERS.DETAIL.replace('{id}', userId), { requiresAuth: true })
       return response
     } catch (error) {
-      console.error('❌ Failed to fetch user:', error)
+      console.error('Failed to fetch user:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch user'
@@ -103,7 +103,7 @@ export const userService = {
    */
   async createUser(userData) {
     try {
-      console.log('🔄 Creating user:', userData)
+      console.log('Creating user:', userData)
       
       // Validate required fields
       const validation = this.validateUserData(userData)
@@ -118,12 +118,12 @@ export const userService = {
       const response = await apiService.post(API_ENDPOINTS.USERS.CREATE, userData, { requiresAuth: true })
       
       if (response.success) {
-        console.log('✅ User created successfully:', response.data)
+        console.log('User created successfully:', response.data)
       }
       
       return response
     } catch (error) {
-      console.error('❌ Failed to create user:', error)
+      console.error('Failed to create user:', error)
       return {
         success: false,
         error: error.message || 'Failed to create user'
@@ -136,17 +136,17 @@ export const userService = {
    */
   async updateUser(userId, userData) {
     try {
-      console.log('🔄 Updating user:', userId, userData)
+      console.log('Updating user:', userId, userData)
       
       const response = await apiService.patch(API_ENDPOINTS.USERS.UPDATE.replace('{id}', userId), userData, { requiresAuth: true })
       
       if (response.success) {
-        console.log('✅ User updated successfully:', response.data)
+        console.log('User updated successfully:', response.data)
       }
       
       return response
     } catch (error) {
-      console.error('❌ Failed to update user:', error)
+      console.error('Failed to update user:', error)
       return {
         success: false,
         error: error.message || 'Failed to update user'
@@ -159,16 +159,16 @@ export const userService = {
    */
   async deleteUser(userId) {
     try {
-      console.log('🔄 Deleting user:', userId)
+      console.log('Deleting user:', userId)
       const response = await apiService.delete(API_ENDPOINTS.USERS.DELETE.replace('{id}', userId), { requiresAuth: true })
       
       if (response.success) {
-        console.log('✅ User deleted successfully')
+        console.log('User deleted successfully')
       }
       
       return response
     } catch (error) {
-      console.error('❌ Failed to delete user:', error)
+      console.error('Failed to delete user:', error)
       return {
         success: false,
         error: error.message || 'Failed to delete user'
@@ -183,11 +183,11 @@ export const userService = {
    */
   async getUserProfile(userId) {
     try {
-      console.log('🔄 Fetching user profile:', userId)
+      console.log('Fetching user profile:', userId)
       const response = await apiService.get(API_ENDPOINTS.USERS.PROFILE.replace('{id}', userId), { requiresAuth: true })
       return response
     } catch (error) {
-      console.error('❌ Failed to fetch user profile:', error)
+      console.error('Failed to fetch user profile:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch user profile'
@@ -200,16 +200,16 @@ export const userService = {
    */
   async updateUserProfile(userId, profileData) {
     try {
-      console.log('🔄 Updating user profile:', userId, profileData)
+      console.log('Updating user profile:', userId, profileData)
       const response = await apiService.patch(API_ENDPOINTS.USERS.PROFILE_UPDATE.replace('{id}', userId), profileData, { requiresAuth: true })
       
       if (response.success) {
-        console.log('✅ User profile updated successfully')
+        console.log('User profile updated successfully')
       }
       
       return response
     } catch (error) {
-      console.error('❌ Failed to update user profile:', error)
+      console.error('Failed to update user profile:', error)
       return {
         success: false,
         error: error.message || 'Failed to update user profile'
@@ -224,7 +224,7 @@ export const userService = {
    */
   async getUserStatistics() {
     try {
-      console.log('🔄 Fetching user statistics')
+      console.log('Fetching user statistics')
       
       // Get users by role
       const [adminUsers, resellerUsers, clientUsers, publicUsers] = await Promise.allSettled([
@@ -265,7 +265,7 @@ export const userService = {
         data: stats
       }
     } catch (error) {
-      console.error('❌ Failed to fetch user statistics:', error)
+      console.error('Failed to fetch user statistics:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch user statistics'

@@ -9,6 +9,36 @@ class ApiService {
     this.failedQueue = []
   }
 
+  // Helper method to extract user-friendly error message
+  extractErrorMessage(error) {
+    if (!error) return 'An unknown error occurred'
+    
+    // If it's already a string, return it
+    if (typeof error === 'string') return error
+    
+    // If it has a message property, return it
+    if (error.message) return error.message
+    
+    // If it's an error object with details, extract the first meaningful message
+    if (error.details && typeof error.details === 'object') {
+      const errorMessages = []
+      
+      for (const [field, messages] of Object.entries(error.details)) {
+        if (Array.isArray(messages)) {
+          errorMessages.push(...messages)
+        } else if (typeof messages === 'string') {
+          errorMessages.push(messages)
+        }
+      }
+      
+      if (errorMessages.length > 0) {
+        return errorMessages.join('. ')
+      }
+    }
+    
+    return 'An error occurred'
+  }
+
   // Get authentication headers with automatic token refresh
   async getAuthHeaders() {
     try {
@@ -49,7 +79,7 @@ class ApiService {
       // No valid tokens
       return this.baseHeaders
     } catch (error) {
-      console.error('❌ Error getting auth headers:', error)
+      console.error('Error getting auth headers:', error)
       return this.baseHeaders
     }
   }
@@ -85,7 +115,7 @@ class ApiService {
         const authHeaders = await this.getAuthHeaders()
         requestHeaders = { ...authHeaders, ...headers }
       } catch (error) {
-        console.error('❌ Failed to get auth headers:', error)
+        console.error('Failed to get auth headers:', error)
         throw new Error('Authentication failed. Please login again.')
       }
     } else {
@@ -119,7 +149,41 @@ class ApiService {
       // Handle HTTP errors
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || `Request failed: ${response.status}`)
+        
+        // Extract detailed error messages for better UX
+        let errorMessage = errorData.message || `Request failed: ${response.status}`
+        
+        // Handle validation errors with specific field messages
+        if (errorData.errors && typeof errorData.errors === 'object') {
+          const errorMessages = []
+          
+          // Extract field-specific errors
+          for (const [field, messages] of Object.entries(errorData.errors)) {
+            if (Array.isArray(messages)) {
+              // Handle array format: {"email": ["User with this email already exists"]}
+              errorMessages.push(...messages)
+            } else if (typeof messages === 'string') {
+              // Handle string format: {"email": "User with this email already exists"}
+              errorMessages.push(messages)
+            } else if (typeof messages === 'object' && messages !== null) {
+              // Handle nested errors
+              const nestedMessages = Object.values(messages).flat()
+              errorMessages.push(...nestedMessages)
+            }
+          }
+          
+          // Use specific error messages if available, otherwise fall back to general message
+          if (errorMessages.length > 0) {
+            errorMessage = errorMessages.join('. ')
+          }
+        }
+        
+        // Create enhanced error object with both message and detailed errors
+        const error = new Error(errorMessage)
+        error.details = errorData.errors
+        error.statusCode = response.status
+        error.originalResponse = errorData
+        throw error
       }
 
       // Handle blob responses (for file downloads)

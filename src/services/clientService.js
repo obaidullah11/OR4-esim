@@ -12,6 +12,7 @@ import {
   buildApiUrl
 } from '../config/api'
 import { apiService } from './apiService'
+import { formatErrorResponse } from '../utils/errorHandler'
 
 // Helper function to replace URL parameters
 const replaceUrlParams = (url, params) => {
@@ -61,10 +62,10 @@ export const clientService = {
         }
       }
     } catch (error) {
-      console.error('❌ Failed to fetch clients:', error)
+      console.error('Failed to fetch clients:', error)
+      const errorResponse = formatErrorResponse(error, 'Failed to fetch clients')
       return {
-        success: false,
-        error: error.message || 'Failed to fetch clients',
+        ...errorResponse,
         data: {
           count: 0,
           results: [],
@@ -93,11 +94,8 @@ export const clientService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error(`❌ Failed to fetch client ${id}:`, error)
-      return {
-        success: false,
-        error: error.message || 'Failed to fetch client'
-      }
+      console.error(`Failed to fetch client ${id}:`, error)
+      return formatErrorResponse(error, 'Failed to fetch client')
     }
   },
 
@@ -133,7 +131,7 @@ export const clientService = {
         }
       }
     } catch (error) {
-      console.error('❌ Failed to fetch my clients:', error)
+      console.error('Failed to fetch my clients:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch clients',
@@ -159,11 +157,8 @@ export const clientService = {
         message: 'Client created successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to create client:', error)
-      return {
-        success: false,
-        error: error.message || 'Failed to create client'
-      }
+      console.error('Failed to create client:', error)
+      return formatErrorResponse(error, 'Failed to create client')
     }
   },
 
@@ -191,11 +186,8 @@ export const clientService = {
         message: 'Reseller client created successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to create reseller client:', error)
-      return {
-        success: false,
-        error: error.message || 'Failed to create reseller client'
-      }
+      console.error('Failed to create reseller client:', error)
+      return formatErrorResponse(error, 'Failed to create reseller client')
     }
   },
 
@@ -213,7 +205,7 @@ export const clientService = {
         message: 'Client updated successfully'
       }
     } catch (error) {
-      console.error(`❌ Failed to update client ${id}:`, error)
+      console.error(`Failed to update client ${id}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to update client'
@@ -232,7 +224,7 @@ export const clientService = {
         message: 'Client deleted successfully'
       }
     } catch (error) {
-      console.error(`❌ Failed to delete client ${id}:`, error)
+      console.error(`Failed to delete client ${id}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to delete client'
@@ -436,8 +428,8 @@ export const clientService = {
       isActive: client.is_active !== undefined ? client.is_active : true,
       isBlocked: client.is_blocked || false,
       lastActivity: client.last_activity,
-      totalEsims: client.total_esims || 0,
-      activeEsims: client.active_esims || 0,
+      totalEsims: client.total_esims || client.statistics?.total_esims || 0,
+      activeEsims: client.active_esims || client.statistics?.active_esims || 0,
       totalOrders: client.total_orders || 0,
       totalSpent: client.total_spent || client.statistics?.total_spent || 0, // Add totalSpent with fallback
       currentPlan: client.current_plan,
@@ -445,6 +437,7 @@ export const clientService = {
       preferredPackage: client.preferred_package,
       preferredNetwork: client.preferred_network,
       adminNotes: client.admin_notes || '',
+      joinDate: client.created_at, // Map created_at to joinDate for compatibility
       createdAt: client.created_at,
       updatedAt: client.updated_at,
       reseller: client.reseller,
@@ -459,7 +452,7 @@ export const clientService = {
    */
   async exportClients(filters = {}, format = 'csv') {
     try {
-      console.log(`🔄 Exporting clients to ${format.toUpperCase()}`)
+      console.log(`Exporting clients to ${format.toUpperCase()}`)
 
       const queryParams = new URLSearchParams()
 
@@ -503,7 +496,7 @@ export const clientService = {
         document.body.removeChild(link)
         window.URL.revokeObjectURL(downloadUrl)
 
-        console.log(`✅ Clients exported successfully as ${format.toUpperCase()}`)
+        console.log(`Clients exported successfully as ${format.toUpperCase()}`)
         return { 
           success: true, 
           message: `Clients exported successfully as ${format.toUpperCase()}` 
@@ -512,7 +505,7 @@ export const clientService = {
 
       return response
     } catch (error) {
-      console.error('❌ Failed to export clients:', error)
+      console.error('Failed to export clients:', error)
       return {
         success: false,
         error: error.message || 'Failed to export clients'
@@ -541,7 +534,7 @@ export const clientService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch reseller profile:', error)
+      console.error('Failed to fetch reseller profile:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch reseller profile'

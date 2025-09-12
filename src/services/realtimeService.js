@@ -23,7 +23,7 @@ export const realtimeService = {
       maxAttempts = 60 // 5 minutes total
     } = options
 
-    console.log('🚀 Starting real-time eSIM provisioning monitoring:', esimId)
+    console.log('Starting real-time eSIM provisioning monitoring:', esimId)
 
     let attempts = 0
     let lastStatus = null
@@ -31,7 +31,7 @@ export const realtimeService = {
     const pollStatus = async () => {
       try {
         attempts++
-        console.log(`🔄 Polling eSIM status (attempt ${attempts}/${maxAttempts}):`, esimId)
+        console.log(`Polling eSIM status (attempt ${attempts}/${maxAttempts}):`, esimId)
 
         // Get eSIM status from backend
         const response = await esimService.getEsimById(esimId)
@@ -42,7 +42,7 @@ export const realtimeService = {
           // Check if status changed
           if (currentStatus !== lastStatus) {
             lastStatus = currentStatus
-            console.log('📊 eSIM status update:', { esimId, status: currentStatus })
+            console.log('eSIM status update:', { esimId, status: currentStatus })
             
             onStatusUpdate({
               esimId,
@@ -53,7 +53,7 @@ export const realtimeService = {
 
             // Check if provisioning is complete
             if (['active', 'activated', 'ready'].includes(currentStatus)) {
-              console.log('✅ eSIM provisioning completed:', esimId)
+              console.log('eSIM provisioning completed:', esimId)
               this.stopPolling(esimId)
               onComplete({
                 esimId,
@@ -65,7 +65,7 @@ export const realtimeService = {
 
             // Check if provisioning failed
             if (['failed', 'cancelled', 'expired'].includes(currentStatus)) {
-              console.log('❌ eSIM provisioning failed:', esimId)
+              console.log('eSIM provisioning failed:', esimId)
               this.stopPolling(esimId)
               onError({
                 esimId,
@@ -89,14 +89,14 @@ export const realtimeService = {
             })
           }
         } else {
-          console.error('❌ Failed to get eSIM status:', response.error)
+          console.error('Failed to get eSIM status:', response.error)
           onError({
             esimId,
             error: response.error || 'Failed to get eSIM status'
           })
         }
       } catch (error) {
-        console.error('❌ Error polling eSIM status:', error)
+        console.error('Error polling eSIM status:', error)
         onError({
           esimId,
           error: error.message || 'Polling error'
@@ -144,7 +144,7 @@ export const realtimeService = {
     } = callbacks
 
     try {
-      console.log('🚀 Starting enhanced eSIM assignment with real-time updates')
+      console.log('Starting enhanced eSIM assignment with real-time updates')
       
       onAssignmentStart(assignmentData)
 
@@ -160,7 +160,7 @@ export const realtimeService = {
       }
 
       const esimData = assignmentResponse.data
-      console.log('✅ eSIM assigned, starting real-time monitoring:', esimData.esim_id)
+      console.log('eSIM assigned, starting real-time monitoring:', esimData.esim_id)
 
       onAssignmentComplete(esimData)
 
@@ -168,15 +168,15 @@ export const realtimeService = {
       if (esimData.esim_id) {
         this.startEsimProvisioning(esimData.esim_id, {
           onStatusUpdate: (update) => {
-            console.log('📊 Real-time status update:', update)
+            console.log('Real-time status update:', update)
             onStatusUpdate(update)
           },
           onComplete: (result) => {
-            console.log('✅ Real-time provisioning completed:', result)
+            console.log('Real-time provisioning completed:', result)
             onProvisioningComplete(result)
           },
           onError: (error) => {
-            console.error('❌ Real-time monitoring error:', error)
+            console.error('Real-time monitoring error:', error)
             onError({
               step: 'monitoring',
               ...error
@@ -188,7 +188,7 @@ export const realtimeService = {
       return assignmentResponse
 
     } catch (error) {
-      console.error('❌ Enhanced eSIM assignment failed:', error)
+      console.error('Enhanced eSIM assignment failed:', error)
       onError({
         step: 'assignment',
         error: error.message || 'Assignment failed'
@@ -205,7 +205,7 @@ export const realtimeService = {
    */
   async syncWithTraveRoam(esimId) {
     try {
-      console.log('🔄 Syncing eSIM with TraveRoam:', esimId)
+      console.log('Syncing eSIM with TraveRoam:', esimId)
 
       // Get local eSIM data
       const localResponse = await esimService.getEsimById(esimId)
@@ -227,7 +227,7 @@ export const realtimeService = {
           
           // Update local eSIM if status differs
           if (localEsim.status !== traveRoamStatus.status) {
-            console.log('🔄 Updating local eSIM status:', {
+            console.log('Updating local eSIM status:', {
               esimId,
               oldStatus: localEsim.status,
               newStatus: traveRoamStatus.status
@@ -266,7 +266,7 @@ export const realtimeService = {
       }
 
     } catch (error) {
-      console.error('❌ TraveRoam sync failed:', error)
+      console.error('TraveRoam sync failed:', error)
       return {
         success: false,
         error: error.message || 'Sync failed'
@@ -278,7 +278,7 @@ export const realtimeService = {
    * Bulk sync multiple eSIMs
    */
   async bulkSyncEsims(esimIds) {
-    console.log('🔄 Starting bulk eSIM sync:', esimIds.length, 'eSIMs')
+    console.log('Starting bulk eSIM sync:', esimIds.length, 'eSIMs')
     
     const results = []
     
@@ -296,7 +296,7 @@ export const realtimeService = {
     const successCount = results.filter(r => r.success).length
     const failureCount = results.length - successCount
 
-    console.log('✅ Bulk sync completed:', {
+    console.log('Bulk sync completed:', {
       total: results.length,
       successful: successCount,
       failed: failureCount
@@ -318,7 +318,7 @@ export const realtimeService = {
    */
   async getRealtimeUsage(esimId) {
     try {
-      console.log('📊 Getting real-time usage for eSIM:', esimId)
+      console.log('Getting real-time usage for eSIM:', esimId)
 
       const [localUsage, traveRoamUsage] = await Promise.allSettled([
         esimService.getEsimUsageSummary(esimId),
@@ -337,7 +337,7 @@ export const realtimeService = {
       }
 
     } catch (error) {
-      console.error('❌ Failed to get real-time usage:', error)
+      console.error('Failed to get real-time usage:', error)
       return {
         success: false,
         error: error.message || 'Failed to get usage data'

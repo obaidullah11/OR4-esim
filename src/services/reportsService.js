@@ -18,7 +18,7 @@ export const reportsService = {
         data: data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch dashboard reports:', error)
+      console.error('Failed to fetch dashboard reports:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch dashboard reports'
@@ -49,7 +49,7 @@ export const reportsService = {
         data: data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch sales reports:', error)
+      console.error('Failed to fetch sales reports:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch sales reports'
@@ -80,7 +80,7 @@ export const reportsService = {
         data: data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch user reports:', error)
+      console.error('Failed to fetch user reports:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch user reports'
@@ -111,7 +111,7 @@ export const reportsService = {
         data: data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch reseller reports:', error)
+      console.error('Failed to fetch reseller reports:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch reseller reports'
@@ -138,14 +138,22 @@ export const reportsService = {
       
       const response = await apiService.get(url, { requiresAuth: true })
       
-      const data = response.data || response
-      
-      return {
-        success: true,
-        data: data
+      // Check if response has success property and extract data accordingly
+      if (response.success && response.data) {
+        return {
+          success: true,
+          data: this.formatAnalyticsData(response.data)
+        }
+      } else if (response.data) {
+        return {
+          success: true,
+          data: this.formatAnalyticsData(response.data)
+        }
+      } else {
+        throw new Error('Invalid response format from analytics endpoint')
       }
     } catch (error) {
-      console.error('❌ Failed to fetch analytics:', error)
+      console.error('Failed to fetch analytics:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch analytics'
@@ -177,7 +185,7 @@ export const reportsService = {
         message: `${reportType} report exported successfully`
       }
     } catch (error) {
-      console.error('❌ Failed to export report:', error)
+      console.error('Failed to export report:', error)
       return {
         success: false,
         error: error.message || 'Failed to export report'
@@ -203,7 +211,7 @@ export const reportsService = {
         data: response.data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch financial report:', error)
+      console.error('Failed to fetch financial report:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch financial report'
@@ -229,7 +237,7 @@ export const reportsService = {
         data: response.data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch user report:', error)
+      console.error('Failed to fetch user report:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch user report'
@@ -274,7 +282,7 @@ export const reportsService = {
         message: 'Financial report exported successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to export financial report:', error)
+      console.error('Failed to export financial report:', error)
       return {
         success: false,
         error: error.message || 'Failed to export financial report'
@@ -319,7 +327,7 @@ export const reportsService = {
         message: 'User report exported successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to export user report:', error)
+      console.error('Failed to export user report:', error)
       return {
         success: false,
         error: error.message || 'Failed to export user report'
@@ -364,7 +372,7 @@ export const reportsService = {
         message: 'Overview report exported successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to export overview report:', error)
+      console.error('Failed to export overview report:', error)
       return {
         success: false,
         error: error.message || 'Failed to export overview report'
@@ -409,7 +417,7 @@ export const reportsService = {
         message: 'Revenue report exported successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to export revenue report:', error)
+      console.error('Failed to export revenue report:', error)
       return {
         success: false,
         error: error.message || 'Failed to export revenue report'
@@ -454,7 +462,7 @@ export const reportsService = {
         message: 'Packages report exported successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to export packages report:', error)
+      console.error('Failed to export packages report:', error)
       return {
         success: false,
         error: error.message || 'Failed to export packages report'
@@ -499,7 +507,7 @@ export const reportsService = {
         message: 'Networks report exported successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to export networks report:', error)
+      console.error('Failed to export networks report:', error)
       return {
         success: false,
         error: error.message || 'Failed to export networks report'
@@ -544,7 +552,7 @@ export const reportsService = {
         message: 'Transactions report exported successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to export transactions report:', error)
+      console.error('Failed to export transactions report:', error)
       return {
         success: false,
         error: error.message || 'Failed to export transactions report'
@@ -570,7 +578,7 @@ export const reportsService = {
         data: response.data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch revenue report:', error)
+      console.error('Failed to fetch revenue report:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch revenue report'
@@ -596,7 +604,7 @@ export const reportsService = {
         data: response.data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch user growth report:', error)
+      console.error('Failed to fetch user growth report:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch user growth report'
@@ -622,7 +630,7 @@ export const reportsService = {
         data: response.data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch sales report:', error)
+      console.error('Failed to fetch sales report:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch sales report'
@@ -642,7 +650,7 @@ export const reportsService = {
         data: response.data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch system performance:', error)
+      console.error('Failed to fetch system performance:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch system performance'
@@ -674,7 +682,7 @@ export const reportsService = {
         data: data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch performance metrics:', error)
+      console.error('Failed to fetch performance metrics:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch performance metrics'
@@ -682,83 +690,132 @@ export const reportsService = {
     }
   },
 
-  // Format analytics data for frontend consumption (handle both dashboard and analytics formats)
+  // Format analytics data for frontend consumption (real backend data only)
   formatAnalyticsData(data) {
-    if (!data) return null
-    
-    // Handle both dashboard response format and new analytics format
-    const metrics = data.metrics || {}
-    const isAnalyticsFormat = data.monthly_trends || data.daily_performance
-    
-    if (isAnalyticsFormat) {
-      // New analytics format
+    if (!data) {
       return {
         overview: {
-          totalRevenue: this.safeNumber(data.total_revenue),
-          totalUsers: this.safeNumber(data.total_users),
-          totalOrders: this.safeNumber(data.total_orders),
-          activeUsers: this.safeNumber(data.total_resellers),
-          totalClients: this.safeNumber(data.total_clients),
-          pendingRevenue: this.safeNumber(data.pending_revenue),
-          revenueGrowth: this.safeNumber(data.revenue_growth),
-          userGrowth: this.safeNumber(data.user_growth),
-          orderGrowth: this.safeNumber(data.order_growth),
-          activeUserGrowth: this.safeNumber(data.user_growth)
+          totalRevenue: 0,
+          totalUsers: 0,
+          totalOrders: 0,
+          activeUsers: 0,
+          totalClients: 0,
+          pendingRevenue: 0,
+          revenueGrowth: 0,
+          userGrowth: 0,
+          orderGrowth: 0,
+          activeUserGrowth: 0
         },
         revenueBreakdown: {
-          avgOrderValue: this.safeNumber(data.avg_order_value),
-          conversionRate: this.safeNumber(data.conversion_rate),
-          activeResellerPercentage: this.safeNumber(data.active_reseller_percentage)
+          avgOrderValue: 0,
+          conversionRate: 0,
+          activeResellerPercentage: 0
         },
-        dailyPerformance: this.formatTimeSeriesData(data.daily_performance),
-        monthlyPerformance: this.formatTimeSeriesData(data.monthly_trends),
-        userGrowth: this.formatUserGrowthData(data.monthly_trends),
-        topPackages: this.formatTopItemsData(data.popular_packages),
-        topNetworks: this.formatTopItemsData(data.top_resellers),
-        orderStatusDistribution: data.order_status_distribution || [],
-        paymentMethodDistribution: data.payment_method_distribution || [],
-        dateRange: data.date_range,
-        generatedAt: data.generated_at
+        dailyPerformance: [],
+        monthlyPerformance: [],
+        userGrowth: [],
+        topPackages: [],
+        topNetworks: [],
+        orderStatusDistribution: [],
+        paymentMethodDistribution: [],
+        dateRange: null,
+        generatedAt: null
       }
-    } else {
-      // Legacy dashboard format
+    }
+    
+    // Format real backend analytics data
     return {
       overview: {
-        totalRevenue: this.safeNumber(metrics.revenueGenerated || data.total_revenue),
-        totalUsers: this.safeNumber(metrics.totalUsers || data.total_users),
-        totalOrders: this.safeNumber(metrics.dailySimOrders || data.total_orders),
-        activeUsers: this.safeNumber(metrics.totalResellers || data.active_users),
-        revenueGrowth: this.safeNumber(metrics.revenueGrowth || data.revenue_growth || 12.5),
-        userGrowth: this.safeNumber(metrics.userGrowth || data.user_growth || 8.3),
-        orderGrowth: this.safeNumber(metrics.orderGrowth || data.order_growth || 15.2),
-        activeUserGrowth: this.safeNumber(metrics.resellerGrowth || data.active_user_growth || 6.7)
+        totalRevenue: this.safeNumber(data.total_revenue),
+        totalUsers: this.safeNumber(data.total_users),
+        totalOrders: this.safeNumber(data.total_orders),
+        activeUsers: this.safeNumber(data.total_resellers),
+        totalClients: this.safeNumber(data.total_clients),
+        pendingRevenue: this.safeNumber(data.pending_revenue),
+        revenueGrowth: this.safeNumber(data.revenue_growth),
+        userGrowth: this.safeNumber(data.user_growth),
+        orderGrowth: this.safeNumber(data.order_growth),
+        activeUserGrowth: this.safeNumber(data.user_growth),
+        avgOrderValue: this.safeNumber(data.avg_order_value),
+        conversionRate: this.safeNumber(data.conversion_rate),
+        periodRevenue: this.safeNumber(data.total_revenue), // Period revenue is same as total for the filtered period
+        newClients: this.safeNumber(data.total_clients), // For the current period
+        activeEsims: this.safeNumber(data.total_orders) // Use orders as proxy for active eSIMs
       },
       revenueBreakdown: {
-        appUsers: this.safeNumber(data.app_users_revenue || metrics.revenueGenerated * 0.6),
-        resellers: this.safeNumber(data.resellers_revenue || metrics.revenueGenerated * 0.4),
-        appUsersPercentage: this.safeNumber(data.app_users_percentage || 62.4),
-        resellersPercentage: this.safeNumber(data.resellers_percentage || 37.6),
-        appUsersGrowth: this.safeNumber(data.app_users_growth || 15.2),
-        resellersGrowth: this.safeNumber(data.resellers_growth || 8.7)
+        avgOrderValue: this.safeNumber(data.avg_order_value),
+        conversionRate: this.safeNumber(data.conversion_rate),
+        activeResellerPercentage: this.safeNumber(data.active_reseller_percentage)
       },
-      dailyPerformance: this.formatTimeSeriesData(data.salesTrends || data.daily_performance),
-      monthlyPerformance: this.formatTimeSeriesData(data.ordersOverview || data.monthly_performance),
-      userGrowth: this.formatTimeSeriesData(data.userGrowth || data.user_growth),
-      topPackages: this.formatTopItemsData(data.topPackages || data.top_packages),
-      topNetworks: this.formatTopItemsData(data.topResellers || data.top_networks)
+      dailyPerformance: this.formatTimeSeriesData(data.daily_performance || []),
+      monthlyPerformance: this.formatMonthlyTrends(data.monthly_trends || []),
+      userGrowth: this.formatUserGrowthData(data.monthly_trends || []),
+      topPackages: this.formatTopItemsData(data.popular_packages || []),
+      topNetworks: this.formatTopItemsData(data.top_networks || []),
+      orderStatusDistribution: data.order_status_distribution || [],
+      paymentMethodDistribution: data.payment_method_distribution || [],
+      dateRange: data.date_range,
+      generatedAt: data.generated_at
     }
-    }
+  },
+
+  // Format monthly trends data specifically for revenue analysis
+  formatMonthlyTrends(data) {
+    if (!Array.isArray(data)) return []
+    
+    return data.map((item, index, array) => {
+      const orders = this.safeNumber(item.orders || 0)
+      const revenue = this.safeNumber(item.revenue || 0)
+      const avgValue = orders > 0 ? revenue / orders : 0
+      
+      // Calculate growth from previous month
+      let growth = 0
+      if (index > 0) {
+        const prevRevenue = this.safeNumber(array[index - 1].revenue || 0)
+        if (prevRevenue > 0) {
+          growth = ((revenue - prevRevenue) / prevRevenue) * 100
+        }
+      }
+      
+      return {
+        month: item.month || `Month ${index + 1}`,
+        orders: orders,
+        revenue: revenue,
+        users: this.safeNumber(item.users || 0),
+        avgOrderValue: avgValue,
+        growth: growth,
+        date: item.date
+      }
+    })
   },
 
   // Format user growth data from monthly trends
   formatUserGrowthData(data) {
     if (!Array.isArray(data)) return []
     
-    return data.map(item => ({
-      month: item.month,
-      users: this.safeNumber(item.users || 0),
-      growth: this.safeNumber(item.growth || 0)
-    }))
+    return data.map((item, index, array) => {
+      const totalUsers = this.safeNumber(item.users || 0)
+      const newUsers = index > 0 ? Math.max(0, totalUsers - this.safeNumber(array[index - 1].users || 0)) : totalUsers
+      
+      // Calculate growth rate
+      let growthRate = 0
+      if (index > 0) {
+        const prevUsers = this.safeNumber(array[index - 1].users || 0)
+        if (prevUsers > 0) {
+          growthRate = ((totalUsers - prevUsers) / prevUsers) * 100
+        }
+      }
+      
+      return {
+        month: item.month || `Month ${index + 1}`,
+        total: totalUsers,
+        users: totalUsers, // For compatibility
+        new: newUsers,
+        active: Math.floor(totalUsers * 0.8), // Estimate active as 80% of total
+        growth: growthRate,
+        date: item.date
+      }
+    })
   },
 
   // Format time series data
@@ -870,7 +927,7 @@ export const reportsService = {
    */
   async exportReport(reportType, format, params = {}) {
     try {
-      console.log('🔄 Exporting report:', reportType, format)
+      console.log('Exporting report:', reportType, format)
 
       const queryParams = new URLSearchParams()
 
@@ -915,13 +972,13 @@ export const reportsService = {
         document.body.removeChild(link)
         window.URL.revokeObjectURL(downloadUrl)
 
-        console.log('✅ Report exported successfully')
+        console.log('Report exported successfully')
         return { success: true }
       } else {
         throw new Error('Invalid response format - expected blob')
       }
     } catch (error) {
-      console.error('❌ Failed to export report:', error)
+      console.error('Failed to export report:', error)
       return {
         success: false,
         error: error.message || 'Failed to export report'
@@ -936,7 +993,7 @@ export const reportsService = {
    */
   async getComprehensiveAnalytics(params = {}) {
     try {
-      console.log('🔄 Fetching comprehensive analytics')
+      console.log('Fetching comprehensive analytics')
 
       const queryParams = new URLSearchParams()
 
@@ -967,7 +1024,7 @@ export const reportsService = {
 
       return response
     } catch (error) {
-      console.error('❌ Failed to fetch comprehensive analytics:', error)
+      console.error('Failed to fetch comprehensive analytics:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch analytics'

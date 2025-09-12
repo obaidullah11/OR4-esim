@@ -92,6 +92,20 @@ function AssignEsimPage() {
     if (selectedClient) {
       console.log('📋 Pre-selected client detected:', selectedClient)
       
+      // Check if client already has active eSIMs
+      if (selectedClient.activeEsims > 0) {
+        toast.error(`${selectedClient.fullName || selectedClient.full_name} already has ${selectedClient.activeEsims} active eSIM(s). Cannot assign another eSIM while active ones exist.`)
+        navigate('/reseller-dashboard/clients')
+        return
+      }
+      
+      // Log if client has expired eSIMs that can be replaced
+      const hasExpiredEsims = selectedClient.totalEsims > selectedClient.activeEsims
+      if (hasExpiredEsims) {
+        console.log(`Client has ${selectedClient.totalEsims - selectedClient.activeEsims} expired eSIM(s) that can be replaced`)
+        toast.info(`Client has expired eSIMs that will be replaced with the new assignment`)
+      }
+      
       // Pre-populate user form with client data
       setUserForm({
         fullName: selectedClient.fullName || selectedClient.full_name || '',
@@ -106,7 +120,7 @@ function AssignEsimPage() {
       if (phoneNumber) {
         detectCountryFromPhone(phoneNumber, false)
           .then(countryInfo => {
-            console.log('🌍 Detected country info for pre-selected client:', countryInfo)
+            console.log('Detected country info for pre-selected client:', countryInfo)
             
             // Set up workflow data with existing client and proper country info
             const userData = {
@@ -192,7 +206,7 @@ function AssignEsimPage() {
   // Handle successful Stripe checkout
   const handleStripeCheckoutSuccess = async (sessionId) => {
     try {
-      console.log('✅ Stripe checkout successful, verifying session:', sessionId)
+      console.log('Stripe checkout successful, verifying session:', sessionId)
       
       // Show loading state
       setIsProcessingPayment(true)
@@ -202,7 +216,7 @@ function AssignEsimPage() {
       const verificationResponse = await paymentsService.verifyStripeCheckoutSession(sessionId)
 
       if (verificationResponse.success) {
-        console.log('✅ Payment verified successfully:', verificationResponse.data)
+        console.log('Payment verified successfully:', verificationResponse.data)
 
         // Restore workflow data from localStorage
         const savedWorkflowData = localStorage.getItem('workflowData')
@@ -239,7 +253,7 @@ function AssignEsimPage() {
       }
 
     } catch (error) {
-      console.error('❌ Payment verification failed:', error)
+      console.error('Payment verification failed:', error)
       toast.error(`Payment verification failed: ${error.message}`)
     } finally {
       setIsProcessingPayment(false)
@@ -248,7 +262,7 @@ function AssignEsimPage() {
 
   // Handle canceled Stripe checkout
   const handleStripeCheckoutCancel = () => {
-    console.log('⚠️ Stripe checkout was canceled')
+    console.log('Stripe checkout was canceled')
     toast.error('Payment was canceled. You can try again when ready.')
     
     // Clean up localStorage
@@ -403,9 +417,56 @@ function AssignEsimPage() {
       }
 
       // Debug: Log the payload being sent (remove in production)
-      console.log('🔍 Client data payload:', clientData)
+      console.log('Client data payload:', clientData)
 
       setValidationStatus('creating')
+
+      // First, check for existing clients with active bundles
+      try {
+        console.log('Checking for existing clients with active bundles...')
+        // Use centralized API service
+        const { API_ENDPOINTS } = await import('../../config/api.js')
+        const { apiService } = await import('../../services/apiService.js')
+        
+        const validationData = await apiService.request(API_ENDPOINTS.TRAVEROAM.CLIENT_VALIDATE, {
+          method: 'POST',
+          requiresAuth: true,
+          body: {
+            fullName,
+            phoneNumber,
+            email,
+            passportId
+          }
+        })
+        
+        console.log('Client validation response:', validationData)
+
+        if (validationData.success) {
+          if (validationData.has_active_bundles) {
+            // Show warning about existing active bundles
+            const bundlesList = validationData.active_bundles.map(bundle => 
+              `• ${bundle.bundle_name} (${bundle.status}) - Expires: ${new Date(bundle.expires_at).toLocaleDateString()}`
+            ).join('\\n')
+            
+            const proceed = window.confirm(
+              `⚠️ WARNING: Client already has active bundles:\\n\\n${bundlesList}\\n\\nThis could indicate:\\n• Duplicate registration\\n• Client already served\\n• Potential fraud\\n\\nRecommendation: ${validationData.recommendation}\\n\\nDo you want to proceed anyway?`
+            )
+            
+            if (!proceed) {
+              setValidationStatus('idle')
+              toast.warning('Validation cancelled due to existing active bundles')
+              return false
+            }
+          } else if (validationData.client_exists) {
+            toast.info('Client exists but has no active bundles - proceeding with new assignment')
+          } else {
+            toast.success('New client - no conflicts found')
+          }
+        }
+      } catch (validationError) {
+        console.error('Validation check failed:', validationError)
+        toast.warning('Could not verify existing bundles - proceeding with caution')
+      }
 
       // Create client through backend API using same endpoint as HTML
       const clientResult = await traveRoamService.createClient(clientData)
@@ -429,23 +490,24 @@ function AssignEsimPage() {
       setCountryInfo(countryInfo)
       setValidationStatus('success')
       toast.success('Client created and validated successfully!')
+      
+      // Automatically progress to next step (Fetch Plans) after successful validation
+      setTimeout(() => {
+        setCurrentStep(2)
+      }, 1500) // Small delay to let user see the success message
+      
       return true
 
     } catch (error) {
       console.error('User validation error:', error)
       setValidationStatus('error')
       
-      // Handle specific error types with better user messages
-      let errorMessage = error.message
-      if (error.message && error.message.includes('already exists')) {
-        errorMessage = 'A client with this email already exists. Please use a different email address or check if the client is already registered.'
-        toast.error(errorMessage, { duration: 6000 })
-      } else if (error.message && error.message.includes('Network error')) {
-        errorMessage = 'Unable to connect to the server. Please check your internet connection and try again.'
-        toast.error(errorMessage, { duration: 6000 })
-      } else {
-        toast.error('Validation failed: ' + errorMessage)
-      }
+      // Use enhanced error handling for better user experience
+      const { extractErrorMessage, getErrorToastConfig } = await import('../../utils/errorHandler')
+      const userMessage = extractErrorMessage(error)
+      const toastConfig = getErrorToastConfig(error)
+      
+      toast.error(userMessage, { duration: toastConfig.duration })
       
       return false
     }
@@ -460,7 +522,7 @@ function AssignEsimPage() {
 
     setIsLoadingPlans(true)
     try {
-      console.log('🔄 Fetching available bundles from TraveRoam plans API...')
+      console.log('Fetching available bundles from TraveRoam plans API...')
 
       // Use traveRoamService which handles authentication properly (matching HTML logic)
       const country = workflowData.userData.countryOfTravel
@@ -469,9 +531,9 @@ function AssignEsimPage() {
         region: country.region
       }
       
-      console.log('🔍 Bundle fetch params:', params)
+      console.log('Bundle fetch params:', params)
       const response = await traveRoamService.getAvailablePlans(params)
-      console.log('📦 Bundle response:', response)
+      console.log('Bundle response:', response)
 
       const data = response
 
@@ -494,13 +556,13 @@ function AssignEsimPage() {
         }))
 
         setWorkflowData(prev => ({ ...prev, availableBundles: formattedBundles }))
-        console.log('✅ Loaded bundles:', formattedBundles.length)
+        console.log('Loaded bundles:', formattedBundles.length)
         toast.success(`Found ${formattedBundles.length} available plans`)
       } else {
         throw new Error(response.error || 'Failed to load eSIM plans')
       }
     } catch (error) {
-      console.error('❌ Failed to load eSIM plans:', error)
+      console.error('Failed to load eSIM plans:', error)
       toast.error('Failed to load eSIM plans: ' + error.message)
     } finally {
       setIsLoadingPlans(false)
@@ -548,13 +610,13 @@ function AssignEsimPage() {
         cancel_url: `${window.location.origin}/reseller-dashboard/assign-esim?canceled=1`
       }
 
-      console.log('🔄 Creating Stripe checkout session:', checkoutData)
+      console.log('Creating Stripe checkout session:', checkoutData)
 
       // Create Stripe checkout session through backend
       const checkoutResponse = await paymentsService.createStripeCheckoutSession(checkoutData)
 
       if (checkoutResponse.success) {
-        console.log('✅ Checkout session created:', checkoutResponse.data)
+        console.log('Checkout session created:', checkoutResponse.data)
         
         // Store checkout session data for verification later
         const checkoutSessionData = {
@@ -587,7 +649,7 @@ function AssignEsimPage() {
       }
       
     } catch (error) {
-      console.error('❌ Stripe checkout session creation failed:', error)
+      console.error('Stripe checkout session creation failed:', error)
       
       // Handle specific checkout errors
       let errorMessage = 'Failed to create payment session. Please try again.'
@@ -615,43 +677,44 @@ function AssignEsimPage() {
 
     setIsProvisioning(true)
     try {
-      console.log('🚀 Processing order with TraveRoam (matching HTML line 2262)...')
+      console.log('Processing order with TraveRoam (matching HTML line 2262)...')
 
       // Step 1: Validate bundle assignment
-      const validationResponse = await makeAuthenticatedRequest('/api/v1/traveroam/client/validate/', {
+      const { API_ENDPOINTS } = await import('../../config/api.js')
+      const { apiService } = await import('../../services/apiService.js')
+      
+      const validationData = await apiService.request(API_ENDPOINTS.TRAVEROAM.BUNDLE_VALIDATE, {
         method: 'POST',
-        body: JSON.stringify({
+        requiresAuth: true,
+        body: {
           phone_number: workflowData.userData.phoneNumber,
           bundle_name: workflowData.selectedBundle.bundle_id || workflowData.selectedBundle.name
-        })
+        }
       })
-
-      const validationData = await validationResponse.json()
       
       if (!validationData.success || !validationData.data.valid) {
         throw new Error(validationData.data.message || 'Phone number already has an active bundle')
       }
 
-      console.log('✅ Validation passed! Proceeding with eSIM provisioning...')
+      console.log('Validation passed! Proceeding with eSIM provisioning...')
 
       // Step 2: Process order with TraveRoam (exact same as HTML)
       // Step 2: Check for duplicate assignments
-      const duplicateResponse = await makeAuthenticatedRequest('/api/v1/traveroam/client/validate/', {
+      const duplicateData = await apiService.request(API_ENDPOINTS.TRAVEROAM.BUNDLE_VALIDATE, {
         method: 'POST',
-        body: JSON.stringify({
+        requiresAuth: true,
+        body: {
           phone_number: workflowData.userData.phoneNumber,
           bundle_name: workflowData.selectedBundle.bundle_id || workflowData.selectedBundle.name,
           check_duplicate: true
-        })
+        }
       })
-
-      const duplicateData = await duplicateResponse.json()
       
       if (duplicateData.success && duplicateData.data.duplicate) {
         throw new Error(duplicateData.data.message || 'Duplicate assignment detected')
       }
 
-      console.log('✅ No duplicate assignments found. Proceeding with provisioning...')
+      console.log('No duplicate assignments found. Proceeding with provisioning...')
 
       // Step 3: Process order with TraveRoam (matching HTML line 2262)
       const response = await makeAuthenticatedRequest('/api/v1/traveroam/orders/process/', {
@@ -668,15 +731,50 @@ function AssignEsimPage() {
       if (data.success) {
         const esimData = data.data // Enhanced response structure
         
-        setWorkflowData(prev => ({ ...prev, esimData }))
+        // Debug: Log the eSIM data structure for troubleshooting
+        console.log('eSIM Data Structure:', JSON.stringify(esimData, null, 2))
+        
+        // Calculate expiry date based on bundle validity
+        const calculateExpiryDate = () => {
+          const now = new Date()
+          const validityDays = workflowData.selectedBundle?.validity_days || 
+                               workflowData.selectedBundle?.validity || 
+                               30 // Default to 30 days if not specified
+          
+          const expiryDate = new Date(now.getTime() + (validityDays * 24 * 60 * 60 * 1000))
+          return expiryDate.toISOString()
+        }
+        
+        // Add calculated expiry date to eSIM data
+        const enhancedEsimData = {
+          ...esimData,
+          calculated_expiry_date: calculateExpiryDate(),
+          esim_details: {
+            ...esimData.esim_details,
+            expiry_date: esimData.esim_details?.expiry_date || calculateExpiryDate()
+          }
+        }
+        
+        setWorkflowData(prev => ({ ...prev, esimData: enhancedEsimData }))
         toast.success('eSIM provisioned successfully!')
+        
+        // Auto-send email and save to database after successful provisioning
+        setTimeout(() => {
+          console.log('Auto-sending delivery email...')
+          sendESIMEmail()
+        }, 1000) // Send email first
+        
+        setTimeout(() => {
+          console.log('Auto-saving workflow to database...')
+          saveToDatabase()
+        }, 3000) // Then save to database
         
       } else {
         throw new Error(data.message || 'Failed to provision eSIM')
       }
 
     } catch (error) {
-      console.error('❌ eSIM provisioning failed:', error)
+      console.error('eSIM provisioning failed:', error)
       toast.error('Provisioning failed: ' + error.message)
     } finally {
       setIsProvisioning(false)
@@ -705,15 +803,18 @@ function AssignEsimPage() {
       })
 
       const data = await response.json()
+      console.log('Email delivery response:', data)
       
       if (data.success) {
         toast.success('eSIM details sent to client!')
+        console.log('Email sent successfully to:', workflowData.userData.email)
       } else {
+        console.error('Email delivery failed:', data.error)
         throw new Error(data.error || 'Email delivery failed')
       }
       
     } catch (error) {
-      console.error('❌ Failed to send email:', error)
+      console.error('Failed to send email:', error)
       toast.error('Email sending failed: ' + error.message)
     } finally {
       setIsSendingEmail(false)
@@ -729,7 +830,7 @@ function AssignEsimPage() {
 
     setIsSavingToDb(true)
     try {
-      console.log('💾 Saving complete workflow data to database (matching HTML logic)...')
+      console.log('Saving complete workflow data to database (matching HTML logic)...')
 
       const response = await makeAuthenticatedRequest('/api/v1/workflow/save-complete/', {
         method: 'POST',
@@ -742,9 +843,10 @@ function AssignEsimPage() {
       })
 
       const data = await response.json()
+      console.log('Database save response:', data)
       
       if (data.success) {
-        toast.success('🎉 Workflow completed successfully! All data saved to database.')
+        toast.success('Workflow completed successfully! All data saved to database.')
         
         // Mark workflow as complete
         setWorkflowData(prev => ({
@@ -763,7 +865,8 @@ function AssignEsimPage() {
       }
 
     } catch (error) {
-      console.error('❌ Failed to save to database:', error)
+      console.error('Failed to save to database:', error)
+      console.error('Error details:', error.message)
       toast.error('Database save failed: ' + error.message)
     } finally {
       setIsSavingToDb(false)
@@ -1177,11 +1280,24 @@ function AssignEsimPage() {
                     <span className="font-medium">Client Created Successfully!</span>
                   </div>
                   <div className="mt-2 text-sm text-green-700 dark:text-green-300">
-                    <p>📍 Country: {countryInfo?.name} ({countryInfo?.code})</p>
-                    <p>🌍 Region: {countryInfo?.region}</p>
+                    <p>Country: {countryInfo?.name} ({countryInfo?.code})</p>
+                    <p>Region: {countryInfo?.region}</p>
                     {workflowData.userData.clientId && (
-                      <p>🆔 Client ID: {workflowData.userData.clientId}</p>
+                      <p>Client ID: {workflowData.userData.clientId}</p>
                     )}
+                  </div>
+                  
+                  {/* Continue Button */}
+                  <div className="mt-4 pt-3 border-t border-green-200 dark:border-green-700">
+                    <button
+                      onClick={() => setCurrentStep(2)}
+                      className="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+                    >
+                      <span>Continue to Fetch Plans</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               )}
@@ -1211,7 +1327,7 @@ function AssignEsimPage() {
 
             {workflowData.userData && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h5 className="font-medium text-blue-900">🌍 Destination: {workflowData.userData.countryOfTravel.name} ({workflowData.userData.countryOfTravel.code})</h5>
+                <h5 className="font-medium text-blue-900">Destination: {workflowData.userData.countryOfTravel.name} ({workflowData.userData.countryOfTravel.code})</h5>
                 <p className="text-blue-700">Region: {workflowData.userData.countryOfTravel.region}</p>
                 <p className="text-blue-600 text-sm">Click "Fetch eSIM Plans" to see available bundles for this destination.</p>
               </div>
@@ -1427,7 +1543,7 @@ function AssignEsimPage() {
 
             {workflowData.paymentData && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-green-700">✅ Payment completed successfully. Ready to provision eSIM via TraveRoam.</p>
+                <p className="text-green-700">Payment completed successfully. Ready to provision eSIM via TraveRoam.</p>
               </div>
             )}
 
@@ -1451,11 +1567,13 @@ function AssignEsimPage() {
 
             {workflowData.esimData && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h4 className="font-medium text-green-900 mb-2">✅ eSIM Provisioned Successfully!</h4>
+                <h4 className="font-medium text-green-900 mb-2">eSIM Provisioned Successfully!</h4>
                 <div className="text-sm text-green-700 space-y-1">
-                  <p><strong>eSIM ID:</strong> {workflowData.esimData.esim_id}</p>
-                  <p><strong>ICCID:</strong> {workflowData.esimData.iccid}</p>
-                  <p><strong>Status:</strong> {workflowData.esimData.status}</p>
+                  <p><strong>Order Reference:</strong> {workflowData.esimData.order_reference}</p>
+                  <p><strong>ICCID:</strong> {workflowData.esimData.esim_details?.iccid || workflowData.esimData.assignments_result?.iccid}</p>
+                  <p><strong>Status:</strong> {workflowData.esimData.esim_details?.status || workflowData.esimData.assignments_result?.status}</p>
+                  <p><strong>Activation Code:</strong> {workflowData.esimData.esim_details?.activation_code || workflowData.esimData.assignments_result?.activation_code}</p>
+                  <p><strong>Bundle:</strong> {workflowData.esimData.bundle_data?.name}</p>
                 </div>
               </div>
             )}
@@ -1493,12 +1611,68 @@ function AssignEsimPage() {
             {workflowData.esimData && (
               <div className="space-y-4">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-                  <h4 className="font-medium text-blue-900 mb-2">📱 QR Code for eSIM Installation</h4>
-                  {workflowData.esimData.qr_code && (
+                  <h4 className="font-medium text-blue-900 mb-2">QR Code for eSIM Installation</h4>
+                  {(workflowData.esimData.qr_code || workflowData.esimData.esim_details?.qr_code || workflowData.esimData.assignments_result?.qr_code) ? (
                     <div className="bg-card border border-border p-4 rounded-lg inline-block">
-                      <div className="text-xs font-mono break-all text-muted-foreground max-w-md">
-                        {workflowData.esimData.qr_code}
-                      </div>
+                      {(() => {
+                        const qrCodeData = workflowData.esimData.qr_code || workflowData.esimData.esim_details?.qr_code || workflowData.esimData.assignments_result?.qr_code;
+                        
+                        // Check if it's already a data URL for image
+                        if (qrCodeData.startsWith('data:image/')) {
+                          return <img src={qrCodeData} alt="eSIM QR Code" className="max-w-xs mx-auto" />;
+                        }
+                        
+                        // If it's base64 encoded text, decode and generate QR code image
+                        if (qrCodeData.startsWith('data:text/plain;base64,')) {
+                          const decodedText = atob(qrCodeData.split(',')[1]);
+                          
+                          // Generate QR code using a QR code library or service
+                          // For now, we'll create a QR code using QR-server.com API
+                          const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(decodedText)}`;
+                          
+                          return (
+                            <div className="space-y-3">
+                              <div className="text-sm font-medium text-foreground">
+                                QR Code for eSIM Installation
+                              </div>
+                              <div className="bg-white p-4 rounded border inline-block">
+                                <img 
+                                  src={qrCodeImageUrl} 
+                                  alt="eSIM QR Code" 
+                                  className="w-48 h-48 mx-auto"
+                                  onError={(e) => {
+                                    // Fallback to text if QR code generation fails
+                                    e.target.style.display = 'none';
+                                    e.target.nextSibling.style.display = 'block';
+                                  }}
+                                />
+                                <div className="bg-muted p-3 rounded border font-mono text-xs break-all" style={{display: 'none'}}>
+                                  {decodedText}
+                                </div>
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                Scan this QR code with your device camera to install the eSIM
+                              </div>
+                            </div>
+                          );
+                        }
+                        
+                        // If it's plain text activation code
+                        return (
+                          <div className="space-y-3">
+                            <div className="text-sm font-medium text-foreground">
+                              eSIM Activation Code:
+                            </div>
+                            <div className="bg-muted p-3 rounded border font-mono text-sm break-all">
+                              {qrCodeData}
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  ) : (
+                    <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                      <p className="text-yellow-700 text-sm">QR Code will be generated during email delivery</p>
                     </div>
                   )}
                   <p className="text-blue-600 text-sm mt-2">Scan this QR code with your device to install the eSIM</p>
@@ -1507,10 +1681,17 @@ function AssignEsimPage() {
                 <div className="bg-muted/50 border border-border rounded-lg p-4">
                   <h4 className="font-medium text-foreground mb-2">eSIM Details:</h4>
                   <div className="text-sm text-muted-foreground space-y-1">
-                    <p><strong>Activation Code:</strong> {workflowData.esimData.activation_code}</p>
-                    <p><strong>ICCID:</strong> {workflowData.esimData.iccid}</p>
-                    <p><strong>Status:</strong> {workflowData.esimData.status}</p>
-                    <p><strong>Expiry Date:</strong> {workflowData.esimData.expiry_date ? new Date(workflowData.esimData.expiry_date).toLocaleDateString() : 'N/A'}</p>
+                    <p><strong>Order Reference:</strong> {workflowData.esimData.order_reference}</p>
+                    <p><strong>Activation Code:</strong> {workflowData.esimData.esim_details?.activation_code || workflowData.esimData.assignments_result?.activation_code}</p>
+                    <p><strong>ICCID:</strong> {workflowData.esimData.esim_details?.iccid || workflowData.esimData.assignments_result?.iccid}</p>
+                    <p><strong>Status:</strong> {workflowData.esimData.esim_details?.status || workflowData.esimData.assignments_result?.status}</p>
+                    <p><strong>Bundle:</strong> {workflowData.esimData.bundle_data?.name}</p>
+                    <p><strong>Expiry Date:</strong> {(() => {
+                      const expiryDate = workflowData.esimData.esim_details?.expiry_date || 
+                                         workflowData.esimData.assignments_result?.expiry_date ||
+                                         workflowData.esimData.calculated_expiry_date
+                      return expiryDate ? new Date(expiryDate).toLocaleDateString() : 'N/A'
+                    })()}</p>
                   </div>
                 </div>
               </div>
@@ -1565,7 +1746,7 @@ function AssignEsimPage() {
             </h2>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-2">💾 Database Operation Summary</h4>
+              <h4 className="font-medium text-blue-900 mb-2">Database Operation Summary</h4>
               <p className="text-blue-700">All eSIM data will be saved to the database for future reference and management.</p>
             </div>
 
@@ -1591,7 +1772,7 @@ function AssignEsimPage() {
               <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="h-8 w-8 text-green-500" />
               </div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">🎉 Workflow Completed Successfully!</h3>
+              <h3 className="text-xl font-semibold text-foreground mb-2">Workflow Completed Successfully!</h3>
               <p className="text-muted-foreground mb-4">All data has been saved to the database and the eSIM has been delivered to the client.</p>
 
               <div className="flex items-center justify-center space-x-4">

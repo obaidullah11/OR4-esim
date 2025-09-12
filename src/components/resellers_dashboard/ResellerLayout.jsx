@@ -5,7 +5,6 @@ import { cn } from '../../lib/utils'
 import ResellerDockSidebar from './ResellerDockSidebar'
 import ResellerSettingsModal from './ResellerSettingsModal'
 import {
-  Bell,
   Search,
   Settings,
   User,
@@ -105,16 +104,6 @@ function ResellerLayout({ children }) {
               <Settings className="w-5 h-5 text-muted-foreground" />
             </button>
 
-            {/* Notifications */}
-            <button className={cn(
-              'relative p-2 rounded-lg transition-all duration-200 hover-scale focus-ring',
-              resolvedTheme === 'dark'
-                ? 'hover:bg-slate-700/50'
-                : 'hover:bg-gray-100/50'
-            )}>
-              <Bell className="w-5 h-5 text-muted-foreground" />
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse-soft"></div>
-            </button>
 
             {/* User Menu */}
             <div className="flex items-center space-x-3">

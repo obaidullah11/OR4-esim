@@ -89,7 +89,7 @@ export const integrationService = {
       }
 
     } catch (error) {
-      console.error('❌ Complete eSIM assignment failed:', error)
+      console.error('Complete eSIM assignment failed:', error)
       return {
         success: false,
         error: error.message || 'eSIM assignment failed',
@@ -154,7 +154,7 @@ export const integrationService = {
       }
 
     } catch (error) {
-      console.error('❌ Client creation with eSIM failed:', error)
+      console.error('Client creation with eSIM failed:', error)
       return {
         success: false,
         error: error.message || 'Client creation failed',
@@ -193,7 +193,7 @@ export const integrationService = {
       }
 
     } catch (error) {
-      console.error('❌ Dashboard data aggregation failed:', error)
+      console.error('Dashboard data aggregation failed:', error)
       return {
         success: false,
         error: error.message || 'Failed to load dashboard data'
@@ -236,7 +236,7 @@ export const integrationService = {
       }
 
     } catch (error) {
-      console.error('❌ Bulk eSIM assignment failed:', error)
+      console.error('Bulk eSIM assignment failed:', error)
       return {
         success: false,
         error: error.message || 'Bulk assignment failed'
@@ -291,7 +291,7 @@ export const integrationService = {
       }
 
     } catch (error) {
-      console.error('❌ eSIM status sync failed:', error)
+      console.error('eSIM status sync failed:', error)
       return {
         success: false,
         error: error.message || 'Status sync failed'
@@ -338,7 +338,7 @@ export const integrationService = {
       }
 
     } catch (error) {
-      console.error('❌ Health check failed:', error)
+      console.error('Health check failed:', error)
       return {
         success: false,
         error: error.message || 'Health check failed'
@@ -385,7 +385,7 @@ export const integrationService = {
         message: 'eSIM details sent successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to send eSIM email:', error)
+      console.error('Failed to send eSIM email:', error)
       return {
         success: false,
         error: error.message || 'Failed to send eSIM email'

@@ -34,11 +34,11 @@ export const ordersService = {
         buildApiUrl(API_ENDPOINTS.ORDERS.LIST)
       
       const response = await apiService.get(url, { requiresAuth: true })
-      console.log('🔍 Raw API response:', response)
+      console.log('Raw API response:', response)
       
       // Handle both wrapped and direct response formats
       const data = response.data || response
-      console.log('📊 Processed data:', data)
+      console.log('Processed data:', data)
       
       return {
         success: true,
@@ -56,7 +56,7 @@ export const ordersService = {
         }
       }
     } catch (error) {
-      console.error('❌ Failed to fetch orders:', error)
+      console.error('Failed to fetch orders:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch orders',
@@ -87,7 +87,7 @@ export const ordersService = {
         data: data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch order:', error)
+      console.error('Failed to fetch order:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch order'
@@ -130,7 +130,7 @@ export const ordersService = {
         message: 'Order status updated successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to update order status:', error)
+      console.error('Failed to update order status:', error)
       return {
         success: false,
         error: error.message || 'Failed to update order status'
@@ -162,7 +162,7 @@ export const ordersService = {
         message: 'Delivery tracking assigned successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to assign delivery tracking:', error)
+      console.error('Failed to assign delivery tracking:', error)
       return {
         success: false,
         error: error.message || 'Failed to assign delivery tracking'
@@ -184,7 +184,7 @@ export const ordersService = {
         message: 'Order created successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to create order:', error)
+      console.error('Failed to create order:', error)
       return {
         success: false,
         error: error.message || 'Failed to create order'
@@ -203,7 +203,7 @@ export const ordersService = {
         message: 'Order deleted successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to delete order:', error)
+      console.error('Failed to delete order:', error)
       return {
         success: false,
         error: error.message || 'Failed to delete order'
@@ -218,7 +218,7 @@ export const ordersService = {
    */
   async sendOrderNotification(orderId, notificationType, message) {
     try {
-      console.log('🔄 Sending order notification:', orderId, notificationType)
+      console.log('Sending order notification:', orderId, notificationType)
 
       const response = await apiService.post(buildApiUrl(API_ENDPOINTS.ORDERS.NOTIFICATIONS), {
         order_id: orderId,
@@ -227,12 +227,12 @@ export const ordersService = {
       }, { requiresAuth: true })
 
       if (response.success) {
-        console.log('✅ Order notification sent successfully')
+        console.log('Order notification sent successfully')
       }
 
       return response
     } catch (error) {
-      console.error('❌ Failed to send order notification:', error)
+      console.error('Failed to send order notification:', error)
       return {
         success: false,
         error: error.message || 'Failed to send notification'
@@ -245,13 +245,13 @@ export const ordersService = {
    */
   async getOrderNotifications(orderId) {
     try {
-      console.log('🔄 Fetching order notifications:', orderId)
+      console.log('Fetching order notifications:', orderId)
 
       const response = await apiService.get(buildApiUrl(`${API_ENDPOINTS.ORDERS.NOTIFICATIONS}/by-order/${orderId}`), { requiresAuth: true })
 
       return response
     } catch (error) {
-      console.error('❌ Failed to fetch order notifications:', error)
+      console.error('Failed to fetch order notifications:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch notifications'
@@ -266,7 +266,7 @@ export const ordersService = {
    */
   async exportOrders(filters = {}) {
     try {
-      console.log('🔄 Exporting orders to PDF')
+      console.log('Exporting orders to PDF')
 
       const queryParams = new URLSearchParams()
 
@@ -302,14 +302,14 @@ export const ordersService = {
         document.body.removeChild(link)
         window.URL.revokeObjectURL(downloadUrl)
 
-        console.log('✅ Orders exported successfully')
+        console.log('Orders exported successfully')
         return { success: true }
       } else {
         const errorData = await response.json()
         throw new Error(errorData.error || 'Failed to export orders')
       }
     } catch (error) {
-      console.error('❌ Failed to export orders:', error)
+      console.error('Failed to export orders:', error)
       return {
         success: false,
         error: error.message || 'Failed to export orders'

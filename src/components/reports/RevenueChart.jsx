@@ -20,7 +20,10 @@ const RevenueChart = ({ data, theme }) => {
   }
 
   const formatValue = (value) => {
-    return `$${value.toLocaleString()}`
+    if (value === undefined || value === null || isNaN(value)) {
+      return '$0'
+    }
+    return `$${Number(value).toLocaleString()}`
   }
 
   return (

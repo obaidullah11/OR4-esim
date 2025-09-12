@@ -247,7 +247,7 @@ function ComprehensiveIntegrationTest() {
     }
     
     setIsRunning(false)
-    toast.success('🎉 Comprehensive integration tests completed!')
+    toast.success('Comprehensive integration tests completed!')
   }
 
   // Run suite tests
@@ -260,7 +260,7 @@ function ComprehensiveIntegrationTest() {
     }
     
     setIsRunning(false)
-    toast.success(`✅ ${suite.name} tests completed!`)
+    toast.success(`${suite.name} tests completed!`)
   }
 
   // Get test status

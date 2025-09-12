@@ -246,9 +246,9 @@ function UserManagementTest() {
       }))
 
       if (result.success) {
-        toast.success(`✅ ${test.name} passed`)
+        toast.success(`${test.name} passed`)
       } else {
-        toast.error(`❌ ${test.name} failed: ${result.error}`)
+        toast.error(`${test.name} failed: ${result.error}`)
       }
     } catch (error) {
       const endTime = Date.now()
@@ -264,7 +264,7 @@ function UserManagementTest() {
         }
       }))
 
-      toast.error(`❌ ${test.name} failed: ${error.message}`)
+      toast.error(`${test.name} failed: ${error.message}`)
     }
   }
 
@@ -280,7 +280,7 @@ function UserManagementTest() {
     }
     
     setIsRunning(false)
-    toast.success('🎉 User management tests completed!')
+    toast.success('User management tests completed!')
   }
 
   // Get test status

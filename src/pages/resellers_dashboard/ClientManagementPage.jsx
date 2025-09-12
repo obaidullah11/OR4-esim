@@ -31,94 +31,31 @@ import toast from 'react-hot-toast'
 import { clientService } from '../../services/clientService'
 import ExportClientsModal from '../../components/clients/ExportClientsModal'
 
-// Sample client data with eSIM history
-const sampleClients = [
-  {
-    id: 1,
-    fullName: 'John Smith',
-    email: 'john.smith@email.com',
-    phone: '+1 555-123-4567',
-    passportNumber: 'US123456789',
-    nationalId: '',
-    countryOfTravel: 'US',
-    dateOfTravel: '2024-02-15',
-    notes: 'Frequent business traveler',
-    status: 'active',
-    joinDate: '2024-01-10',
-    totalEsims: 3,
-    activeEsims: 1,
-    totalSpent: 175.00,
-    lastActivity: '2 hours ago'
-  },
-  {
-    id: 2,
-    fullName: 'Sarah Johnson',
-    email: 'sarah.johnson@email.com',
-    phone: '+44 20 7123 4567',
-    passportNumber: 'UK987654321',
-    nationalId: '',
-    countryOfTravel: 'UK',
-    dateOfTravel: '2024-02-20',
-    notes: 'Extended stay client',
-    status: 'active',
-    joinDate: '2024-01-15',
-    totalEsims: 2,
-    activeEsims: 1,
-    totalSpent: 120.00,
-    lastActivity: '1 day ago'
-  },
-  {
-    id: 3,
-    fullName: 'Michael Chen',
-    email: 'michael.chen@email.com',
-    phone: '+1 555-987-6543',
-    passportNumber: '',
-    nationalId: 'ID123456789',
-    countryOfTravel: 'JP',
-    dateOfTravel: '2024-02-25',
-    notes: 'First time international traveler',
-    status: 'active',
-    joinDate: '2024-01-20',
-    totalEsims: 1,
-    activeEsims: 0,
-    totalSpent: 45.00,
-    lastActivity: '3 days ago'
-  },
-  {
-    id: 4,
-    fullName: 'Emma Rodriguez',
-    email: 'emma.rodriguez@email.com',
-    phone: '+34 612 345 678',
-    passportNumber: 'ES456789123',
-    nationalId: '',
-    countryOfTravel: 'ES',
-    dateOfTravel: '2024-03-01',
-    notes: 'Corporate account',
-    status: 'active',
-    joinDate: '2024-01-25',
-    totalEsims: 5,
-    activeEsims: 2,
-    totalSpent: 325.00,
-    lastActivity: '30 minutes ago'
-  },
-  {
-    id: 5,
-    fullName: 'David Wilson',
-    email: 'david.wilson@email.com',
-    phone: '+61 2 9876 5432',
-    passportNumber: 'AU789123456',
-    nationalId: '',
-    countryOfTravel: 'AU',
-    dateOfTravel: '2024-03-10',
-    notes: 'Inactive for 30 days',
-    status: 'inactive',
-    joinDate: '2023-12-15',
-    totalEsims: 1,
-    activeEsims: 0,
-    totalSpent: 25.00,
-    lastActivity: '30 days ago'
+// Helper function to safely format dates
+const formatDate = (dateString) => {
+  if (!dateString || dateString === 'N/A' || dateString === 'null' || dateString === 'undefined') {
+    return 'N/A'
   }
-]
+  
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) {
+      return 'N/A'
+    }
+    
+    // Format as "Jan 15, 2024"
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
+  } catch (error) {
+    console.warn('Date formatting error:', error, 'for date:', dateString)
+    return 'N/A'
+  }
+}
+
+// NO SAMPLE DATA - Using real backend data only
 
 // Client Details Modal Component
 function ClientDetailsModal({ isOpen, onClose, client, onEdit, onAssignEsim }) {
@@ -153,7 +90,7 @@ function ClientDetailsModal({ isOpen, onClose, client, onEdit, onAssignEsim }) {
                 <p><span className="font-medium">Name:</span> {client.fullName}</p>
                 <p><span className="font-medium">Email:</span> {client.email}</p>
                 <p><span className="font-medium">Phone:</span> {client.phone}</p>
-                <p><span className="font-medium">Join Date:</span> {new Date(client.joinDate).toLocaleDateString()}</p>
+                <p><span className="font-medium">Join Date:</span> {formatDate(client.joinDate)}</p>
               </div>
             </div>
 
@@ -168,7 +105,7 @@ function ClientDetailsModal({ isOpen, onClose, client, onEdit, onAssignEsim }) {
                 )}
                 <p><span className="font-medium">Travel Country:</span> {client.countryOfTravel}</p>
                 {client.dateOfTravel && (
-                  <p><span className="font-medium">Travel Date:</span> {new Date(client.dateOfTravel).toLocaleDateString()}</p>
+                  <p><span className="font-medium">Travel Date:</span> {formatDate(client.dateOfTravel)}</p>
                 )}
               </div>
             </div>
@@ -228,12 +165,27 @@ function ClientDetailsModal({ isOpen, onClose, client, onEdit, onAssignEsim }) {
               className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
                 client.activeEsims > 0
                   ? 'bg-muted text-muted-foreground cursor-not-allowed'
-                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                  : client.totalEsims > client.activeEsims
+                    ? 'bg-orange-500 text-white hover:bg-orange-600'
+                    : 'bg-primary text-primary-foreground hover:bg-primary/90'
               }`}
-              title={client.activeEsims > 0 ? "Client already has active eSIM" : "Assign eSIM"}
+              title={
+                client.activeEsims > 0 
+                  ? `Client has ${client.activeEsims} active eSIM(s)` 
+                  : client.totalEsims > client.activeEsims
+                    ? "Replace expired eSIM"
+                    : "Assign new eSIM"
+              }
             >
               <Smartphone className="h-4 w-4" />
-              <span>{client.activeEsims > 0 ? 'eSIM Active' : 'Assign eSIM'}</span>
+              <span>
+                {client.activeEsims > 0 
+                  ? 'eSIM Active' 
+                  : client.totalEsims > client.activeEsims
+                    ? 'Replace eSIM'
+                    : 'Assign eSIM'
+                }
+              </span>
             </button>
           </div>
         </div>
@@ -281,7 +233,7 @@ function ClientManagementPage() {
         const formattedClients = clientService.formatClientsList(response.data.results)
         setClients(formattedClients)
         setPagination(response.data.pagination)
-        console.log('✅ Loaded clients from API:', formattedClients.length, 'clients')
+        console.log('Loaded clients from API:', formattedClients.length, 'clients')
       } else {
         // No fallback to sample data - show error
         console.error('API failed to load clients:', response.error)
@@ -349,10 +301,18 @@ function ClientManagementPage() {
   }
 
   const handleAssignEsim = (client) => {
+    // Check if client has active eSIMs
     if (client.activeEsims > 0) {
-      toast.error(`${client.fullName} already has ${client.activeEsims} active eSIM(s). Cannot assign another eSIM.`)
+      toast.error(`${client.fullName} already has ${client.activeEsims} active eSIM(s). Cannot assign another eSIM while active ones exist.`)
       return
     }
+    
+    // Additional validation - check total eSIMs vs active ones for expired detection
+    const hasExpiredEsims = client.totalEsims > client.activeEsims
+    if (hasExpiredEsims) {
+      console.log(`Client ${client.fullName} has expired eSIMs that can be replaced`)
+    }
+    
     console.log('Assign eSIM to client:', client)
     navigate('/reseller-dashboard/assign-esim', { state: { selectedClient: client } })
   }
@@ -372,10 +332,10 @@ function ClientManagementPage() {
         // Remove from local state
         setClients(prev => prev.filter(c => c.id !== selectedClientForDelete.id))
         toast.success('Client deleted successfully')
-        console.log('✅ Client deleted:', selectedClientForDelete.fullName)
+        console.log('Client deleted:', selectedClientForDelete.fullName)
       } else {
         toast.error(response.error || 'Failed to delete client')
-        console.error('❌ Failed to delete client:', response.error)
+        console.error('Failed to delete client:', response.error)
       }
     } catch (error) {
       console.error('Failed to delete client:', error)
@@ -391,7 +351,7 @@ function ClientManagementPage() {
   const handleRefresh = async () => {
     await fetchClients({ page: 1 })
     toast.success('Client list refreshed')
-    console.log('🔄 Client list refreshed')
+    console.log('Client list refreshed')
   }
 
   const handleQuickExport = async (format = 'csv') => {
@@ -414,13 +374,13 @@ function ClientManagementPage() {
       
       if (result.success) {
         toast.success(result.message || 'Clients exported successfully!')
-        console.log('✅ Clients exported successfully')
+        console.log('Clients exported successfully')
       } else {
         toast.error(result.error || 'Failed to export clients')
-        console.error('❌ Export failed:', result.error)
+        console.error('Export failed:', result.error)
       }
     } catch (error) {
-      console.error('❌ Failed to export clients:', error)
+      console.error('Failed to export clients:', error)
       toast.error('Failed to export clients. Please try again.')
     } finally {
       setIsExporting(false)
@@ -647,7 +607,7 @@ function ClientManagementPage() {
                         <div>
                           <p className="font-medium text-foreground">{client.fullName}</p>
                           <p className="text-sm text-muted-foreground">
-                            Joined {new Date(client.joinDate).toLocaleDateString()}
+                            Joined {formatDate(client.joinDate)}
                           </p>
                         </div>
                       </td>
@@ -673,7 +633,7 @@ function ClientManagementPage() {
                             <div className="flex items-center space-x-2 text-sm">
                               <Calendar className="h-3 w-3 text-muted-foreground" />
                               <span className="text-muted-foreground">
-                                {new Date(client.dateOfTravel).toLocaleDateString()}
+                                {formatDate(client.dateOfTravel)}
                               </span>
                             </div>
                           )}
@@ -734,9 +694,17 @@ function ClientManagementPage() {
                             className={`p-2 rounded-lg transition-colors ${
                               client.activeEsims > 0 
                                 ? 'text-muted-foreground/50 cursor-not-allowed' 
-                                : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
+                                : client.totalEsims > client.activeEsims
+                                  ? 'text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-500/10'
+                                  : 'text-green-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-500/10'
                             }`}
-                            title={client.activeEsims > 0 ? `Client has ${client.activeEsims} active eSIM(s) - Cannot assign more` : "Assign eSIM to this client"}
+                            title={
+                              client.activeEsims > 0 
+                                ? `Client has ${client.activeEsims} active eSIM(s) - Cannot assign more` 
+                                : client.totalEsims > client.activeEsims
+                                  ? `Replace expired eSIM for ${client.fullName}`
+                                  : `Assign new eSIM to ${client.fullName}`
+                            }
                           >
                             <Smartphone className="h-4 w-4" />
                           </button>
