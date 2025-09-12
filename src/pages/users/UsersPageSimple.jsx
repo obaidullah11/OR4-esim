@@ -231,7 +231,7 @@ function UsersPageSimple() {
   const fetchUsers = async (params = {}) => {
     try {
       setLoading(true)
-      console.log('🔄 Fetching clients from API:', params)
+      console.log('Fetching clients from API:', params)
 
       const response = await fetch(`${buildApiUrl(API_ENDPOINTS.CLIENTS.LIST)}?page=${params.page || pagination.page}&page_size=${params.limit || pagination.limit}${params.search ? `&search=${params.search}` : ''}${params.status && params.status !== 'all' ? `&status=${params.status}` : ''}`, {
         method: 'GET',
@@ -302,14 +302,14 @@ function UsersPageSimple() {
           total: data.count || 0,
           totalPages: Math.ceil((data.count || 0) / (params.limit || prev.limit))
         }))
-        console.log('✅ Clients loaded successfully:', formattedUsers.length, 'clients')
+        console.log('Clients loaded successfully:', formattedUsers.length, 'clients')
       } else {
         console.error('Client API failed:', data.message || 'Unknown error')
         toast.error('Failed to load clients from server')
         setUsers([])
       }
     } catch (error) {
-      console.error('❌ Failed to fetch clients:', error)
+      console.error('Failed to fetch clients:', error)
       
       // Handle specific error cases
       if (error.message && error.message.includes('404')) {
@@ -425,7 +425,7 @@ function UsersPageSimple() {
         }))
         
         toast.success('User deleted successfully')
-        console.log('✅ User deleted:', selectedUserForDelete.id)
+        console.log('User deleted:', selectedUserForDelete.id)
         
         // Refresh the user list from server to ensure consistency
         setTimeout(() => {
@@ -433,10 +433,10 @@ function UsersPageSimple() {
         }, 500)
       } else {
         toast.error(response.error || 'Failed to delete user')
-        console.error('❌ Failed to delete user:', response.error)
+        console.error('Failed to delete user:', response.error)
       }
     } catch (error) {
-      console.error('❌ Failed to delete user:', error)
+      console.error('Failed to delete user:', error)
       toast.error('Failed to delete user')
     } finally {
       setShowDeleteModal(false)
@@ -469,7 +469,7 @@ function UsersPageSimple() {
         setAvailablePlans(formattedPlans)
       }
     } catch (error) {
-      console.error('❌ Failed to fetch plans:', error)
+      console.error('Failed to fetch plans:', error)
       // Set some default plans if API fails
       setAvailablePlans([
         { value: 'Basic Data 1GB', label: 'Basic Data 1GB - Global' },
@@ -506,7 +506,7 @@ function UsersPageSimple() {
         setAvailableNetworks(formattedNetworks)
       }
     } catch (error) {
-      console.error('❌ Failed to fetch networks:', error)
+      console.error('Failed to fetch networks:', error)
       // Set some default networks if API fails
       setAvailableNetworks([
         { value: 'Vodafone', label: 'Vodafone - Global' },
@@ -528,7 +528,7 @@ function UsersPageSimple() {
     
     try {
       // Fetch full client details for editing
-      console.log('🔄 Fetching full client details for editing:', user.id)
+      console.log('Fetching full client details for editing:', user.id)
       
       const response = await fetch(buildApiUrl(API_ENDPOINTS.CLIENTS.DETAIL.replace('{id}', user.id)), {
         method: 'GET',
@@ -583,9 +583,9 @@ function UsersPageSimple() {
         preferred_network: clientDetails.preferred_network || ''
       })
       
-      console.log('✅ Client details loaded for editing:', clientDetails.full_name)
+      console.log('Client details loaded for editing:', clientDetails.full_name)
     } catch (error) {
-      console.error('❌ Failed to fetch client details:', error)
+      console.error('Failed to fetch client details:', error)
       // Fallback to basic data from the list
       const clientData = user.clientData || {}
       
@@ -638,7 +638,7 @@ function UsersPageSimple() {
     }
 
     try {
-      console.log('🔄 Updating client:', selectedUserForEdit.id, editFormData)
+      console.log('Updating client:', selectedUserForEdit.id, editFormData)
       
       // Prepare data with full phone number and proper date format
       const updateData = {
@@ -691,15 +691,15 @@ function UsersPageSimple() {
             : u
         ))
         toast.success('Client updated successfully')
-        console.log('✅ Client updated successfully:', selectedUserForEdit.email)
+        console.log('Client updated successfully:', selectedUserForEdit.email)
         setShowEditModal(false)
         setSelectedUserForEdit(null)
       } else {
         toast.error(data.message || 'Failed to update client')
-        console.error('❌ Failed to update client:', data.message)
+        console.error('Failed to update client:', data.message)
       }
     } catch (error) {
-      console.error('❌ Failed to update client:', error)
+      console.error('Failed to update client:', error)
       toast.error('Failed to update client')
     }
   }
@@ -708,7 +708,7 @@ function UsersPageSimple() {
     await fetchUsers({ page: 1 })
     await fetchUserStats()
     toast.success('Users list refreshed')
-    console.log('🔄 Users list refreshed')
+    console.log('Users list refreshed')
   }
 
   const handleViewOrders = async (user) => {
@@ -744,13 +744,13 @@ function UsersPageSimple() {
         }))
         
         setUserOrders(formattedOrders)
-        console.log('✅ Loaded orders for user:', user.email, formattedOrders.length, 'orders')
+        console.log('Loaded orders for user:', user.email, formattedOrders.length, 'orders')
       } else {
         console.warn('API returned success=false:', data.message)
         setUserOrders([])
       }
     } catch (error) {
-      console.error('❌ Failed to load user orders:', error)
+      console.error('Failed to load user orders:', error)
       toast.error('Failed to load user orders')
       setUserOrders([])
     } finally {
@@ -818,13 +818,13 @@ function UsersPageSimple() {
         }))
         
         setUserTickets(formattedTickets)
-        console.log('✅ Loaded tickets for user:', user.email, formattedTickets.length, 'tickets')
+        console.log('Loaded tickets for user:', user.email, formattedTickets.length, 'tickets')
       } else {
         console.warn('API returned success=false:', data.message)
         setUserTickets([])
       }
     } catch (error) {
-      console.error('❌ Failed to load user tickets:', error)
+      console.error('Failed to load user tickets:', error)
       toast.error('Failed to load user tickets')
       setUserTickets([])
     } finally {
@@ -844,7 +844,7 @@ function UsersPageSimple() {
     if (!selectedUserForBlock) return
 
     try {
-      console.log('🔄 Blocking/Unblocking user:', selectedUserForBlock)
+      console.log('Blocking/Unblocking user:', selectedUserForBlock)
       const isCurrentlyBlocked = selectedUserForBlock.status === 'blocked' || !selectedUserForBlock.isActive
       
       // Call the appropriate user blocking/unblocking API
@@ -865,7 +865,7 @@ function UsersPageSimple() {
       }
       
       const result = await response.json()
-      console.log('🔍 Block/Unblock response:', result)
+      console.log('Block/Unblock response:', result)
 
       if (result.success) {
         // Update local state based on the API response
@@ -881,13 +881,13 @@ function UsersPageSimple() {
             : u
         ))
         toast.success(result.message || `User ${isCurrentlyBlocked ? 'unblocked' : 'blocked'} successfully`)
-        console.log('✅ User status updated:', selectedUserForBlock.email, newStatus)
+        console.log('User status updated:', selectedUserForBlock.email, newStatus)
       } else {
         toast.error(result.error || 'Failed to update user status')
-        console.error('❌ Failed to update user status:', result.error)
+        console.error('Failed to update user status:', result.error)
       }
     } catch (error) {
-      console.error('❌ Failed to toggle user status:', error)
+      console.error('Failed to toggle user status:', error)
       
       // Handle specific error cases
       if (error.message && error.message.includes('Failed to fetch')) {

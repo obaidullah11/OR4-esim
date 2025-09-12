@@ -347,7 +347,7 @@ const AddEditResellerModal = ({ isOpen, onClose, reseller, onSave }) => {
                     Phone Number *
                     {formData.countryOfRegistration && formData.phoneCountryCode === formData.countryOfRegistration && (
                       <span className="ml-2 text-xs text-green-500 font-normal">
-                        🔄 Auto-synced with registration country
+                        Auto-synced with registration country
                       </span>
                     )}
                   </label>
@@ -362,7 +362,7 @@ const AddEditResellerModal = ({ isOpen, onClose, reseller, onSave }) => {
                   />
                   {errors.phoneNumber && <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>}
                   <p className="text-xs text-muted-foreground mt-1">
-                    💡 Country code automatically matches your registration country. You can change it manually if needed.
+                    Country code automatically matches your registration country. You can change it manually if needed.
                   </p>
                 </div>
               </div>

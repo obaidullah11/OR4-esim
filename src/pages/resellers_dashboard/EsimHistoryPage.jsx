@@ -30,159 +30,7 @@ import { esimService } from '../../services/esimService'
 import { clientService } from '../../services/clientService'
 import ExportHistoryModal from '../../components/esim/ExportHistoryModal'
 
-// Sample eSIM history data
-const sampleEsimHistory = [
-  {
-    id: 'esim_001',
-    clientId: 1,
-    clientName: 'John Smith',
-    clientEmail: 'john.smith@email.com',
-    planName: 'US 30 Days - 20GB',
-    country: 'US',
-    countryName: 'United States',
-    dataVolume: '20GB',
-    validity: 30,
-    validityUnit: 'days',
-    price: 75.00,
-    currency: 'USD',
-    status: 'active',
-    assignedDate: '2024-01-20T10:30:00Z',
-    activatedDate: '2024-01-21T08:15:00Z',
-    expiryDate: '2024-02-20T08:15:00Z',
-    dataUsed: '12.5GB',
-    dataRemaining: '7.5GB',
-    usagePercentage: 62.5,
-    qrCode: 'LPA:1$rsp-prod.oberthur.net$MGMT-SIM-001',
-    activationCode: 'LPA:1$rsp-prod.oberthur.net$MGMT-SIM-001',
-    network: '4G/5G',
-    lastActivity: '2 hours ago'
-  },
-  {
-    id: 'esim_002',
-    clientId: 2,
-    clientName: 'Sarah Johnson',
-    clientEmail: 'sarah.johnson@email.com',
-    planName: 'Europe 14 Days - 10GB',
-    country: 'EU',
-    countryName: 'Europe (Multi-country)',
-    dataVolume: '10GB',
-    validity: 14,
-    validityUnit: 'days',
-    price: 45.00,
-    currency: 'USD',
-    status: 'active',
-    assignedDate: '2024-01-25T14:20:00Z',
-    activatedDate: '2024-01-26T06:45:00Z',
-    expiryDate: '2024-02-09T06:45:00Z',
-    dataUsed: '3.2GB',
-    dataRemaining: '6.8GB',
-    usagePercentage: 32,
-    qrCode: 'LPA:1$rsp-prod.oberthur.net$MGMT-SIM-002',
-    activationCode: 'LPA:1$rsp-prod.oberthur.net$MGMT-SIM-002',
-    network: '4G/5G',
-    lastActivity: '1 day ago'
-  },
-  {
-    id: 'esim_003',
-    clientId: 3,
-    clientName: 'Michael Chen',
-    clientEmail: 'michael.chen@email.com',
-    planName: 'Asia Pacific 7 Days - 3GB',
-    country: 'ASIA',
-    countryName: 'Asia Pacific',
-    dataVolume: '3GB',
-    validity: 7,
-    validityUnit: 'days',
-    price: 20.00,
-    currency: 'USD',
-    status: 'expired',
-    assignedDate: '2024-01-10T09:15:00Z',
-    activatedDate: '2024-01-11T12:30:00Z',
-    expiryDate: '2024-01-18T12:30:00Z',
-    dataUsed: '2.8GB',
-    dataRemaining: '0.2GB',
-    usagePercentage: 93.3,
-    qrCode: 'LPA:1$rsp-prod.oberthur.net$MGMT-SIM-003',
-    activationCode: 'LPA:1$rsp-prod.oberthur.net$MGMT-SIM-003',
-    network: '4G/5G',
-    lastActivity: '3 days ago'
-  },
-  {
-    id: 'esim_004',
-    clientId: 4,
-    clientName: 'Emma Rodriguez',
-    clientEmail: 'emma.rodriguez@email.com',
-    planName: 'Global 30 Days - 50GB',
-    country: 'GLOBAL',
-    countryName: 'Global Coverage',
-    dataVolume: '50GB',
-    validity: 30,
-    validityUnit: 'days',
-    price: 150.00,
-    currency: 'USD',
-    status: 'active',
-    assignedDate: '2024-01-28T16:45:00Z',
-    activatedDate: '2024-01-29T09:20:00Z',
-    expiryDate: '2024-02-28T09:20:00Z',
-    dataUsed: '18.7GB',
-    dataRemaining: '31.3GB',
-    usagePercentage: 37.4,
-    qrCode: 'LPA:1$rsp-prod.oberthur.net$MGMT-SIM-004',
-    activationCode: 'LPA:1$rsp-prod.oberthur.net$MGMT-SIM-004',
-    network: '4G/5G',
-    lastActivity: '30 minutes ago'
-  },
-  {
-    id: 'esim_005',
-    clientId: 1,
-    clientName: 'John Smith',
-    clientEmail: 'john.smith@email.com',
-    planName: 'US 7 Days - 5GB',
-    country: 'US',
-    countryName: 'United States',
-    dataVolume: '5GB',
-    validity: 7,
-    validityUnit: 'days',
-    price: 25.00,
-    currency: 'USD',
-    status: 'provisioned',
-    assignedDate: '2024-02-01T11:30:00Z',
-    activatedDate: null,
-    expiryDate: '2024-02-08T11:30:00Z',
-    dataUsed: '0GB',
-    dataRemaining: '5GB',
-    usagePercentage: 0,
-    qrCode: 'LPA:1$rsp-prod.oberthur.net$MGMT-SIM-005',
-    activationCode: 'LPA:1$rsp-prod.oberthur.net$MGMT-SIM-005',
-    network: '4G/5G',
-    lastActivity: 'Not activated'
-  },
-  {
-    id: 'esim_006',
-    clientId: 5,
-    clientName: 'David Wilson',
-    clientEmail: 'david.wilson@email.com',
-    planName: 'Australia 14 Days - 8GB',
-    country: 'AU',
-    countryName: 'Australia',
-    dataVolume: '8GB',
-    validity: 14,
-    validityUnit: 'days',
-    price: 40.00,
-    currency: 'USD',
-    status: 'cancelled',
-    assignedDate: '2024-01-05T13:20:00Z',
-    activatedDate: null,
-    expiryDate: null,
-    dataUsed: '0GB',
-    dataRemaining: '0GB',
-    usagePercentage: 0,
-    qrCode: 'LPA:1$rsp-prod.oberthur.net$MGMT-SIM-006',
-    activationCode: 'LPA:1$rsp-prod.oberthur.net$MGMT-SIM-006',
-    network: '4G/5G',
-    lastActivity: 'Cancelled'
-  }
-]
+// NO SAMPLE DATA - Using real backend data only
 
 // eSIM Details Modal Component
 function EsimDetailsModal({ isOpen, onClose, esim }) {
@@ -385,7 +233,7 @@ function EsimHistoryPage() {
   const fetchEsimHistory = async (params = {}) => {
     try {
       setLoading(true)
-      console.log('🔄 Fetching eSIM history from API...')
+      console.log('Fetching eSIM history from API...')
 
       const response = await esimService.getResellerEsims({
         page: params.page || pagination.page,
@@ -426,7 +274,7 @@ function EsimHistoryPage() {
 
         setEsimHistory(transformedHistory)
         setPagination(response.data.pagination)
-        console.log('✅ eSIM history loaded:', transformedHistory.length, 'records')
+        console.log('eSIM history loaded:', transformedHistory.length, 'records')
       } else {
         // No fallback to sample data - show error
         console.error('API failed to load eSIM history:', response.error)
@@ -434,7 +282,7 @@ function EsimHistoryPage() {
         setEsimHistory([])
       }
     } catch (error) {
-      console.error('❌ Failed to fetch eSIM history:', error)
+      console.error('Failed to fetch eSIM history:', error)
       toast.error('Failed to load eSIM history from server')
       setEsimHistory([])
     } finally {
@@ -523,7 +371,7 @@ function EsimHistoryPage() {
   const handleRefresh = async () => {
     await fetchEsimHistory({ page: 1 })
     toast.success('eSIM history refreshed')
-    console.log('🔄 eSIM history refreshed')
+    console.log('eSIM history refreshed')
   }
 
   // Quick export function
@@ -545,13 +393,13 @@ function EsimHistoryPage() {
 
       if (result.success) {
         toast.success(result.message || 'eSIM history exported successfully!')
-        console.log('✅ eSIM history exported successfully')
+        console.log('eSIM history exported successfully')
       } else {
         toast.error(result.error || 'Failed to export eSIM history')
-        console.error('❌ Export failed:', result.error)
+        console.error('Export failed:', result.error)
       }
     } catch (error) {
-      console.error('❌ Failed to export eSIM history:', error)
+      console.error('Failed to export eSIM history:', error)
       toast.error('Failed to export eSIM history. Please try again.')
     } finally {
       setIsExporting(false)

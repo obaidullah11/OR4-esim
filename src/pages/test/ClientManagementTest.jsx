@@ -176,9 +176,9 @@ function ClientManagementTest() {
       }))
 
       if (result.success) {
-        toast.success(`✅ ${test.name} passed`)
+        toast.success(`${test.name} passed`)
       } else {
-        toast.error(`❌ ${test.name} failed: ${result.error}`)
+        toast.error(`${test.name} failed: ${result.error}`)
       }
     } catch (error) {
       const endTime = Date.now()
@@ -194,7 +194,7 @@ function ClientManagementTest() {
         }
       }))
 
-      toast.error(`❌ ${test.name} failed: ${error.message}`)
+      toast.error(`${test.name} failed: ${error.message}`)
     }
   }
 
@@ -210,7 +210,7 @@ function ClientManagementTest() {
     }
     
     setIsRunning(false)
-    toast.success('🎉 Client management tests completed!')
+    toast.success('Client management tests completed!')
   }
 
   // Get test status

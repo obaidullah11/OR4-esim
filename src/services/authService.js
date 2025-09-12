@@ -1,6 +1,7 @@
 import { LOGIN_URL, SIGNUP_URL, LOGOUT_URL, REFRESH_URL, VERIFY_URL, GET_CURRENT_USER_URL, PASSWORD_RESET_REQUEST_URL, PASSWORD_RESET_CONFIRM_URL, API_ENDPOINTS, API_CONFIG } from '../config/api'
 import { apiService } from './apiService'
 import { tokenService } from './tokenService'
+import { extractErrorMessage, formatErrorResponse } from '../utils/errorHandler'
 
 // API-based auth service
 export const authService = {
@@ -19,7 +20,7 @@ export const authService = {
       if (data.tokens && data.tokens.access && data.tokens.refresh) {
         // Store JWT tokens
         tokenService.setTokens(data.tokens.access, data.tokens.refresh)
-        console.log('✅ Login successful, tokens stored')
+        console.log('Login successful, tokens stored')
         
         return {
           user: data.user,
@@ -29,7 +30,7 @@ export const authService = {
       } else if (data.access && data.refresh) {
         // Alternative response format
         tokenService.setTokens(data.access, data.refresh)
-        console.log('✅ Login successful, tokens stored')
+        console.log('Login successful, tokens stored')
         
         return {
           user: data.user,
@@ -40,8 +41,12 @@ export const authService = {
         throw new Error('Invalid response format from login endpoint')
       }
     } catch (error) {
-      console.error('❌ Login failed:', error)
-      throw error
+      console.error('Login failed:', error)
+      // Create a more user-friendly error for login
+      const userFriendlyError = new Error(extractErrorMessage(error))
+      userFriendlyError.details = error.details
+      userFriendlyError.statusCode = error.statusCode
+      throw userFriendlyError
     }
   },
 
@@ -79,7 +84,12 @@ export const authService = {
       
       return response
     } catch (error) {
-      throw error
+      console.error('Signup failed:', error)
+      // Create a more user-friendly error for signup
+      const userFriendlyError = new Error(extractErrorMessage(error))
+      userFriendlyError.details = error.details
+      userFriendlyError.statusCode = error.statusCode
+      throw userFriendlyError
     }
   },
 
@@ -98,13 +108,13 @@ export const authService = {
       const userData = response.data || response
       
       if (userData.user) {
-        console.log('✅ Current user fetched successfully')
+        console.log('Current user fetched successfully')
         return userData.user
       } else {
         throw new Error('Invalid response format from verify endpoint')
       }
     } catch (error) {
-      console.error('❌ Failed to get current user:', error)
+      console.error('Failed to get current user:', error)
       throw error
     }
   },
@@ -122,17 +132,17 @@ export const authService = {
             refresh_token: refreshToken
           }, { requiresAuth: true })
           
-          console.log('✅ Backend logout successful')
+          console.log('Backend logout successful')
         } catch (error) {
-          console.warn('⚠️ Backend logout failed, but continuing with local cleanup:', error)
+          console.warn('Backend logout failed, but continuing with local cleanup:', error)
         }
       }
     } catch (error) {
-      console.error('❌ Logout error:', error)
+      console.error('Logout error:', error)
     } finally {
       // Always clear local tokens regardless of backend response
       tokenService.clearTokens()
-      console.log('🗑️ Local tokens cleared')
+      console.log('Local tokens cleared')
     }
   },
 
@@ -170,10 +180,10 @@ export const authService = {
         confirm_password: confirmPassword
       }, { requiresAuth: true })
 
-      console.log('✅ Password changed successfully')
+      console.log('Password changed successfully')
       return response
     } catch (error) {
-      console.error('❌ Password change failed:', error)
+      console.error('Password change failed:', error)
       throw error
     }
   },
@@ -181,7 +191,7 @@ export const authService = {
   // Update user profile
   updateProfile: async (profileData) => {
     try {
-      console.log('🔄 Updating current user profile:', profileData)
+      console.log('Updating current user profile:', profileData)
 
       // Make a custom request to preserve the full response
       const authHeaders = await apiService.getAuthHeaders()
@@ -202,10 +212,10 @@ export const authService = {
         throw new Error(data.message || 'Profile update failed')
       }
 
-      console.log('✅ Profile updated successfully:', data)
+      console.log('Profile updated successfully:', data)
       return data // Return the full response with success status
     } catch (error) {
-      console.error('❌ Profile update failed:', error)
+      console.error('Profile update failed:', error)
       throw error
     }
   },
@@ -213,14 +223,14 @@ export const authService = {
   // Get current user profile
   getUserProfile: async () => {
     try {
-      console.log('🔄 Fetching user profile')
+      console.log('Fetching user profile')
 
       const response = await apiService.get(API_ENDPOINTS.AUTH.PROFILE, { requiresAuth: true })
 
-      console.log('✅ Profile fetched successfully')
+      console.log('Profile fetched successfully')
       return response
     } catch (error) {
-      console.error('❌ Failed to fetch profile:', error)
+      console.error('Failed to fetch profile:', error)
       throw error
     }
   },
@@ -228,12 +238,12 @@ export const authService = {
   // Manual token refresh
   refreshTokens: async () => {
     try {
-      console.log('🔄 Manually refreshing tokens...')
+      console.log('Manually refreshing tokens...')
       const newAccessToken = await tokenService.refreshAccessToken()
-      console.log('✅ Manual token refresh successful')
+      console.log('Manual token refresh successful')
       return newAccessToken
     } catch (error) {
-      console.error('❌ Manual token refresh failed:', error)
+      console.error('Manual token refresh failed:', error)
       throw error
     }
   },

@@ -19,11 +19,11 @@ export const forgotPasswordService = {
         email: email
       })
       
-      console.log('✅ Password reset OTP request successful')
+      console.log('Password reset OTP request successful')
       
       return response
     } catch (error) {
-      console.error('❌ Password reset OTP request failed:', error)
+      console.error('Password reset OTP request failed:', error)
       throw error
     }
   },
@@ -43,10 +43,10 @@ export const forgotPasswordService = {
         otp_code: otpCode
       })
       
-      console.log('✅ OTP verification successful')
+      console.log('OTP verification successful')
       return response
     } catch (error) {
-      console.error('❌ OTP verification failed:', error)
+      console.error('OTP verification failed:', error)
       throw error
     }
   },
@@ -70,10 +70,10 @@ export const forgotPasswordService = {
         confirm_password: confirmPassword
       })
       
-      console.log('✅ Password reset successful')
+      console.log('Password reset successful')
       return response
     } catch (error) {
-      console.error('❌ Password reset failed:', error)
+      console.error('Password reset failed:', error)
       throw error
     }
   },
@@ -91,10 +91,10 @@ export const forgotPasswordService = {
         email: email
       })
       
-      console.log('✅ OTP resend successful')
+      console.log('OTP resend successful')
       return response
     } catch (error) {
-      console.error('❌ OTP resend failed:', error)
+      console.error('OTP resend failed:', error)
       throw error
     }
   },

@@ -42,14 +42,14 @@ export default function ExportClientsModal({ isOpen, onClose, currentFilters = {
 
       if (result.success) {
         toast.success(result.message || 'Clients exported successfully!')
-        console.log('✅ Clients exported successfully')
+        console.log('Clients exported successfully')
         onClose() // Close modal on success
       } else {
         toast.error(result.error || 'Failed to export clients')
-        console.error('❌ Export failed:', result.error)
+        console.error('Export failed:', result.error)
       }
     } catch (error) {
-      console.error('❌ Failed to export clients:', error)
+      console.error('Failed to export clients:', error)
       toast.error('Failed to export clients. Please try again.')
     } finally {
       setIsExporting(false)

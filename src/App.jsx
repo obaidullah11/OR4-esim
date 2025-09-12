@@ -243,11 +243,7 @@ function App() {
             <Route path="/reseller-dashboard/reports" element={
               <ResellerRoute>
                 <ResellerLayout>
-                  <div className="p-6">
-                    <h1 className="text-2xl font-bold mb-4">Reseller Reports</h1>
-                    <p>Reports page is working! Now loading the full reports component...</p>
-                    <ReportsPage />
-                  </div>
+                  <ReportsPage isResellerView={true} />
                 </ResellerLayout>
               </ResellerRoute>
             } />

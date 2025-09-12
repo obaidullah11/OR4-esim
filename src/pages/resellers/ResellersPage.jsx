@@ -92,168 +92,8 @@ const formatPhoneNumber = (phoneNumber) => {
   return phoneNumber
 }
 
-// Sample reseller data
-const sampleResellers = [
-  {
-    id: 1,
-    name: 'John Smith',
-    firstName: 'John',
-    lastName: 'Smith',
-    email: 'john.smith@techcorp.com',
-    phone: '+1 555-123-4567',
-    countryOfRegistration: 'US',
-    status: 'active',
-    joinDate: '2024-01-15',
-    revenue: 45000,
-    clients: 125,
-    simLimit: 1000,
-    simUsed: 750,
-    creditLimit: 50000,
-    creditUsed: 35000,
-    lastActivity: '2 hours ago',
-    location: 'United States'
-  },
-  {
-    id: 2,
-    name: 'Sarah Johnson',
-    firstName: 'Sarah',
-    lastName: 'Johnson',
-    email: 'sarah.johnson@globalsim.com',
-    phone: '+44 20 7123 4567',
-    countryOfRegistration: 'GB',
-    status: 'active',
-    joinDate: '2024-02-20',
-    revenue: 32000,
-    clients: 89,
-    simLimit: 800,
-    simUsed: 520,
-    creditLimit: 40000,
-    creditUsed: 28000,
-    lastActivity: '1 day ago',
-    location: 'United Kingdom'
-  },
-  {
-    id: 3,
-    name: 'Hans Mueller',
-    firstName: 'Hans',
-    lastName: 'Mueller',
-    email: 'hans.mueller@mobilesol.com',
-    phone: '+49 30 12345678',
-    countryOfRegistration: 'DE',
-    status: 'suspended',
-    joinDate: '2023-11-10',
-    revenue: 28000,
-    clients: 67,
-    simLimit: 600,
-    simUsed: 580,
-    creditLimit: 30000,
-    creditUsed: 29500,
-    lastActivity: '1 week ago',
-    location: 'Germany'
-  },
-  {
-    id: 4,
-    name: 'Marie Dubois',
-    firstName: 'Marie',
-    lastName: 'Dubois',
-    email: 'marie.dubois@connectpro.com',
-    phone: '+33 1 23 45 67 89',
-    countryOfRegistration: 'FR',
-    status: 'active',
-    joinDate: '2024-03-05',
-    revenue: 22000,
-    clients: 45,
-    simLimit: 500,
-    simUsed: 320,
-    creditLimit: 25000,
-    creditUsed: 18000,
-    lastActivity: '3 hours ago',
-    location: 'France'
-  },
-  {
-    id: 5,
-    name: 'David Chen',
-    firstName: 'David',
-    lastName: 'Chen',
-    email: 'david.chen@simmaster.com',
-    phone: '+1 555-987-6543',
-    countryOfRegistration: 'CA',
-    status: 'pending',
-    joinDate: '2024-06-01',
-    revenue: 5000,
-    clients: 12,
-    simLimit: 200,
-    simUsed: 45,
-    creditLimit: 10000,
-    creditUsed: 3500,
-    lastActivity: '5 minutes ago',
-    location: 'Canada'
-  }
-]
-
-// Sample reseller requests data
-const sampleResellerRequests = [
-  {
-    id: 1,
-    firstName: 'Michael',
-    lastName: 'Chen',
-    name: 'Michael Chen',
-    email: 'michael.chen@techstart.com',
-    phoneCountryCode: 'US',
-    phoneNumber: '555-987-6543',
-    countryOfRegistration: 'US',
-    companyName: 'TechStart Solutions',
-    businessType: 'Technology',
-    requestDate: '2024-01-20',
-    status: 'pending',
-    documents: ['business_license.pdf', 'tax_certificate.pdf']
-  },
-  {
-    id: 2,
-    firstName: 'Emma',
-    lastName: 'Rodriguez',
-    name: 'Emma Rodriguez',
-    email: 'emma.rodriguez@globalcom.es',
-    phoneCountryCode: 'ES',
-    phoneNumber: '612-345-678',
-    countryOfRegistration: 'ES',
-    companyName: 'GlobalCom España',
-    businessType: 'Telecommunications',
-    requestDate: '2024-01-18',
-    status: 'pending',
-    documents: ['company_registration.pdf', 'vat_certificate.pdf']
-  },
-  {
-    id: 3,
-    firstName: 'Ahmed',
-    lastName: 'Hassan',
-    name: 'Ahmed Hassan',
-    email: 'ahmed.hassan@middleeasttech.ae',
-    phoneCountryCode: 'AE',
-    phoneNumber: '50-123-4567',
-    countryOfRegistration: 'AE',
-    companyName: 'Middle East Tech',
-    businessType: 'IT Services',
-    requestDate: '2024-01-16',
-    status: 'pending',
-    documents: ['trade_license.pdf', 'emirates_id.pdf']
-  },
-  {
-    id: 4,
-    firstName: 'Lisa',
-    lastName: 'Wang',
-    name: 'Lisa Wang',
-    email: 'lisa.wang@asiapacific.sg',
-    phoneCountryCode: 'SG',
-    phoneNumber: '8123-4567',
-    countryOfRegistration: 'SG',
-    companyName: 'Asia Pacific Networks',
-    businessType: 'Networking',
-    requestDate: '2024-01-14',
-    status: 'pending',
-    documents: ['acra_certificate.pdf', 'gst_certificate.pdf']
-  }
-]
+// NO SAMPLE DATA - Using real backend data only
+  
 
 function ResellersPage() {
   const { resolvedTheme } = useTheme()
@@ -323,7 +163,7 @@ function ResellersPage() {
       if (response.success) {
         const formattedRequests = resellerService.formatActivationRequestsList(response.data.results)
         setResellerRequests(formattedRequests)
-        console.log('✅ Activation requests loaded:', formattedRequests.length)
+        console.log('Activation requests loaded:', formattedRequests.length)
       } else {
         // No fallback to sample data - show error
         console.error('API failed to load activation requests:', response.error)
@@ -439,7 +279,7 @@ function ResellersPage() {
         throw new Error(response.message || 'Failed to suspend reseller')
       }
     } catch (error) {
-      console.error('❌ Failed to suspend reseller:', error)
+      console.error('Failed to suspend reseller:', error)
       toast.error('Failed to suspend reseller - using demo mode')
       // Demo mode fallback
       setShowSuspensionModal(false)
@@ -471,7 +311,7 @@ function ResellersPage() {
         throw new Error(response.message || 'Failed to activate reseller')
       }
     } catch (error) {
-      console.error('❌ Failed to activate reseller:', error)
+      console.error('Failed to activate reseller:', error)
       toast.error('Failed to activate reseller - using demo mode')
       // Demo mode fallback
       setShowDetailsModal(false)
@@ -489,7 +329,7 @@ function ResellersPage() {
 
     try {
       setIsDeleting(true)
-      console.log('🗑️ Deleting reseller:', selectedResellerForDelete.id)
+      console.log('Deleting reseller:', selectedResellerForDelete.id)
 
       const response = await resellerService.deleteReseller(selectedResellerForDelete.id)
       console.log('📥 Delete response:', response)
@@ -506,7 +346,7 @@ function ResellersPage() {
         }))
         
         toast.success('Reseller deleted successfully')
-        console.log('✅ Reseller deleted:', selectedResellerForDelete.id)
+        console.log('Reseller deleted:', selectedResellerForDelete.id)
         
         // Refresh the reseller list from server to ensure consistency
         setTimeout(() => {
@@ -514,10 +354,10 @@ function ResellersPage() {
         }, 500)
       } else {
         toast.error(response.error || 'Failed to delete reseller')
-        console.error('❌ Failed to delete reseller:', response.error)
+        console.error('Failed to delete reseller:', response.error)
       }
     } catch (error) {
-      console.error('❌ Failed to delete reseller:', error)
+      console.error('Failed to delete reseller:', error)
       
       // Handle specific error types
       if (error.message === 'Failed to fetch') {
@@ -553,7 +393,7 @@ function ResellersPage() {
         fetchActivationRequests()
       ])
       toast.success('Data refreshed successfully')
-      console.log('🔄 Resellers and activation requests refreshed')
+      console.log('Resellers and activation requests refreshed')
     } catch (error) {
       console.error('Failed to refresh data:', error)
       toast.error('Failed to refresh data')
@@ -608,13 +448,13 @@ function ResellersPage() {
         ])
 
         toast.success(`Reseller ${request.name} activated successfully`)
-        console.log('✅ Reseller activated:', request.name)
+        console.log('Reseller activated:', request.name)
       } else {
         toast.error(response.error || 'Failed to activate reseller')
-        console.error('❌ Failed to activate reseller:', response.error)
+        console.error('Failed to activate reseller:', response.error)
       }
     } catch (error) {
-      console.error('❌ Failed to activate reseller:', error)
+      console.error('Failed to activate reseller:', error)
       toast.error('Failed to activate reseller')
     }
   }
@@ -640,13 +480,13 @@ function ResellersPage() {
         await fetchActivationRequests()
 
         toast.success(`Request from ${selectedRequestForRejection.name} rejected`)
-        console.log('✅ Reseller request rejected:', selectedRequestForRejection.name)
+        console.log('Reseller request rejected:', selectedRequestForRejection.name)
       } else {
         toast.error(response.error || 'Failed to reject request')
-        console.error('❌ Failed to reject request:', response.error)
+        console.error('Failed to reject request:', response.error)
       }
     } catch (error) {
-      console.error('❌ Failed to reject request:', error)
+      console.error('Failed to reject request:', error)
       toast.error('Failed to reject request')
     } finally {
       setShowRejectModal(false)

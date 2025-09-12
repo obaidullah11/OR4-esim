@@ -95,7 +95,7 @@ export function AuthProvider({ children }) {
             const user = await authService.getCurrentUser()
             dispatch({ type: 'SET_USER', payload: user })
           } catch (error) {
-            console.error('❌ Token refresh failed during init:', error)
+            console.error('Token refresh failed during init:', error)
             dispatch({ type: 'TOKEN_EXPIRED' })
           }
         } else {
@@ -103,7 +103,7 @@ export function AuthProvider({ children }) {
           dispatch({ type: 'SET_LOADING', payload: false })
         }
       } catch (error) {
-        console.error('❌ Auth initialization failed:', error)
+        console.error('Auth initialization failed:', error)
         dispatch({ type: 'TOKEN_EXPIRED' })
       }
     }
@@ -124,7 +124,7 @@ export function AuthProvider({ children }) {
           const newToken = await authService.refreshTokens()
           dispatch({ type: 'TOKEN_REFRESHED', payload: newToken })
         } catch (error) {
-          console.error('❌ Automatic token refresh failed:', error)
+          console.error('Automatic token refresh failed:', error)
           dispatch({ type: 'TOKEN_EXPIRED' })
         }
       } else if (tokenStatus === 'expired') {
@@ -161,7 +161,7 @@ export function AuthProvider({ children }) {
       await authService.logout()
       dispatch({ type: 'LOGOUT' })
     } catch (error) {
-      console.error('❌ Logout error:', error)
+      console.error('Logout error:', error)
       // Even if logout fails, clear local state
       dispatch({ type: 'LOGOUT' })
     }
@@ -175,7 +175,7 @@ export function AuthProvider({ children }) {
       dispatch({ type: 'TOKEN_REFRESHED', payload: newToken })
       return newToken
     } catch (error) {
-      console.error('❌ Token refresh failed:', error)
+      console.error('Token refresh failed:', error)
       dispatch({ type: 'TOKEN_EXPIRED' })
       throw error
     }

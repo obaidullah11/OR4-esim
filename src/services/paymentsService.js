@@ -57,7 +57,7 @@ export const paymentsService = {
         }
       }
     } catch (error) {
-      console.error('❌ Failed to fetch payments:', error)
+      console.error('Failed to fetch payments:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch payments',
@@ -88,7 +88,7 @@ export const paymentsService = {
         data: data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch payment:', error)
+      console.error('Failed to fetch payment:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch payment'
@@ -110,7 +110,7 @@ export const paymentsService = {
         message: 'Payment processed successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to process payment:', error)
+      console.error('Failed to process payment:', error)
       return {
         success: false,
         error: error.message || 'Failed to process payment'
@@ -133,7 +133,7 @@ export const paymentsService = {
         message: 'Checkout session created successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to create Stripe checkout session:', error)
+      console.error('Failed to create Stripe checkout session:', error)
       return {
         success: false,
         error: error.message || 'Failed to create checkout session'
@@ -155,7 +155,7 @@ export const paymentsService = {
         message: 'Session verified successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to verify checkout session:', error)
+      console.error('Failed to verify checkout session:', error)
       return {
         success: false,
         error: error.message || 'Failed to verify session'
@@ -178,7 +178,7 @@ export const paymentsService = {
         message: 'Stripe service is operational'
       }
     } catch (error) {
-      console.error('❌ Stripe service test failed:', error)
+      console.error('Stripe service test failed:', error)
       return {
         success: false,
         error: error.message || 'Stripe service test failed'
@@ -209,7 +209,7 @@ export const paymentsService = {
         message: 'Payment status updated successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to update payment status:', error)
+      console.error('Failed to update payment status:', error)
       return {
         success: false,
         error: error.message || 'Failed to update payment status'
@@ -236,7 +236,7 @@ export const paymentsService = {
         message: 'Refund processed successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to process refund:', error)
+      console.error('Failed to process refund:', error)
       return {
         success: false,
         error: error.message || 'Failed to process refund'
@@ -249,7 +249,7 @@ export const paymentsService = {
     try {
       return await this.updatePaymentStatus(paymentId, 'approved', notes)
     } catch (error) {
-      console.error('❌ Failed to approve payment:', error)
+      console.error('Failed to approve payment:', error)
       return {
         success: false,
         error: error.message || 'Failed to approve payment'
@@ -262,7 +262,7 @@ export const paymentsService = {
     try {
       return await this.updatePaymentStatus(paymentId, 'rejected', reason)
     } catch (error) {
-      console.error('❌ Failed to reject payment:', error)
+      console.error('Failed to reject payment:', error)
       return {
         success: false,
         error: error.message || 'Failed to reject payment'
@@ -292,7 +292,7 @@ export const paymentsService = {
         data: data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch payment statistics:', error)
+      console.error('Failed to fetch payment statistics:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch payment statistics',
@@ -357,7 +357,7 @@ export const paymentsService = {
    */
   async exportTransactions(filters = {}) {
     try {
-      console.log('🔄 Exporting transactions to CSV')
+      console.log('Exporting transactions to CSV')
 
       const queryParams = new URLSearchParams()
 
@@ -388,13 +388,13 @@ export const paymentsService = {
         document.body.removeChild(link)
         window.URL.revokeObjectURL(downloadUrl)
 
-        console.log('✅ Transactions exported successfully')
+        console.log('Transactions exported successfully')
         return { success: true }
       }
 
       return response
     } catch (error) {
-      console.error('❌ Failed to export transactions:', error)
+      console.error('Failed to export transactions:', error)
       return {
         success: false,
         error: error.message || 'Failed to export transactions'
@@ -409,7 +409,7 @@ export const paymentsService = {
    */
   async getPaymentAnalytics(period = '30d') {
     try {
-      console.log('🔄 Fetching payment analytics for period:', period)
+      console.log('Fetching payment analytics for period:', period)
 
       const response = await apiService.get(buildApiUrl(`payments/analytics/?period=${period}`), { requiresAuth: true })
 
@@ -429,7 +429,7 @@ export const paymentsService = {
 
       return response
     } catch (error) {
-      console.error('❌ Failed to fetch payment analytics:', error)
+      console.error('Failed to fetch payment analytics:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch analytics'
@@ -552,7 +552,7 @@ export const paymentsService = {
 
       return response // Return the response for blob handling
     } catch (error) {
-      console.error('❌ Failed to generate invoice:', error)
+      console.error('Failed to generate invoice:', error)
       throw error
     }
   },
@@ -596,7 +596,7 @@ export const paymentsService = {
 
       return { success: true }
     } catch (error) {
-      console.error('❌ Failed to export payments:', error)
+      console.error('Failed to export payments:', error)
       throw error
     }
   },
@@ -612,7 +612,7 @@ export const paymentsService = {
         data: response.data || response
       }
     } catch (error) {
-      console.error('❌ Failed to delete payment:', error)
+      console.error('Failed to delete payment:', error)
       return {
         success: false,
         error: error.message || 'Failed to delete payment'

@@ -43,7 +43,7 @@ export const traveRoamService = {
         message: 'Plans retrieved successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to fetch TraveRoam plans:', error)
+      console.error('Failed to fetch TraveRoam plans:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch plans',
@@ -72,7 +72,7 @@ export const traveRoamService = {
         message: 'Catalogue retrieved successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to fetch TraveRoam catalogue:', error)
+      console.error('Failed to fetch TraveRoam catalogue:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch catalogue',
@@ -101,7 +101,7 @@ export const traveRoamService = {
         message: 'Networks retrieved successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to fetch TraveRoam networks:', error)
+      console.error('Failed to fetch TraveRoam networks:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch networks',
@@ -120,7 +120,7 @@ export const traveRoamService = {
         returnall: false
       })
     } catch (error) {
-      console.error('❌ Failed to fetch networks by countries:', error)
+      console.error('Failed to fetch networks by countries:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch networks by countries',
@@ -136,7 +136,7 @@ export const traveRoamService = {
         returnall: true
       })
     } catch (error) {
-      console.error('❌ Failed to fetch all networks:', error)
+      console.error('Failed to fetch all networks:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch all networks',
@@ -178,7 +178,7 @@ export const traveRoamService = {
         message: 'eSIM assigned successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to assign eSIM:', error)
+      console.error('Failed to assign eSIM:', error)
       return {
         success: false,
         error: error.message || 'Failed to assign eSIM'
@@ -189,7 +189,7 @@ export const traveRoamService = {
   // Provision eSIM through TraveRoam workflow
   async provisionEsim(provisionData) {
     try {
-      console.log('🚀 Provisioning eSIM via TraveRoam API...')
+      console.log('Provisioning eSIM via TraveRoam API...')
 
       // Use the TraveRoam order processing endpoint
       const payload = {
@@ -211,7 +211,7 @@ export const traveRoamService = {
         throw new Error(data.message || 'Provisioning failed')
       }
     } catch (error) {
-      console.error('❌ Failed to provision eSIM:', error)
+      console.error('Failed to provision eSIM:', error)
       return {
         success: false,
         error: error.message || 'Failed to provision eSIM'
@@ -241,7 +241,7 @@ export const traveRoamService = {
         message: `Bulk assignment completed: ${successCount} successful, ${failureCount} failed`
       }
     } catch (error) {
-      console.error('❌ Failed to bulk assign eSIMs:', error)
+      console.error('Failed to bulk assign eSIMs:', error)
       return {
         success: false,
         error: error.message || 'Failed to bulk assign eSIMs'
@@ -262,7 +262,7 @@ export const traveRoamService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error(`❌ Failed to get eSIM status for ${esimId}:`, error)
+      console.error(`Failed to get eSIM status for ${esimId}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to get eSIM status'
@@ -283,7 +283,7 @@ export const traveRoamService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error(`❌ Failed to get eSIM usage for ${esimId}:`, error)
+      console.error(`Failed to get eSIM usage for ${esimId}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to get eSIM usage'
@@ -327,7 +327,7 @@ export const traveRoamService = {
         message: 'Order processed successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to process order:', error)
+      console.error('Failed to process order:', error)
       return {
         success: false,
         error: error.message || 'Failed to process order'
@@ -347,7 +347,7 @@ export const traveRoamService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error(`❌ Failed to get order status for ${orderId}:`, error)
+      console.error(`Failed to get order status for ${orderId}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to get order status'
@@ -370,7 +370,7 @@ export const traveRoamService = {
       }
 
       // Debug: Log the final payload being sent to backend (remove in production)
-      console.log('🚀 Final backend payload:', payload)
+      console.log('Final backend payload:', payload)
 
       const response = await apiService.post(buildApiUrl(API_ENDPOINTS.ESIM_RESELLER.CLIENTS), payload, { requiresAuth: true })
       const data = response.data || response
@@ -381,7 +381,7 @@ export const traveRoamService = {
         message: 'Client created successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to create client:', error)
+      console.error('Failed to create client:', error)
       
       // Handle specific validation errors from backend
       let errorMessage = error.message || 'Failed to create client'
@@ -421,7 +421,7 @@ export const traveRoamService = {
         message: 'Clients retrieved successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to get reseller clients:', error)
+      console.error('Failed to get reseller clients:', error)
       return {
         success: false,
         error: error.message || 'Failed to get clients',
@@ -443,7 +443,7 @@ export const traveRoamService = {
         message: 'Client validated successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to validate client:', error)
+      console.error('Failed to validate client:', error)
       return {
         success: false,
         error: error.message || 'Failed to validate client'

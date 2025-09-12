@@ -39,14 +39,14 @@ export default function ExportHistoryModal({ isOpen, onClose, currentFilters = {
 
       if (result.success) {
         toast.success(result.message || 'eSIM history exported successfully!')
-        console.log('✅ eSIM history exported successfully')
+        console.log('eSIM history exported successfully')
         onClose() // Close modal on success
       } else {
         toast.error(result.error || 'Failed to export eSIM history')
-        console.error('❌ Export failed:', result.error)
+        console.error('Export failed:', result.error)
       }
     } catch (error) {
-      console.error('❌ Failed to export eSIM history:', error)
+      console.error('Failed to export eSIM history:', error)
       toast.error('Failed to export eSIM history. Please try again.')
     } finally {
       setIsExporting(false)

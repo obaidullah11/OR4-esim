@@ -59,7 +59,7 @@ export const resellerService = {
         }
       }
     } catch (error) {
-      console.error('❌ Failed to fetch resellers:', error)
+      console.error('Failed to fetch resellers:', error)
       throw error
     }
   },
@@ -78,7 +78,7 @@ export const resellerService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error(`❌ Failed to fetch reseller ${id}:`, error)
+      console.error(`Failed to fetch reseller ${id}:`, error)
       throw error
     }
   },
@@ -96,7 +96,7 @@ export const resellerService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error('❌ Failed to create reseller:', error)
+      console.error('Failed to create reseller:', error)
       throw error
     }
   },
@@ -115,7 +115,7 @@ export const resellerService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error(`❌ Failed to update reseller ${id}:`, error)
+      console.error(`Failed to update reseller ${id}:`, error)
       throw error
     }
   },
@@ -134,7 +134,7 @@ export const resellerService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error(`❌ Failed to patch reseller ${id}:`, error)
+      console.error(`Failed to patch reseller ${id}:`, error)
       throw error
     }
   },
@@ -160,7 +160,7 @@ export const resellerService = {
         }
       }
     } catch (error) {
-      console.error(`❌ Failed to delete reseller ${id}:`, error)
+      console.error(`Failed to delete reseller ${id}:`, error)
       throw error
     }
   },
@@ -178,7 +178,7 @@ export const resellerService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch my profile:', error)
+      console.error('Failed to fetch my profile:', error)
       throw error
     }
   },
@@ -196,7 +196,7 @@ export const resellerService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch statistics:', error)
+      console.error('Failed to fetch statistics:', error)
       throw error
     }
   },
@@ -219,7 +219,7 @@ export const resellerService = {
         }
       }
     } catch (error) {
-      console.error(`❌ Failed to suspend reseller ${id}:`, error)
+      console.error(`Failed to suspend reseller ${id}:`, error)
       throw error
     }
   },
@@ -242,7 +242,7 @@ export const resellerService = {
         }
       }
     } catch (error) {
-      console.error(`❌ Failed to activate reseller ${id}:`, error)
+      console.error(`Failed to activate reseller ${id}:`, error)
       throw error
     }
   },
@@ -261,7 +261,7 @@ export const resellerService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error(`❌ Failed to change status for reseller ${id}:`, error)
+      console.error(`Failed to change status for reseller ${id}:`, error)
       throw error
     }
   },
@@ -279,7 +279,7 @@ export const resellerService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch available users:', error)
+      console.error('Failed to fetch available users:', error)
       throw error
     }
   },
@@ -341,7 +341,7 @@ export const resellerService = {
    */
   async getActivationRequests(params = {}) {
     try {
-      console.log('🔄 Fetching reseller activation requests')
+      console.log('Fetching reseller activation requests')
 
       const queryParams = new URLSearchParams()
 
@@ -374,7 +374,7 @@ export const resellerService = {
         }
       }
     } catch (error) {
-      console.error('❌ Failed to fetch activation requests:', error)
+      console.error('Failed to fetch activation requests:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch activation requests'
@@ -387,7 +387,7 @@ export const resellerService = {
    */
   async approveActivationRequest(requestId, approvalData = {}) {
     try {
-      console.log('🔄 Approving reseller activation request:', requestId)
+      console.log('Approving reseller activation request:', requestId)
 
       const url = `${RESELLER_ACTIVATION_REQUESTS_URL}${requestId}/approve_request/`
 
@@ -398,7 +398,7 @@ export const resellerService = {
         notes: approvalData.notes || ''
       }, { requiresAuth: true })
 
-      console.log('🔍 Full response from backend:', response)
+      console.log('Full response from backend:', response)
       
       // The backend returns a successful response, so if we get here without error, it's successful
       // Check for success indicators in the response
@@ -408,7 +408,7 @@ export const resellerService = {
                        (response.status === 'approved')
 
       if (isSuccess) {
-        console.log('✅ Activation request approved successfully')
+        console.log('Activation request approved successfully')
         return {
           success: true,
           data: response.data || response,
@@ -417,14 +417,14 @@ export const resellerService = {
       }
 
       // If we reach here, treat as success since no error was thrown
-      console.log('✅ Treating as successful response (no error thrown)')
+      console.log('Treating as successful response (no error thrown)')
       return {
         success: true,
         data: response.data || response,
         message: 'Reseller activation request approved successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to approve activation request:', error)
+      console.error('Failed to approve activation request:', error)
       return {
         success: false,
         error: error.message || 'Failed to approve activation request'
@@ -437,7 +437,7 @@ export const resellerService = {
    */
   async rejectActivationRequest(requestId, rejectionReason) {
     try {
-      console.log('🔄 Rejecting reseller activation request:', requestId)
+      console.log('Rejecting reseller activation request:', requestId)
 
       const url = `${RESELLER_ACTIVATION_REQUESTS_URL}${requestId}/reject_request/`
 
@@ -445,7 +445,7 @@ export const resellerService = {
         admin_notes: rejectionReason
       }, { requiresAuth: true })
 
-      console.log('🔍 Full rejection response from backend:', response)
+      console.log('Full rejection response from backend:', response)
       
       // The backend returns a successful response, so if we get here without error, it's successful
       const isSuccess = response.success === true || 
@@ -454,7 +454,7 @@ export const resellerService = {
                        (response.status === 'rejected')
 
       if (isSuccess) {
-        console.log('✅ Activation request rejected successfully')
+        console.log('Activation request rejected successfully')
         return {
           success: true,
           data: response.data || response,
@@ -463,14 +463,14 @@ export const resellerService = {
       }
 
       // If we reach here, treat as success since no error was thrown
-      console.log('✅ Treating rejection as successful response (no error thrown)')
+      console.log('Treating rejection as successful response (no error thrown)')
       return {
         success: true,
         data: response.data || response,
         message: 'Reseller activation request rejected successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to reject activation request:', error)
+      console.error('Failed to reject activation request:', error)
       return {
         success: false,
         error: error.message || 'Failed to reject activation request'

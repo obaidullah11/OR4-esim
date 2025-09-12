@@ -128,7 +128,7 @@ function OrdersPage() {
   const fetchOrders = async () => {
     try {
       setLoading(true)
-      console.log('🔄 Fetching orders...')
+      console.log('Fetching orders...')
 
       const params = {
         page: pagination.page,
@@ -145,21 +145,21 @@ function OrdersPage() {
 
       if (response.success) {
         const ordersData = response.data.results || response.data || []
-        console.log('📦 Raw orders data:', ordersData)
+        console.log('Raw orders data:', ordersData)
         setOrders(ordersData)
         setPagination(prev => ({
           ...prev,
           total: response.data.count || ordersData.length || 0,
           totalPages: response.data.pagination?.totalPages || Math.ceil((response.data.count || ordersData.length || 0) / prev.limit)
         }))
-        console.log('✅ Orders loaded:', ordersData.length)
+        console.log('Orders loaded:', ordersData.length)
       } else {
-        console.error('❌ Failed to fetch orders:', response.error)
+        console.error('Failed to fetch orders:', response.error)
         toast.error(response.error || 'Failed to fetch orders')
         setOrders([])
       }
     } catch (error) {
-      console.error('❌ Error fetching orders:', error)
+      console.error('Error fetching orders:', error)
       if (error.message === 'Failed to fetch') {
         toast.error('Connection error. Please check your internet connection and try again.')
       } else if (error.message?.includes('404')) {
@@ -252,7 +252,7 @@ function OrdersPage() {
         toast.error(errorData.error || 'Failed to generate invoice')
       }
     } catch (error) {
-      console.error('❌ Failed to generate invoice:', error)
+      console.error('Failed to generate invoice:', error)
       toast.error('Failed to generate invoice: ' + (error.message || 'Unknown error'))
     }
   }
@@ -268,7 +268,7 @@ function OrdersPage() {
 
     try {
       setIsDeleting(true)
-      console.log('🗑️ Deleting order:', selectedOrderForDelete.id)
+      console.log('Deleting order:', selectedOrderForDelete.id)
 
       const response = await ordersService.deleteOrder(selectedOrderForDelete.id)
       console.log('📥 Delete response:', response)
@@ -285,7 +285,7 @@ function OrdersPage() {
         }))
 
         toast.success('Order deleted successfully')
-        console.log('✅ Order deleted:', selectedOrderForDelete.id)
+        console.log('Order deleted:', selectedOrderForDelete.id)
 
         // Refresh the order list from server to ensure consistency
         setTimeout(() => {
@@ -293,10 +293,10 @@ function OrdersPage() {
         }, 500)
       } else {
         toast.error(response.error || 'Failed to delete order')
-        console.error('❌ Failed to delete order:', response.error)
+        console.error('Failed to delete order:', response.error)
       }
     } catch (error) {
-      console.error('❌ Failed to delete order:', error)
+      console.error('Failed to delete order:', error)
 
       // Handle specific error types
       if (error.message === 'Failed to fetch') {
@@ -328,7 +328,7 @@ function OrdersPage() {
     if (!selectedOrder) return
 
     try {
-      console.log('💾 Updating order:', selectedOrder.id, editFormData)
+      console.log('Updating order:', selectedOrder.id, editFormData)
 
       const response = await ordersService.updateOrderStatus(
         selectedOrder.id,
@@ -346,7 +346,7 @@ function OrdersPage() {
         toast.error(response.error || 'Failed to update order')
       }
     } catch (error) {
-      console.error('❌ Failed to update order:', error)
+      console.error('Failed to update order:', error)
       toast.error('Failed to update order')
     }
   }
@@ -357,7 +357,7 @@ function OrdersPage() {
     if (!selectedOrder) return
 
     try {
-      console.log('🔄 Updating order status:', selectedOrder.id, statusUpdateData)
+      console.log('Updating order status:', selectedOrder.id, statusUpdateData)
 
       const response = await ordersService.updateOrderStatus(
         selectedOrder.id,
@@ -375,7 +375,7 @@ function OrdersPage() {
         toast.error(response.error || 'Failed to update order status')
       }
     } catch (error) {
-      console.error('❌ Failed to update order status:', error)
+      console.error('Failed to update order status:', error)
       toast.error('Failed to update order status')
     }
   }
@@ -399,7 +399,7 @@ function OrdersPage() {
         toast.error(response.error || 'Failed to export orders')
       }
     } catch (error) {
-      console.error('❌ Failed to export orders:', error)
+      console.error('Failed to export orders:', error)
       toast.error('Failed to export orders')
     }
   }

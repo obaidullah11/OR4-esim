@@ -179,9 +179,9 @@ function ApiTestPage() {
       }))
 
       if (result.success) {
-        toast.success(`✅ ${test.name} passed`)
+        toast.success(`${test.name} passed`)
       } else {
-        toast.error(`❌ ${test.name} failed: ${result.error}`)
+        toast.error(`${test.name} failed: ${result.error}`)
       }
     } catch (error) {
       const endTime = Date.now()
@@ -197,7 +197,7 @@ function ApiTestPage() {
         }
       }))
 
-      toast.error(`❌ ${test.name} failed: ${error.message}`)
+      toast.error(`${test.name} failed: ${error.message}`)
     }
   }
 
@@ -224,7 +224,7 @@ function ApiTestPage() {
     }
     
     setIsRunning(false)
-    toast.success('🎉 All API tests completed!')
+    toast.success('All API tests completed!')
   }
 
   // Clear all results

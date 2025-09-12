@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTheme } from '../../context/ThemeContext'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import {
   Users,
   UserPlus,
@@ -292,58 +293,38 @@ function ResellerDashboard() {
   const [error, setError] = useState(null)
   const [lastUpdated, setLastUpdated] = useState(null)
 
-  // Sample data for demonstration
-  const sampleData = {
-    metrics: {
-      totalClients: 125,
-      clientGrowth: 12,
-      activeEsims: 98,
-      esimGrowth: 8,
-      monthlyRevenue: 15750,
-      revenueGrowth: 15,
-      creditBalance: 25000,
-      creditUsage: 65
-    },
-    recentActivities: [
-      {
-        id: 1,
-        type: 'client',
-        action: 'New client registered: John Smith',
-        user: 'System',
-        time: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        id: 2,
-        type: 'esim',
-        action: 'eSIM assigned to Sarah Johnson - Europe 30 Days',
-        user: 'You',
-        time: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        id: 3,
-        type: 'payment',
-        action: 'Payment received: $250.00',
-        user: 'System',
-        time: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        id: 4,
-        type: 'esim',
-        action: 'eSIM activated: Michael Chen - Asia Pacific 7 Days',
-        user: 'Client',
-        time: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString()
-      }
-    ]
-  }
+  // Dashboard data will be fetched from backend API
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true)
       setError(null)
 
-      console.log('🔄 Fetching real reseller dashboard data...')
+      console.log('Fetching real reseller dashboard data...')
 
-      // Get dashboard data from multiple sources
+      // Try to get comprehensive dashboard data from backend
+      try {
+        // Use centralized API service
+        const { API_ENDPOINTS } = await import('../../config/api.js')
+        const { apiService } = await import('../../services/apiService.js')
+        
+        const dashboardData = await apiService.request(API_ENDPOINTS.ESIM_RESELLER.DASHBOARD, {
+          method: 'GET',
+          requiresAuth: true
+        })
+        
+        console.log('Dashboard API response:', dashboardData)
+        
+        if (dashboardData.success && dashboardData.dashboard) {
+          setDashboardData(dashboardData.dashboard)
+          setLoading(false)
+          return
+        }
+      } catch (apiError) {
+        console.warn('Dashboard API not available, using fallback:', apiError.message)
+      }
+
+      // Fallback to individual API calls if comprehensive endpoint fails
       const [clientsResponse, esimsResponse] = await Promise.allSettled([
         clientService.getMyClients({ limit: 100 }),
         esimService.getResellerEsims({ limit: 100 })
@@ -366,7 +347,7 @@ function ResellerDashboard() {
         ['active', 'activated'].includes(esim.status)
       )?.length || 0
 
-      // Calculate revenue (mock calculation for now)
+      // Calculate real revenue from order data
       const totalRevenue = esimsData.results?.reduce((sum, esim) =>
         sum + (esim.plan?.price || 0), 0
       ) || 0
@@ -377,10 +358,10 @@ function ResellerDashboard() {
           totalClients: totalClients,
           activeEsims: activeEsims,
           totalRevenue: totalRevenue,
-          monthlyGrowth: 12.5, // Mock for now
-          clientGrowth: totalClients > 0 ? 8.3 : 0,
-          esimGrowth: totalEsims > 0 ? 15.2 : 0,
-          revenueGrowth: totalRevenue > 0 ? 22.1 : 0
+          monthlyGrowth: 0, // Real data needed from backend analytics
+          clientGrowth: 0, // Real data needed from backend analytics
+          esimGrowth: 0, // Real data needed from backend analytics
+          revenueGrowth: 0 // Real data needed from backend analytics
         },
         recentClients: clientsData.results?.slice(0, 5).map(client => ({
           id: client.id,
@@ -396,16 +377,17 @@ function ResellerDashboard() {
           status: esim.status,
           assignedDate: esim.assigned_at || esim.created_at
         })) || [],
-        availablePlans: [] // Will be populated separately if needed
+        availablePlans: [], // Will be populated separately if needed
+        recentActivities: [] // Will be populated from backend dashboard endpoint
       }
 
       setDashboardData(transformedData)
       setLastUpdated(new Date())
-      console.log('✅ Dashboard data loaded successfully:', transformedData)
+      console.log('Dashboard data loaded successfully:', transformedData)
 
       setLoading(false)
     } catch (error) {
-      console.error('❌ Failed to fetch dashboard data:', error)
+      console.error('Failed to fetch dashboard data:', error)
       // No fallback to sample data - show error
       setDashboardData({
         metrics: { totalClients: 0, totalEsims: 0, activeEsims: 0, totalRevenue: 0, monthlyGrowth: 0 },
@@ -562,7 +544,7 @@ function ResellerDashboard() {
               ))}
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 max-h-64 overflow-y-auto">
               {dashboardData?.recentActivities?.length > 0 ? (
                 dashboardData.recentActivities.map((activity, index) => (
                   <div 

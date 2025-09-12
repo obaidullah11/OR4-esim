@@ -141,6 +141,7 @@ export const API_ENDPOINTS = {
     ESIM_DETAIL: 'api/v1/esim/reseller/esims/{id}/',
     PLANS: 'api/v1/esim/reseller/plans/',
     DASHBOARD: 'api/v1/esim/reseller/dashboard/',
+    REPORTS: 'api/v1/esim/reseller/dashboard/reports/',
   },
   TRAVEROAM: {
     PLANS: 'api/v1/traveroam/plans/',
@@ -150,6 +151,7 @@ export const API_ENDPOINTS = {
     ESIM_USAGE: 'api/v1/traveroam/esim/{esim_id}/usage/',
     ORDER_PROCESS: 'api/v1/traveroam/orders/process/',
     CLIENT_VALIDATE: 'api/v1/traveroam/client/validate/',
+    BUNDLE_VALIDATE: 'api/v1/traveroam/bundle/validate/',
     ANALYTICS: 'api/v1/traveroam/analytics/',
     BULK_OPERATIONS: 'api/v1/traveroam/bulk/',
   },

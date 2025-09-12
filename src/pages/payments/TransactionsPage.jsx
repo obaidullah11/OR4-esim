@@ -554,7 +554,7 @@ function TransactionsPage() {
         toast.error(errorData.error || 'Failed to generate invoice')
       }
     } catch (error) {
-      console.error('❌ Failed to download invoice:', error)
+      console.error('Failed to download invoice:', error)
       toast.error('Failed to download invoice')
     }
   }
@@ -562,7 +562,7 @@ function TransactionsPage() {
   const handleRefresh = async () => {
     await fetchTransactions({ page: 1 })
     toast.success('Transactions list refreshed')
-    console.log('🔄 Transactions list refreshed')
+    console.log('Transactions list refreshed')
   }
 
   const handleExportTransactions = async () => {
@@ -574,9 +574,9 @@ function TransactionsPage() {
 
       await paymentsService.exportPayments(filters)
       toast.success('Transactions exported successfully')
-      console.log('✅ Transactions exported')
+      console.log('Transactions exported')
     } catch (error) {
-      console.error('❌ Failed to export transactions:', error)
+      console.error('Failed to export transactions:', error)
       toast.error('Failed to export transactions')
     }
   }
@@ -592,7 +592,7 @@ function TransactionsPage() {
 
     try {
       setIsDeleting(true)
-      console.log('🗑️ Deleting payment:', selectedPaymentForDelete.id)
+      console.log('Deleting payment:', selectedPaymentForDelete.id)
 
       const response = await paymentsService.deletePayment(selectedPaymentForDelete.id)
       
@@ -608,7 +608,7 @@ function TransactionsPage() {
         }))
 
         toast.success('Payment record deleted successfully')
-        console.log('✅ Payment deleted:', selectedPaymentForDelete.id)
+        console.log('Payment deleted:', selectedPaymentForDelete.id)
 
         // Refresh the payments list from server to ensure consistency
         setTimeout(() => {
@@ -616,10 +616,10 @@ function TransactionsPage() {
         }, 500)
       } else {
         toast.error(response.error || 'Failed to delete payment')
-        console.error('❌ Failed to delete payment:', response.error)
+        console.error('Failed to delete payment:', response.error)
       }
     } catch (error) {
-      console.error('❌ Failed to delete payment:', error)
+      console.error('Failed to delete payment:', error)
 
       // Handle specific error types
       if (error.message === 'Failed to fetch') {

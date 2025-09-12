@@ -1,4 +1,4 @@
-import { Menu, Bell, User, LogOut, Layout, Dock } from 'lucide-react'
+import { Menu, User, LogOut, Layout, Dock } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../../../context/AuthContext'
 import { useTheme } from '../../../context/ThemeContext'
@@ -53,11 +53,6 @@ function Header({
           {/* Theme Toggle */}
           <ThemeToggle variant="simple" />
 
-          {/* Notifications */}
-          <button className="p-2 rounded-md relative transition-colors duration-200 text-muted-foreground hover:bg-accent hover:text-accent-foreground">
-            <Bell className="h-6 w-6" />
-            <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
-          </button>
 
           {/* User dropdown */}
           <div className="relative">

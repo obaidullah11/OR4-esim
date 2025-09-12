@@ -66,7 +66,7 @@ export const esimService = {
         }
       }
     } catch (error) {
-      console.error('❌ Failed to fetch eSIMs:', error)
+      console.error('Failed to fetch eSIMs:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch eSIMs',
@@ -92,7 +92,7 @@ export const esimService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error(`❌ Failed to fetch eSIM ${id}:`, error)
+      console.error(`Failed to fetch eSIM ${id}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to fetch eSIM'
@@ -121,7 +121,7 @@ export const esimService = {
         message: 'eSIM created successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to create eSIM:', error)
+      console.error('Failed to create eSIM:', error)
       return {
         success: false,
         error: error.message || 'Failed to create eSIM'
@@ -143,7 +143,7 @@ export const esimService = {
         message: 'eSIM updated successfully'
       }
     } catch (error) {
-      console.error(`❌ Failed to update eSIM ${id}:`, error)
+      console.error(`Failed to update eSIM ${id}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to update eSIM'
@@ -162,7 +162,7 @@ export const esimService = {
         message: 'eSIM deleted successfully'
       }
     } catch (error) {
-      console.error(`❌ Failed to delete eSIM ${id}:`, error)
+      console.error(`Failed to delete eSIM ${id}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to delete eSIM'
@@ -184,7 +184,7 @@ export const esimService = {
         message: 'eSIM activated successfully'
       }
     } catch (error) {
-      console.error(`❌ Failed to activate eSIM ${id}:`, error)
+      console.error(`Failed to activate eSIM ${id}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to activate eSIM'
@@ -206,7 +206,7 @@ export const esimService = {
         message: 'eSIM deactivated successfully'
       }
     } catch (error) {
-      console.error(`❌ Failed to deactivate eSIM ${id}:`, error)
+      console.error(`Failed to deactivate eSIM ${id}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to deactivate eSIM'
@@ -252,7 +252,7 @@ export const esimService = {
         }
       }
     } catch (error) {
-      console.error('❌ Failed to fetch eSIM plans:', error)
+      console.error('Failed to fetch eSIM plans:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch eSIM plans',
@@ -274,7 +274,7 @@ export const esimService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error(`❌ Failed to fetch eSIM plan ${id}:`, error)
+      console.error(`Failed to fetch eSIM plan ${id}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to fetch eSIM plan'
@@ -295,7 +295,7 @@ export const esimService = {
         message: 'eSIM plan created successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to create eSIM plan:', error)
+      console.error('Failed to create eSIM plan:', error)
       return {
         success: false,
         error: error.message || 'Failed to create eSIM plan'
@@ -317,7 +317,7 @@ export const esimService = {
         message: 'eSIM plan updated successfully'
       }
     } catch (error) {
-      console.error(`❌ Failed to update eSIM plan ${id}:`, error)
+      console.error(`Failed to update eSIM plan ${id}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to update eSIM plan'
@@ -336,7 +336,7 @@ export const esimService = {
         message: 'eSIM plan deleted successfully'
       }
     } catch (error) {
-      console.error(`❌ Failed to delete eSIM plan ${id}:`, error)
+      console.error(`Failed to delete eSIM plan ${id}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to delete eSIM plan'
@@ -363,7 +363,7 @@ export const esimService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch available plans:', error)
+      console.error('Failed to fetch available plans:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch available plans',
@@ -409,7 +409,7 @@ export const esimService = {
         }
       }
     } catch (error) {
-      console.error('❌ Failed to fetch eSIM usage:', error)
+      console.error('Failed to fetch eSIM usage:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch eSIM usage',
@@ -431,7 +431,7 @@ export const esimService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error(`❌ Failed to fetch eSIM usage ${id}:`, error)
+      console.error(`Failed to fetch eSIM usage ${id}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to fetch eSIM usage'
@@ -452,7 +452,7 @@ export const esimService = {
         message: 'eSIM usage record created successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to create eSIM usage record:', error)
+      console.error('Failed to create eSIM usage record:', error)
       return {
         success: false,
         error: error.message || 'Failed to create eSIM usage record'
@@ -484,7 +484,7 @@ export const esimService = {
         return response
       }
     } catch (error) {
-      console.error(`❌ Failed to get eSIM usage summary for ${esimId}:`, error)
+      console.error(`Failed to get eSIM usage summary for ${esimId}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to get eSIM usage summary'
@@ -542,7 +542,7 @@ export const esimService = {
         }
       }
     } catch (error) {
-      console.error('❌ Failed to fetch reseller eSIMs:', error)
+      console.error('Failed to fetch reseller eSIMs:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch reseller eSIMs',
@@ -564,7 +564,7 @@ export const esimService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error(`❌ Failed to fetch reseller eSIM ${id}:`, error)
+      console.error(`Failed to fetch reseller eSIM ${id}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to fetch reseller eSIM'
@@ -585,7 +585,7 @@ export const esimService = {
         message: 'Reseller eSIM created successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to create reseller eSIM:', error)
+      console.error('Failed to create reseller eSIM:', error)
       return {
         success: false,
         error: error.message || 'Failed to create reseller eSIM'
@@ -607,7 +607,7 @@ export const esimService = {
         message: 'Reseller eSIM updated successfully'
       }
     } catch (error) {
-      console.error(`❌ Failed to update reseller eSIM ${id}:`, error)
+      console.error(`Failed to update reseller eSIM ${id}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to update reseller eSIM'
@@ -626,7 +626,7 @@ export const esimService = {
         message: 'Reseller eSIM deleted successfully'
       }
     } catch (error) {
-      console.error(`❌ Failed to delete reseller eSIM ${id}:`, error)
+      console.error(`Failed to delete reseller eSIM ${id}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to delete reseller eSIM'
@@ -653,7 +653,7 @@ export const esimService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch reseller plans:', error)
+      console.error('Failed to fetch reseller plans:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch reseller plans',
@@ -674,7 +674,7 @@ export const esimService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error('❌ Failed to fetch reseller dashboard:', error)
+      console.error('Failed to fetch reseller dashboard:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch reseller dashboard',
@@ -716,7 +716,7 @@ export const esimService = {
         }
       }
     } catch (error) {
-      console.error('❌ Failed to fetch reseller clients:', error)
+      console.error('Failed to fetch reseller clients:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch reseller clients',
@@ -738,7 +738,7 @@ export const esimService = {
         data: data.data || data
       }
     } catch (error) {
-      console.error(`❌ Failed to fetch reseller client ${id}:`, error)
+      console.error(`Failed to fetch reseller client ${id}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to fetch reseller client'
@@ -759,7 +759,7 @@ export const esimService = {
         message: 'Reseller client created successfully'
       }
     } catch (error) {
-      console.error('❌ Failed to create reseller client:', error)
+      console.error('Failed to create reseller client:', error)
       return {
         success: false,
         error: error.message || 'Failed to create reseller client'
@@ -781,7 +781,7 @@ export const esimService = {
         message: 'Reseller client updated successfully'
       }
     } catch (error) {
-      console.error(`❌ Failed to update reseller client ${id}:`, error)
+      console.error(`Failed to update reseller client ${id}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to update reseller client'
@@ -800,7 +800,7 @@ export const esimService = {
         message: 'Reseller client deleted successfully'
       }
     } catch (error) {
-      console.error(`❌ Failed to delete reseller client ${id}:`, error)
+      console.error(`Failed to delete reseller client ${id}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to delete reseller client'
@@ -856,7 +856,7 @@ export const esimService = {
       link.remove()
       window.URL.revokeObjectURL(downloadUrl)
 
-      console.log(`✅ eSIM history exported successfully as ${filename}`)
+      console.log(`eSIM history exported successfully as ${filename}`)
 
       return {
         success: true,
@@ -864,7 +864,7 @@ export const esimService = {
         filename: filename
       }
     } catch (error) {
-      console.error('❌ Failed to export eSIM history:', error)
+      console.error('Failed to export eSIM history:', error)
       return {
         success: false,
         error: error.message || 'Failed to export eSIM history'
@@ -887,7 +887,7 @@ export const esimService = {
 
       return await this.exportHistory(filters, format)
     } catch (error) {
-      console.error('❌ Failed to quick export eSIM history:', error)
+      console.error('Failed to quick export eSIM history:', error)
       return {
         success: false,
         error: error.message || 'Failed to export eSIM history'

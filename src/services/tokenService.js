@@ -25,7 +25,7 @@ class TokenService {
       console.log('📅 Access token expires:', new Date(accessExpiry).toLocaleString())
       console.log('📅 Refresh token expires:', new Date(refreshExpiry).toLocaleString())
     } catch (error) {
-      console.error('❌ Error storing tokens:', error)
+      console.error('Error storing tokens:', error)
       throw error
     }
   }
@@ -103,7 +103,7 @@ class TokenService {
         throw new Error('Refresh token has expired')
       }
 
-      console.log('🔄 Refreshing access token...')
+      console.log('Refreshing access token...')
       
       const response = await apiService.post(REFRESH_URL, {
         refresh_token: refreshToken
@@ -114,13 +114,13 @@ class TokenService {
       
       if (tokens.access && tokens.refresh) {
         this.setTokens(tokens.access, tokens.refresh)
-        console.log('✅ Access token refreshed successfully')
+        console.log('Access token refreshed successfully')
         return tokens.access
       } else {
         throw new Error('Invalid response format from refresh endpoint')
       }
     } catch (error) {
-      console.error('❌ Error refreshing access token:', error)
+      console.error('Error refreshing access token:', error)
       // If refresh fails, clear all tokens
       this.clearTokens()
       throw error
@@ -135,7 +135,7 @@ class TokenService {
       })
       return response
     } catch (error) {
-      console.error('❌ Token verification failed:', error)
+      console.error('Token verification failed:', error)
       throw error
     }
   }
@@ -146,7 +146,7 @@ class TokenService {
     localStorage.removeItem(this.refreshTokenKey)
     localStorage.removeItem(this.tokenExpiryKey)
     localStorage.removeItem(this.refreshTokenExpiryKey)
-    console.log('🗑️ All tokens cleared')
+    console.log('All tokens cleared')
   }
 
   // Get token expiry from JWT
@@ -155,7 +155,7 @@ class TokenService {
       const payload = JSON.parse(atob(token.split('.')[1]))
       return payload.exp * 1000 // Convert to milliseconds
     } catch (error) {
-      console.error('❌ Error decoding token:', error)
+      console.error('Error decoding token:', error)
       throw new Error('Invalid token format')
     }
   }
@@ -166,7 +166,7 @@ class TokenService {
       const payload = JSON.parse(atob(token.split('.')[1]))
       return payload
     } catch (error) {
-      console.error('❌ Error decoding token payload:', error)
+      console.error('Error decoding token payload:', error)
       return null
     }
   }
@@ -196,7 +196,7 @@ class TokenService {
     const accessToken = this.getAccessToken()
     const refreshToken = this.getRefreshToken()
     
-    console.log('🔍 Token Status:')
+    console.log('Token Status:')
     console.log('Access Token:', accessToken ? 'Present' : 'Missing')
     console.log('Refresh Token:', refreshToken ? 'Present' : 'Missing')
     

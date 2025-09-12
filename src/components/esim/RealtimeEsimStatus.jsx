@@ -98,11 +98,11 @@ function RealtimeEsimStatus({ esimId, onStatusChange, autoStart = true }) {
 
     setIsMonitoring(true)
     setError(null)
-    console.log('🚀 Starting real-time eSIM monitoring:', esimId)
+    console.log('Starting real-time eSIM monitoring:', esimId)
 
     realtimeService.startEsimProvisioning(esimId, {
       onStatusUpdate: (update) => {
-        console.log('📊 eSIM status update received:', update)
+        console.log('eSIM status update received:', update)
         setStatus(update.status)
         setLastUpdate(update.timestamp)
         
@@ -119,7 +119,7 @@ function RealtimeEsimStatus({ esimId, onStatusChange, autoStart = true }) {
         }
       },
       onComplete: (result) => {
-        console.log('✅ eSIM provisioning completed:', result)
+        console.log('eSIM provisioning completed:', result)
         setIsMonitoring(false)
         setStatus(result.status)
         setLastUpdate(new Date().toISOString())
@@ -132,7 +132,7 @@ function RealtimeEsimStatus({ esimId, onStatusChange, autoStart = true }) {
         }
       },
       onError: (error) => {
-        console.error('❌ eSIM monitoring error:', error)
+        console.error('eSIM monitoring error:', error)
         setIsMonitoring(false)
         setError(error.error || 'Monitoring failed')
         
