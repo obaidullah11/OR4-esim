@@ -124,7 +124,7 @@ Create a `.env` file in the project root:
 
 ```env
 # API Configuration
-VITE_API_BASE_URL=http://localhost:8000/api/v1
+VITE_API_BASE_URL=https://or4esim.duckdns.org/api/v1
 VITE_API_TIMEOUT=30000
 
 # Application Settings
@@ -321,7 +321,7 @@ npm run build
 ### Environment Variables for Production
 
 ```env
-VITE_API_BASE_URL=https://api.yourdomain.com/api/v1
+VITE_API_BASE_URL=https://or4esim.duckdns.org/api/v1
 VITE_APP_NAME=OR4 eSIM Management
 VITE_ENABLE_ANALYTICS=true
 ```
