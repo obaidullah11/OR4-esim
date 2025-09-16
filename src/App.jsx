@@ -13,6 +13,7 @@ import SignupPage from './pages/auth/SignupPage'
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import ResellersPage from './pages/resellers/ResellersPage'
+import BalanceTopupManagementPage from './pages/balance/BalanceTopupManagementPage'
 import UsersPageSimple from './pages/users/UsersPageSimple'
 import OrdersPage from './pages/orders/OrdersPage'
 import TransactionsPage from './pages/payments/TransactionsPage'
@@ -185,6 +186,11 @@ function App() {
             <Route path="/resellers" element={
               <AdminRoute>
                 <DashboardLayout><ResellersPage /></DashboardLayout>
+              </AdminRoute>
+            } />
+            <Route path="/balance-topups" element={
+              <AdminRoute>
+                <DashboardLayout><BalanceTopupManagementPage /></DashboardLayout>
               </AdminRoute>
             } />
             <Route path="/users" element={

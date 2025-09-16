@@ -3,6 +3,7 @@ import { useTheme } from '../../context/ThemeContext'
 import toast from 'react-hot-toast'
 import { paymentsService } from '../../services/paymentsService'
 import ScrollableTable from '../../components/common/ScrollableTable'
+import ExportDropdown from '../../components/common/ExportDropdown'
 import { PaymentsEmptyState } from '../../components/common/EmptyState'
 import { PaymentsLoadingState } from '../../components/common/LoadingState'
 import ConfirmationModal from '../../components/common/ConfirmationModal'
@@ -565,19 +566,37 @@ function TransactionsPage() {
     console.log('Transactions list refreshed')
   }
 
-  const handleExportTransactions = async () => {
+  const exportToPDF = async () => {
     try {
       const filters = {
         status: statusFilter !== 'all' ? statusFilter : undefined,
-        payment_type: paymentMethodFilter !== 'all' ? paymentMethodFilter : undefined
+        payment_type: paymentMethodFilter !== 'all' ? paymentMethodFilter : undefined,
+        format: 'pdf'
       }
 
       await paymentsService.exportPayments(filters)
-      toast.success('Transactions exported successfully')
-      console.log('Transactions exported')
+      toast.success('Transactions exported as PDF successfully')
+      console.log('Transactions exported as PDF')
     } catch (error) {
-      console.error('Failed to export transactions:', error)
-      toast.error('Failed to export transactions')
+      console.error('Failed to export transactions as PDF:', error)
+      toast.error('Failed to export transactions as PDF')
+    }
+  }
+
+  const exportToExcel = async () => {
+    try {
+      const filters = {
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        payment_type: paymentMethodFilter !== 'all' ? paymentMethodFilter : undefined,
+        format: 'excel'
+      }
+
+      await paymentsService.exportPayments(filters)
+      toast.success('Transactions exported as Excel successfully')
+      console.log('Transactions exported as Excel')
+    } catch (error) {
+      console.error('Failed to export transactions as Excel:', error)
+      toast.error('Failed to export transactions as Excel')
     }
   }
 
@@ -678,18 +697,6 @@ function TransactionsPage() {
         </div>
         <div className="flex items-center space-x-3">
           <button
-            onClick={handleExportTransactions}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-              resolvedTheme === 'dark'
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                : 'bg-blue-500 hover:bg-blue-600 text-white'
-            }`}
-          >
-            <Download className="h-4 w-4" />
-            <span>Export</span>
-          </button>
-
-          <button
             onClick={handleRefresh}
             disabled={loading}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 ${
@@ -701,6 +708,11 @@ function TransactionsPage() {
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </button>
+          <ExportDropdown
+            onExportPDF={exportToPDF}
+            onExportExcel={exportToExcel}
+            disabled={loading}
+          />
         </div>
       </div>
 

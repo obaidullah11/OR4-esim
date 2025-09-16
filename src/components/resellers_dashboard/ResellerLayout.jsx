@@ -4,8 +4,8 @@ import { useAuth } from '../../context/AuthContext'
 import { cn } from '../../lib/utils'
 import ResellerDockSidebar from './ResellerDockSidebar'
 import ResellerSettingsModal from './ResellerSettingsModal'
+import BalanceDisplay from '../balance/BalanceDisplay'
 import {
-  Search,
   Settings,
   User,
   CreditCard,
@@ -74,21 +74,8 @@ function ResellerLayout({ children }) {
 
           {/* Enhanced Header Actions */}
           <div className="flex items-center space-x-4">
-
-            {/* Search */}
-            <div className="relative hidden lg:block">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Quick search..."
-                className={cn(
-                  'pl-10 pr-4 py-2 w-64 rounded-lg text-sm transition-all duration-200 focus-ring',
-                  resolvedTheme === 'dark'
-                    ? 'bg-slate-700/50 border border-slate-600 text-white placeholder:text-slate-400'
-                    : 'bg-gray-100/50 border border-gray-300 text-gray-900 placeholder:text-gray-500'
-                )}
-              />
-            </div>
+            {/* Balance Display */}
+            <BalanceDisplay variant="compact" className="hidden md:flex" />
 
             {/* Settings */}
             <button

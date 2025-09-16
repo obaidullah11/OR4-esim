@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { ordersService } from '../../services/ordersService'
+import ExportDropdown from '../../components/common/ExportDropdown'
 import { paymentsService } from '../../services/paymentsService'
 import ConfirmationModal from '../../components/common/ConfirmationModal'
 import ScrollableTable from '../../components/common/ScrollableTable'
@@ -380,10 +381,10 @@ function OrdersPage() {
     }
   }
 
-  // Export orders
-  const handleExportOrders = async () => {
+  // Export functions
+  const exportToPDF = async () => {
     try {
-      console.log('📤 Exporting orders...')
+      console.log('📤 Exporting orders as PDF...')
       
       const filters = {
         status: statusFilter || undefined,
@@ -391,16 +392,39 @@ function OrdersPage() {
         order_source: orderSourceFilter || undefined
       }
 
-      const response = await ordersService.exportOrders(filters)
+      const response = await ordersService.exportOrders({ ...filters, format: 'pdf' })
 
       if (response.success) {
-        toast.success('Orders exported successfully')
+        toast.success('Orders exported as PDF successfully')
       } else {
-        toast.error(response.error || 'Failed to export orders')
+        toast.error(response.error || 'Failed to export orders as PDF')
       }
     } catch (error) {
-      console.error('Failed to export orders:', error)
-      toast.error('Failed to export orders')
+      console.error('Failed to export orders as PDF:', error)
+      toast.error('Failed to export orders as PDF')
+    }
+  }
+
+  const exportToExcel = async () => {
+    try {
+      console.log('📤 Exporting orders as Excel...')
+      
+      const filters = {
+        status: statusFilter || undefined,
+        order_type: orderTypeFilter || undefined,
+        order_source: orderSourceFilter || undefined
+      }
+
+      const response = await ordersService.exportOrders({ ...filters, format: 'excel' })
+
+      if (response.success) {
+        toast.success('Orders exported as Excel successfully')
+      } else {
+        toast.error(response.error || 'Failed to export orders as Excel')
+      }
+    } catch (error) {
+      console.error('Failed to export orders as Excel:', error)
+      toast.error('Failed to export orders as Excel')
     }
   }
 
@@ -580,13 +604,6 @@ function OrdersPage() {
             </div>
         <div className="flex items-center space-x-3">
           <button
-            onClick={handleExportOrders}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </button>
-          <button
             onClick={fetchOrders}
             disabled={loading}
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
@@ -594,6 +611,11 @@ function OrdersPage() {
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
+          <ExportDropdown
+            onExportPDF={exportToPDF}
+            onExportExcel={exportToExcel}
+            disabled={loading}
+          />
         </div>
       </div>
 

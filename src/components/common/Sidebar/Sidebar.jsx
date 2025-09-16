@@ -9,7 +9,8 @@ import {
   BarChart3, 
   Settings, 
   X,
-  Smartphone
+  Smartphone,
+  DollarSign
 } from 'lucide-react'
 import { cn } from '../../../utils/theme'
 import { useTheme } from '../../../context/ThemeContext'
@@ -17,6 +18,7 @@ import { useTheme } from '../../../context/ThemeContext'
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Resellers', href: '/resellers', icon: UserCheck },
+  { name: 'Balance Top-ups', href: '/balance-topups', icon: DollarSign },
   { name: 'Users', href: '/users', icon: Users },
   { name: 'Orders', href: '/orders', icon: ShoppingCart },
   { name: 'Transactions', href: '/transactions', icon: CreditCard },
