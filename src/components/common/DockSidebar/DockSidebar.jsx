@@ -10,7 +10,8 @@ import {
   Smartphone,
   LogOut,
   Shield,
-  TrendingUp
+  TrendingUp,
+  DollarSign
 } from 'lucide-react'
 import { EnhancedDock } from '../../ui/dock-two'
 import { useAuth } from '../../../context/AuthContext'
@@ -37,6 +38,15 @@ const getNavigationData = (userRole) => {
       href: '/resellers',
       color: 'text-emerald-600 dark:text-emerald-400',
       gradient: 'from-emerald-500 to-teal-500',
+      roles: [USER_ROLES.ADMIN],
+      onClick: () => {}
+    },
+    {
+      label: 'Balance Top-ups',
+      icon: DollarSign,
+      href: '/balance-topups',
+      color: 'text-yellow-600 dark:text-yellow-400',
+      gradient: 'from-yellow-500 to-orange-500',
       roles: [USER_ROLES.ADMIN],
       onClick: () => {}
     },

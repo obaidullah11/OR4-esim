@@ -36,7 +36,8 @@ import { traveRoamService } from '../../services/traveRoamService'
 import { esimService } from '../../services/esimService'
 import { integrationService } from '../../services/integrationService'
 import { paymentsService } from '../../services/paymentsService'
-import { API_CONFIG } from '../../config/api'
+import { balanceService } from '../../services/balanceService'
+import { API_CONFIG, DETECT_COUNTRY_URL } from '../../config/api'
 import WorkflowStepIndicator from '../../components/esim/WorkflowStepIndicator'
 
 function AssignEsimPage() {
@@ -63,6 +64,10 @@ function AssignEsimPage() {
   const [error, setError] = useState(null)
   const [resellerMarkup, setResellerMarkup] = useState(0)
   
+  // Filter states
+  const [selectedFilter, setSelectedFilter] = useState('TURKEY') // ALL, LOCAL, TURKEY, EUROPE, GLOBAL - Default to TURKEY as requested
+  const [searchQuery, setSearchQuery] = useState('')
+  
   // Form data for new user creation
   const [userForm, setUserForm] = useState({
     fullName: '',
@@ -86,6 +91,127 @@ function AssignEsimPage() {
     return cleanPhone.startsWith('+') && cleanPhone.length >= 10
   }
 
+  // Filter bundles based on selected filter and search query
+  const getFilteredBundles = () => {
+    let filtered = workflowData.availableBundles
+
+    // Apply region filter
+    switch (selectedFilter) {
+      case 'LOCAL':
+        // Turkey local plans - using actual backend data structure
+        filtered = filtered.filter(bundle => 
+          bundle.country?.toLowerCase().includes('turkey') ||
+          bundle.country_code?.toLowerCase() === 'tr' ||
+          bundle.name?.toLowerCase().includes('turkey') ||
+          bundle.description?.toLowerCase().includes('turkey') ||
+          bundle.region?.toLowerCase().includes('turkey') ||
+          bundle.bundle_name?.toLowerCase().includes('turkey') ||
+          // Check countries array if available
+          (bundle.countries && Array.isArray(bundle.countries) && 
+           bundle.countries.some(country => 
+             country.name?.toLowerCase().includes('turkey') ||
+             country.iso?.toLowerCase() === 'tr'
+           ))
+        )
+        break
+      case 'TURKEY':
+        // Turkey specific plans - DEFAULT as requested by client (using backend data structure)
+        filtered = filtered.filter(bundle => 
+          bundle.country?.toLowerCase().includes('turkey') ||
+          bundle.country_code?.toLowerCase() === 'tr' ||
+          bundle.name?.toLowerCase().includes('turkey') ||
+          bundle.description?.toLowerCase().includes('turkey') ||
+          bundle.region?.toLowerCase().includes('turkey') ||
+          bundle.bundle_name?.toLowerCase().includes('turkey') ||
+          // Check countries array if available
+          (bundle.countries && Array.isArray(bundle.countries) && 
+           bundle.countries.some(country => 
+             country.name?.toLowerCase().includes('turkey') ||
+             country.iso?.toLowerCase() === 'tr'
+           ))
+        )
+        break
+      case 'EUROPE':
+        // European plans - using actual backend data structure
+        filtered = filtered.filter(bundle => 
+          bundle.region?.toLowerCase().includes('europe') ||
+          bundle.name?.toLowerCase().includes('europe') ||
+          bundle.description?.toLowerCase().includes('europe') ||
+          bundle.bundle_name?.toLowerCase().includes('europe') ||
+          // European country codes
+          ['es', 'fr', 'de', 'it', 'gb', 'uk', 'nl', 'be', 'at', 'ch', 'pt', 'gr', 'pl', 'cz', 'ro', 'hu', 'dk', 'se', 'no', 'fi'].includes(bundle.country_code?.toLowerCase()) ||
+          // European country names
+          ['spain', 'france', 'germany', 'italy', 'uk', 'united kingdom', 'netherlands', 'belgium', 'austria', 'switzerland', 'portugal', 'greece', 'poland', 'czech', 'romania', 'hungary', 'denmark', 'sweden', 'norway', 'finland'].some(country =>
+            bundle.country?.toLowerCase().includes(country) ||
+            bundle.name?.toLowerCase().includes(country) ||
+            bundle.description?.toLowerCase().includes(country)
+          ) ||
+          // Check countries array for European countries
+          (bundle.countries && Array.isArray(bundle.countries) && 
+           bundle.countries.some(country => 
+             country.region?.toLowerCase().includes('europe') ||
+             ['es', 'fr', 'de', 'it', 'gb', 'uk', 'nl', 'be', 'at', 'ch', 'pt', 'gr', 'pl', 'cz', 'ro', 'hu'].includes(country.iso?.toLowerCase())
+           ))
+        )
+        break
+      case 'GLOBAL':
+        // Global/Multi-region plans - using actual backend data structure
+        filtered = filtered.filter(bundle => 
+          bundle.region?.toLowerCase().includes('global') ||
+          bundle.region?.toLowerCase().includes('worldwide') ||
+          bundle.name?.toLowerCase().includes('global') ||
+          bundle.name?.toLowerCase().includes('worldwide') ||
+          bundle.name?.toLowerCase().includes('multi') ||
+          bundle.name?.toLowerCase().includes('international') ||
+          bundle.description?.toLowerCase().includes('global') ||
+          bundle.description?.toLowerCase().includes('worldwide') ||
+          bundle.description?.toLowerCase().includes('multi') ||
+          bundle.description?.toLowerCase().includes('international') ||
+          bundle.bundle_name?.toLowerCase().includes('global') ||
+          bundle.bundle_name?.toLowerCase().includes('worldwide') ||
+          // Check if bundle covers multiple regions or many countries
+          (bundle.countries && Array.isArray(bundle.countries) && bundle.countries.length >= 5) ||
+          // Check for global regions
+          (bundle.countries && Array.isArray(bundle.countries) && 
+           bundle.countries.some(country => 
+             country.region?.toLowerCase().includes('global') ||
+             country.region?.toLowerCase().includes('worldwide')
+           ))
+        )
+        break
+      default:
+        // Default to TURKEY (no 'ALL' filter as per client request) - using backend data structure
+        filtered = filtered.filter(bundle => 
+          bundle.country?.toLowerCase().includes('turkey') ||
+          bundle.country_code?.toLowerCase() === 'tr' ||
+          bundle.name?.toLowerCase().includes('turkey') ||
+          bundle.description?.toLowerCase().includes('turkey') ||
+          bundle.region?.toLowerCase().includes('turkey') ||
+          bundle.bundle_name?.toLowerCase().includes('turkey') ||
+          // Check countries array if available
+          (bundle.countries && Array.isArray(bundle.countries) && 
+           bundle.countries.some(country => 
+             country.name?.toLowerCase().includes('turkey') ||
+             country.iso?.toLowerCase() === 'tr'
+           ))
+        )
+        break
+    }
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(bundle =>
+        bundle.name?.toLowerCase().includes(query) ||
+        bundle.country_name?.toLowerCase().includes(query) ||
+        bundle.description?.toLowerCase().includes(query) ||
+        bundle.coverage?.toLowerCase().includes(query)
+      )
+    }
+
+    return filtered
+  }
+
   // Handle pre-selected client from navigation state
   useEffect(() => {
     const selectedClient = location.state?.selectedClient
@@ -103,7 +229,14 @@ function AssignEsimPage() {
       const hasExpiredEsims = selectedClient.totalEsims > selectedClient.activeEsims
       if (hasExpiredEsims) {
         console.log(`Client has ${selectedClient.totalEsims - selectedClient.activeEsims} expired eSIM(s) that can be replaced`)
-        toast.info(`Client has expired eSIMs that will be replaced with the new assignment`)
+         toast(`ℹ️ Client has expired eSIMs that will be replaced with the new assignment`, {
+           icon: 'ℹ️',
+           style: {
+             borderLeft: '4px solid #3b82f6',
+             backgroundColor: '#eff6ff',
+             color: '#1e40af'
+           }
+         })
       }
       
       // Pre-populate user form with client data
@@ -162,7 +295,14 @@ function AssignEsimPage() {
             setCurrentStep(2)
             
             toast.success(`Client ${userData.fullName} selected for eSIM assignment`)
-            toast.warning('Could not detect region automatically. Please verify country information before fetching plans.')
+             toast('⚠️ Could not detect region automatically. Please verify country information before fetching plans.', {
+               icon: '⚠️',
+               style: {
+                 borderLeft: '4px solid #f59e0b',
+                 backgroundColor: '#fffbeb',
+                 color: '#92400e'
+               }
+             })
           })
       } else {
         // No phone number available, use fallback
@@ -182,7 +322,14 @@ function AssignEsimPage() {
         setCurrentStep(2)
         
         toast.success(`Client ${userData.fullName} selected for eSIM assignment`)
-        toast.warning('No phone number available for region detection. Please verify country information.')
+         toast('⚠️ No phone number available for region detection. Please verify country information.', {
+           icon: '⚠️',
+           style: {
+             borderLeft: '4px solid #f59e0b',
+             backgroundColor: '#fffbeb',
+             color: '#92400e'
+           }
+         })
       }
     }
   }, [location.state])
@@ -321,7 +468,7 @@ function AssignEsimPage() {
         headers['Authorization'] = `Bearer ${token}`
       }
 
-      const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/utils/detect-country/`, {
+      const response = await fetch(DETECT_COUNTRY_URL, {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -422,13 +569,14 @@ function AssignEsimPage() {
       setValidationStatus('creating')
 
       // First, check for existing clients with active bundles
+      let validationData = null
       try {
         console.log('Checking for existing clients with active bundles...')
         // Use centralized API service
         const { API_ENDPOINTS } = await import('../../config/api.js')
         const { apiService } = await import('../../services/apiService.js')
         
-        const validationData = await apiService.request(API_ENDPOINTS.TRAVEROAM.CLIENT_VALIDATE, {
+        validationData = await apiService.request(API_ENDPOINTS.TRAVEROAM.CLIENT_VALIDATE, {
           method: 'POST',
           requiresAuth: true,
           body: {
@@ -442,6 +590,34 @@ function AssignEsimPage() {
         console.log('Client validation response:', validationData)
 
         if (validationData.success) {
+          // First check if client belongs to a different reseller
+          if (validationData.belongs_to_different_reseller) {
+            setValidationStatus('error')
+            
+            // Get specific matching fields for better user guidance
+            const matchingFields = validationData.matching_fields || ['contact details']
+            const fieldsText = matchingFields.join(', ')
+            
+            const baseMessage = validationData.has_active_bundles 
+              ? `❌ A client with matching ${fieldsText} already exists under a different reseller account with active services.`
+              : `❌ A client with matching ${fieldsText} already exists under a different reseller account.`
+            
+            const suggestion = `Please use different ${fieldsText} to create a new client.`
+            const fullMessage = `${baseMessage}\n\n${suggestion}`
+            
+            toast.error(fullMessage, {
+              duration: 10000,
+              style: {
+                borderLeft: '4px solid #dc2626',
+                backgroundColor: '#fef2f2',
+                color: '#dc2626',
+                whiteSpace: 'pre-line'
+              }
+            })
+            
+            return false
+          }
+          
           if (validationData.has_active_bundles) {
             // Show warning about existing active bundles
             const bundlesList = validationData.active_bundles.map(bundle => 
@@ -454,42 +630,206 @@ function AssignEsimPage() {
             
             if (!proceed) {
               setValidationStatus('idle')
-              toast.warning('Validation cancelled due to existing active bundles')
+                toast('⚠️ Validation cancelled due to existing active bundles', {
+                  icon: '⚠️',
+                  style: {
+                    borderLeft: '4px solid #f59e0b',
+                    backgroundColor: '#fffbeb',
+                    color: '#92400e'
+                  }
+                })
               return false
+            } else {
+              // User chose to proceed despite active bundles - use existing client data
+              toast('⚠️ Proceeding with existing client despite active bundles', {
+                icon: '⚠️',
+                style: {
+                  borderLeft: '4px solid #f59e0b',
+                  backgroundColor: '#fffbeb',
+                  color: '#92400e'
+                }
+              })
+              
+              // Use existing client data from validation response
+              if (validationData && validationData.client_data) {
+                const existingClient = validationData.client_data
+                const userData = {
+                  fullName: existingClient.full_name,
+                  phoneNumber: existingClient.phone_number,
+                  email: existingClient.email,
+                  passportId: existingClient.passport_number || existingClient.national_id,
+                  countryOfTravel: countryInfo,  // Use the country info from form (may be updated)
+                  travelDate: travelDate || existingClient.date_of_travel,
+                  clientId: existingClient.id
+                }
+                
+                setWorkflowData(prev => ({ ...prev, userData }))
+                setCountryInfo(countryInfo)
+                setValidationStatus('success')
+                
+                // Automatically progress to next step
+                setTimeout(() => {
+                  setCurrentStep(2)
+                }, 1500)
+                
+                return true
+              }
             }
           } else if (validationData.client_exists) {
-            toast.info('Client exists but has no active bundles - proceeding with new assignment')
+            // Client exists but has no active bundles - use existing client
+            toast('ℹ️ Client exists but has no active bundles - proceeding with existing client', {
+              icon: 'ℹ️',
+              style: {
+                borderLeft: '4px solid #3b82f6',
+                backgroundColor: '#eff6ff',
+                color: '#1e40af'
+              }
+            })
+            
+            // Use existing client data instead of creating new client
+            if (!validationData.client_data) {
+              toast('⚠️ Client data not available from validation response - creating new client', {
+                icon: '⚠️',
+                style: {
+                  borderLeft: '4px solid #f59e0b',
+                  backgroundColor: '#fffbeb',
+                  color: '#92400e'
+                }
+              })
+              // Fall through to create new client
+            } else {
+              const existingClient = validationData.client_data
+              const userData = {
+                fullName: existingClient.full_name,
+                phoneNumber: existingClient.phone_number,
+                email: existingClient.email,
+                passportId: existingClient.passport_number || existingClient.national_id,
+                countryOfTravel: countryInfo,  // Use the country info from form (may be updated)
+                travelDate: travelDate || existingClient.date_of_travel,
+                clientId: existingClient.id
+              }
+              
+              setWorkflowData(prev => ({ ...prev, userData }))
+              setCountryInfo(countryInfo)
+              setValidationStatus('success')
+              toast.success('Existing client validated successfully!')
+              
+              // Automatically progress to next step
+              setTimeout(() => {
+                setCurrentStep(2)
+              }, 1500)
+              
+              return true
+            }
           } else {
             toast.success('New client - no conflicts found')
           }
         }
       } catch (validationError) {
         console.error('Validation check failed:', validationError)
-        toast.warning('Could not verify existing bundles - proceeding with caution')
+         toast('⚠️ Could not verify existing bundles - proceeding with caution', {
+           icon: '⚠️',
+           style: {
+             borderLeft: '4px solid #f59e0b',
+             backgroundColor: '#fffbeb',
+             color: '#92400e'
+           }
+         })
       }
 
-      // Create client through backend API using same endpoint as HTML
-      const clientResult = await traveRoamService.createClient(clientData)
+      // Only create new client if validation passed and client doesn't exist or validation failed
+      let clientResult
+      if (!validationData?.client_exists) {
+        // Create client through backend API using same endpoint as HTML
+        clientResult = await traveRoamService.createClient(clientData)
+      } else {
+        // Skip client creation - already handled above
+        return true
+      }
 
       if (!clientResult.success) {
-        throw new Error(clientResult.error || 'Failed to create client')
+        // Handle enhanced error responses from backend
+        if (clientResult.belongs_to_different_reseller) {
+          setValidationStatus('error')
+          
+          const matchingFields = clientResult.matching_fields || ['contact details']
+          const fieldsText = matchingFields.join(', ')
+          
+          const message = `❌ A client with matching ${fieldsText} already exists under a different reseller account.\n\n${clientResult.recommendation || 'Please use different contact details to create a new client.'}`
+          
+          toast.error(message, {
+            duration: 10000,
+            style: {
+              borderLeft: '4px solid #dc2626',
+              backgroundColor: '#fef2f2',
+              color: '#dc2626',
+              whiteSpace: 'pre-line'
+            }
+          })
+          
+          return false
+        } else {
+          // Handle other errors (like general email conflicts)
+          const errorMessage = clientResult.error || 'Failed to create client'
+          const recommendation = clientResult.recommendation || 'Please check your details and try again.'
+          
+          toast.error(`❌ ${errorMessage}\n\n${recommendation}`, {
+            duration: 8000,
+            style: {
+              borderLeft: '4px solid #dc2626',
+              backgroundColor: '#fef2f2',
+              color: '#dc2626',
+              whiteSpace: 'pre-line'
+            }
+          })
+          
+          throw new Error(errorMessage)
+        }
       }
 
-      // Store user data with client ID (preserve full country object for frontend use)
-      const userData = {
-        fullName,
-        phoneNumber,
-        email,
-        passportId,
-        countryOfTravel: countryInfo,  // Store full country object for frontend workflow
-        travelDate: travelDate || null,
-        clientId: clientResult.data.id
+      // Handle successful client creation or reuse
+      let userData
+      if (clientResult.reused_existing) {
+        // Client was reused from same reseller
+        const existingClient = clientResult.client
+        userData = {
+          fullName: existingClient.full_name,
+          phoneNumber: existingClient.phone_number,
+          email: existingClient.email,
+          passportId: passportId, // Keep form value
+          countryOfTravel: countryInfo,  // Use form country info
+          travelDate: travelDate || existingClient.date_of_travel,
+          clientId: existingClient.id
+        }
+        
+        toast.success('✅ Existing client found under your account - ready for eSIM assignment!', {
+          duration: 5000,
+          style: {
+            borderLeft: '4px solid #10b981',
+            backgroundColor: '#f0fdf4',
+            color: '#166534'
+          }
+        })
+      } else {
+        // New client was created
+        const extractedClientId = clientResult.data?.id || clientResult.data?.data?.id
+        
+        userData = {
+          fullName,
+          phoneNumber,
+          email,
+          passportId,
+          countryOfTravel: countryInfo,  // Store full country object for frontend workflow
+          travelDate: travelDate || null,
+          clientId: extractedClientId
+        }
+        
+        toast.success('✅ Client created and validated successfully!')
       }
 
       setWorkflowData(prev => ({ ...prev, userData }))
       setCountryInfo(countryInfo)
       setValidationStatus('success')
-      toast.success('Client created and validated successfully!')
       
       // Automatically progress to next step (Fetch Plans) after successful validation
       setTimeout(() => {
@@ -569,7 +909,7 @@ function AssignEsimPage() {
     }
   }
 
-  // Process payment function with Stripe Checkout Session
+  // Process payment function with Balance System
   const processPayment = async () => {
     if (!workflowData.selectedBundle) {
       toast.error('Please select a bundle first.')
@@ -583,14 +923,30 @@ function AssignEsimPage() {
 
     setIsProcessingPayment(true)
     try {
-      console.log('💳 Creating Stripe checkout session...')
+      console.log('💰 Processing balance-based purchase...')
       
       const basePrice = parseFloat(workflowData.selectedBundle.price) || 0
       const markupAmount = (basePrice * resellerMarkup / 100)
       const finalPrice = basePrice + markupAmount
 
-      // Prepare checkout data for Stripe hosted checkout (console script format)
-      const checkoutData = {
+      // First check if reseller has sufficient balance
+      const balanceResponse = await balanceService.getResellerProfile()
+      if (!balanceResponse.success) {
+        throw new Error('Failed to check account balance. Please try again.')
+      }
+
+      const currentBalance = balanceResponse.data.current_credit || 0
+      const availableCredit = balanceResponse.data.available_credit || 0
+
+      console.log(`💳 Balance check: Current: $${currentBalance}, Required: $${finalPrice}, Available: $${availableCredit}`)
+
+      if (finalPrice > availableCredit) {
+        const shortfall = finalPrice - availableCredit
+        throw new Error(`Insufficient balance. You need $${shortfall.toFixed(2)} more. Current available: $${availableCredit.toFixed(2)}, Required: $${finalPrice.toFixed(2)}`)
+      }
+
+      // Prepare eSIM order data
+      const orderData = {
         bundle_details: {
           bundle_id: workflowData.selectedBundle.bundle_id || workflowData.selectedBundle.name,
           name: workflowData.selectedBundle.name,
@@ -606,71 +962,100 @@ function AssignEsimPage() {
           country: workflowData.userData.countryOfTravel?.name || 'Unknown'
         },
         markup_percent: resellerMarkup,
-        success_url: `${window.location.origin}/reseller-dashboard/assign-esim?success=1&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${window.location.origin}/reseller-dashboard/assign-esim?canceled=1`
+        final_price: finalPrice,
+        payment_method: 'balance'
       }
 
-      console.log('Creating Stripe checkout session:', checkoutData)
+      console.log('Creating eSIM order with balance payment:', orderData)
 
-      // Create Stripe checkout session through backend
-      const checkoutResponse = await paymentsService.createStripeCheckoutSession(checkoutData)
+      // Assign eSIM through TraveRoam API (this will deduct balance automatically)
+      const assignmentData = {
+        client_id: workflowData.userData.clientId,
+        bundle_name: workflowData.selectedBundle.bundle_id || workflowData.selectedBundle.name,
+        notes: `Markup: ${resellerMarkup}%, Final Price: $${finalPrice.toFixed(2)}`
+      }
+      
+      console.log('Assigning eSIM through TraveRoam:', assignmentData)
+      const orderResponse = await traveRoamService.assignEsim(assignmentData)
 
-      if (checkoutResponse.success) {
-        console.log('Checkout session created:', checkoutResponse.data)
+      if (orderResponse.success) {
+        console.log('✅ eSIM order created successfully:', orderResponse.data)
         
-        // Store checkout session data for verification later
-        const checkoutSessionData = {
-          session_id: checkoutResponse.data.session_id,
-          checkout_url: checkoutResponse.data.checkout_url,
-          amount: finalPrice,
-          currency: workflowData.selectedBundle.currency || 'USD',
-          markup_percent: resellerMarkup,
-          base_price: basePrice,
-          final_price: finalPrice,
-          created_at: new Date().toISOString()
+        // Update workflow data with order information
+        const updatedWorkflowData = {
+          ...workflowData,
+          orderId: orderResponse.data.order_id || orderResponse.data.id,
+          esimData: orderResponse.data.esim_data,
+          balanceDeducted: finalPrice,
+          purchaseDate: new Date().toISOString()
         }
 
-        // Store in localStorage for verification after redirect
-        localStorage.setItem('stripeSessionId', checkoutResponse.data.session_id)
-        localStorage.setItem('stripeCheckoutData', JSON.stringify(checkoutSessionData))
-        localStorage.setItem('workflowData', JSON.stringify(workflowData))
+        // Store the updated workflow data
+        setWorkflowData(updatedWorkflowData)
+        localStorage.setItem('workflowData', JSON.stringify(updatedWorkflowData))
 
-        // Show redirect message
-        toast.success('Redirecting to Stripe checkout...', { duration: 2000 })
-        
-        // Redirect to Stripe hosted checkout after short delay
-        setTimeout(() => {
-          console.log('🌐 Redirecting to Stripe checkout:', checkoutResponse.data.checkout_url)
-          window.location.href = checkoutResponse.data.checkout_url
-        }, 1500)
+        // Refresh user balance after successful payment
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'))
+        if (currentUser) {
+          try {
+            const updatedUser = await authService.getCurrentUser()
+            if (updatedUser) {
+              localStorage.setItem('currentUser', JSON.stringify(updatedUser))
+            }
+          } catch (error) {
+            console.warn('Failed to refresh user balance:', error)
+          }
+        }
+
+        // Show success message with balance info
+        toast.success(
+          `✅ eSIM purchased successfully!\n💰 Amount deducted: $${finalPrice.toFixed(2)}\n📱 Order ID: ${orderResponse.data.order_id || orderResponse.data.id}`, 
+          { 
+            duration: 6000,
+            style: {
+              borderLeft: '4px solid #10b981',
+              backgroundColor: '#f0fdf4',
+              color: '#166534',
+              whiteSpace: 'pre-line'
+            }
+          }
+        )
+
+        // Move to next step
+        setCurrentStep(4) // Move to confirmation step
         
       } else {
-        throw new Error(checkoutResponse.error || 'Failed to create checkout session')
+        throw new Error(orderResponse.error || 'Failed to create eSIM order')
       }
       
     } catch (error) {
-      console.error('Stripe checkout session creation failed:', error)
+      console.error('Balance-based purchase failed:', error)
       
-      // Handle specific checkout errors
-      let errorMessage = 'Failed to create payment session. Please try again.'
+      // Handle specific purchase errors
+      let errorMessage = 'Failed to process purchase. Please try again.'
       if (error.message) {
-        if (error.message.includes('network')) {
+        if (error.message.includes('Insufficient balance')) {
+          errorMessage = error.message + ' Please top-up your account to continue.'
+        } else if (error.message.includes('network')) {
           errorMessage = 'Network error. Please check your connection and try again.'
         } else if (error.message.includes('authentication')) {
           errorMessage = 'Authentication error. Please refresh the page and try again.'
+        } else if (error.message.includes('bundle')) {
+          errorMessage = 'Invalid bundle selection. Please select a different plan.'
         } else {
-          errorMessage = `Checkout failed: ${error.message}`
+          errorMessage = error.message
         }
       }
       
       toast.error(errorMessage, { duration: 6000 })
+    } finally {
       setIsProcessingPayment(false)
     }
   }
 
   // Provision eSIM function using TraveRoam orders endpoint (matching HTML logic)
   const provisionESIM = async () => {
-    if (!workflowData.paymentData) {
+    if (!workflowData.paymentData && !workflowData.balanceDeducted) {
       toast.error('Please complete payment first.')
       return
     }
@@ -717,12 +1102,28 @@ function AssignEsimPage() {
       console.log('No duplicate assignments found. Proceeding with provisioning...')
 
       // Step 3: Process order with TraveRoam (matching HTML line 2262)
+      // Prepare payment data for both Stripe and balance payments
+      let paymentData = workflowData.paymentData;
+      
+      if (!paymentData && workflowData.balanceDeducted) {
+        // Create payment data structure for balance payments
+        paymentData = {
+          payment_method: 'balance',
+          amount: workflowData.balanceDeducted,
+          currency: 'USD',
+          status: 'completed',
+          payment_id: workflowData.orderId || 'balance_payment',
+          final_price: workflowData.balanceDeducted,
+          processed_at: workflowData.purchaseDate
+        };
+      }
+      
       const response = await makeAuthenticatedRequest('/api/v1/traveroam/orders/process/', {
         method: 'POST',
         body: JSON.stringify({
           bundle_data: workflowData.selectedBundle,
           user_data: workflowData.userData,
-          payment_data: workflowData.paymentData
+          payment_data: paymentData
         })
       })
 
@@ -832,13 +1233,29 @@ function AssignEsimPage() {
     try {
       console.log('Saving complete workflow data to database (matching HTML logic)...')
 
+      // Prepare payment data for both Stripe and balance payments
+      let paymentData = workflowData.paymentData;
+      
+      if (!paymentData && workflowData.balanceDeducted) {
+        // Create payment data structure for balance payments
+        paymentData = {
+          payment_method: 'balance',
+          amount: workflowData.balanceDeducted,
+          currency: 'USD',
+          status: 'completed',
+          payment_id: workflowData.orderId || 'balance_payment',
+          final_price: workflowData.balanceDeducted,
+          processed_at: workflowData.purchaseDate
+        };
+      }
+
       const response = await makeAuthenticatedRequest('/api/v1/workflow/save-complete/', {
         method: 'POST',
         body: JSON.stringify({
           user_data: workflowData.userData,
           bundle_data: workflowData.selectedBundle,
           esim_data: workflowData.esimData,
-          payment_data: workflowData.paymentData
+          payment_data: paymentData
         })
       })
 
@@ -1355,29 +1772,84 @@ function AssignEsimPage() {
 
             {workflowData.availableBundles.length > 0 && (
               <div className="space-y-4">
-                <h3 className="font-medium text-foreground">Available Plans:</h3>
+                <div className="flex flex-col space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium text-foreground">Available Plans:</h3>
+                    <span className="text-sm text-muted-foreground">
+                      {getFilteredBundles().length} of {workflowData.availableBundles.length} plans
+                    </span>
+                  </div>
+                  
+                  {/* Filter Buttons - Exactly 4 as requested by client */}
+                  <div className="flex flex-wrap gap-2">
+                    {['LOCAL ESIM', 'TURKEY ESIM', 'EUROPE ESIM', 'GLOBAL ESIM'].map((filter) => (
+                      <button
+                        key={filter}
+                        onClick={() => setSelectedFilter(filter === 'LOCAL ESIM' ? 'LOCAL' : filter === 'TURKEY ESIM' ? 'TURKEY' : filter === 'EUROPE ESIM' ? 'EUROPE' : 'GLOBAL')}
+                        className={cn(
+                          'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border',
+                          (selectedFilter === 'LOCAL' && filter === 'LOCAL ESIM') ||
+                          (selectedFilter === 'TURKEY' && filter === 'TURKEY ESIM') ||
+                          (selectedFilter === 'EUROPE' && filter === 'EUROPE ESIM') ||
+                          (selectedFilter === 'GLOBAL' && filter === 'GLOBAL ESIM')
+                            ? 'bg-primary text-primary-foreground border-primary shadow-md transform scale-105'
+                            : 'bg-background border-border hover:bg-muted hover:border-muted-foreground text-muted-foreground hover:text-foreground'
+                        )}
+                      >
+                        {filter}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {workflowData.availableBundles.map((bundle, index) => (
+                  {getFilteredBundles().map((bundle, index) => (
                     <button
                       key={bundle.bundle_id}
                       onClick={() => {
                         setWorkflowData(prev => ({ ...prev, selectedBundle: bundle }))
                         toast.success('Bundle selected!')
                       }}
-                      className={`p-4 border rounded-lg text-left transition-all ${
+                      className={cn(
+                        'p-4 border rounded-lg text-left transition-all',
                         workflowData.selectedBundle?.bundle_id === bundle.bundle_id
-                          ? 'border-green-500 bg-green-50'
-                          : 'border-border hover:border-primary/50 hover:bg-muted/50'
-                      }`}
+                          ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-900 dark:text-green-100'
+                          : 'border-border hover:border-primary/50 hover:bg-muted/50 text-foreground'
+                      )}
                     >
                       <div className="space-y-2">
                         <div className="flex justify-between items-start">
-                          <h4 className="font-medium text-foreground">{bundle.name}</h4>
-                          <span className="text-lg font-bold text-primary">${bundle.price}</span>
+                          <h4 className={cn(
+                            'font-medium',
+                            workflowData.selectedBundle?.bundle_id === bundle.bundle_id
+                              ? 'text-green-900 dark:text-green-100'
+                              : 'text-foreground'
+                          )}>{bundle.name}</h4>
+                          <span className={cn(
+                            'text-lg font-bold',
+                            workflowData.selectedBundle?.bundle_id === bundle.bundle_id
+                              ? 'text-green-700 dark:text-green-300'
+                              : 'text-primary'
+                          )}>${bundle.price}</span>
                         </div>
-                        <p className="text-sm text-muted-foreground">Data: {bundle.data_volume}</p>
-                        <p className="text-sm text-muted-foreground">Validity: {bundle.validity_days} days</p>
-                        <p className="text-sm text-muted-foreground">Network: {bundle.network}</p>
+                        <p className={cn(
+                          'text-sm',
+                          workflowData.selectedBundle?.bundle_id === bundle.bundle_id
+                            ? 'text-green-700 dark:text-green-300'
+                            : 'text-muted-foreground'
+                        )}>Data: {bundle.data_volume}</p>
+                        <p className={cn(
+                          'text-sm',
+                          workflowData.selectedBundle?.bundle_id === bundle.bundle_id
+                            ? 'text-green-700 dark:text-green-300'
+                            : 'text-muted-foreground'
+                        )}>Validity: {bundle.validity_days} days</p>
+                        <p className={cn(
+                          'text-sm',
+                          workflowData.selectedBundle?.bundle_id === bundle.bundle_id
+                            ? 'text-green-700 dark:text-green-300'
+                            : 'text-muted-foreground'
+                        )}>Network: {bundle.network}</p>
                       </div>
                     </button>
                   ))}
@@ -1425,7 +1897,7 @@ function AssignEsimPage() {
                   <p><strong>Country:</strong> {workflowData.userData.countryOfTravel?.name || 'Unknown'}</p>
                   <p><strong>Base Price:</strong> ${workflowData.selectedBundle.price} {workflowData.selectedBundle.currency || 'USD'}</p>
                   <p className="text-sm text-blue-600 mt-2">
-                    <strong>Payment Method:</strong> Stripe (Secure Card Processing) 🔒
+                    <strong>Payment Method:</strong> Account Balance 💰
                   </p>
                 </div>
               </div>
@@ -1465,30 +1937,67 @@ function AssignEsimPage() {
               </div>
             )}
 
-            {/* Payment Information */}
-            {!workflowData.paymentData && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <div className="flex items-start space-x-2">
-                  <div className="text-yellow-600 mt-0.5">ℹ️</div>
-                  <div className="text-sm text-yellow-700">
-                    <p className="font-medium mb-1">Secure Payment with Stripe</p>
-                    <p>You'll be redirected to Stripe's secure checkout page to complete your payment. After successful payment, you'll return here to continue the eSIM provisioning process.</p>
+            {/* Current Balance Display */}
+            {!workflowData.paymentData && !workflowData.balanceDeducted && currentUser && currentUser.current_credit && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="text-blue-600">💰</div>
+                    <div className="text-sm">
+                      <p className="font-medium text-blue-800">Current Account Balance</p>
+                      <p className="text-blue-600">${currentUser.current_credit.toFixed(2)} available</p>
+                    </div>
+                  </div>
+                  <div className="text-right text-sm">
+                    <p className="text-blue-800 font-medium">Required: ${(workflowData.selectedBundle?.price * (1 + resellerMarkup/100) || 0).toFixed(2)}</p>
+                    <p className="text-blue-600">
+                      {currentUser.current_credit >= (workflowData.selectedBundle?.price * (1 + resellerMarkup/100) || 0) 
+                        ? '✅ Sufficient funds' 
+                        : '❌ Insufficient funds'}
+                    </p>
                   </div>
                 </div>
               </div>
             )}
 
-            {workflowData.paymentData ? (
+            {/* Payment Information */}
+            {!workflowData.paymentData && !workflowData.balanceDeducted && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-start space-x-2">
+                  <div className="text-yellow-600 mt-0.5">ℹ️</div>
+                  <div className="text-sm text-yellow-700">
+                    <p className="font-medium mb-1">Balance-Based Purchase</p>
+                    <p>The purchase amount will be deducted directly from your account balance. Make sure you have sufficient funds before proceeding with the eSIM purchase.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {(workflowData.paymentData || workflowData.balanceDeducted) ? (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="flex items-center space-x-2 text-green-800 mb-2">
                   <CheckCircle className="h-5 w-5" />
                   <span className="font-medium">Payment Completed Successfully!</span>
                 </div>
                 <div className="text-sm text-green-700 space-y-1">
-                  <p><strong>Amount:</strong> ${workflowData.paymentData.final_price || workflowData.paymentData.amount}</p>
-                  <p><strong>Payment ID:</strong> {workflowData.paymentData.payment_id || 'Generated'}</p>
-                  <p><strong>Status:</strong> {workflowData.paymentData.status || 'Completed'}</p>
-                  <p><strong>Processed:</strong> {workflowData.paymentData.processed_at ? new Date(workflowData.paymentData.processed_at).toLocaleString() : 'Just now'}</p>
+                  {workflowData.balanceDeducted ? (
+                    // Balance payment info
+                    <>
+                      <p><strong>💰 Payment Method:</strong> Account Balance</p>
+                      <p><strong>💵 Amount Deducted:</strong> ${workflowData.balanceDeducted.toFixed(2)}</p>
+                      <p><strong>📱 Order ID:</strong> {workflowData.orderId || 'Generated'}</p>
+                      <p><strong>✅ Status:</strong> Completed</p>
+                      <p><strong>📅 Processed:</strong> {new Date(workflowData.purchaseDate).toLocaleString()}</p>
+                    </>
+                  ) : (
+                    // Stripe payment info
+                    <>
+                      <p><strong>Amount:</strong> ${workflowData.paymentData.final_price || workflowData.paymentData.amount}</p>
+                      <p><strong>Payment ID:</strong> {workflowData.paymentData.payment_id || 'Generated'}</p>
+                      <p><strong>Status:</strong> {workflowData.paymentData.status || 'Completed'}</p>
+                      <p><strong>Processed:</strong> {workflowData.paymentData.processed_at ? new Date(workflowData.paymentData.processed_at).toLocaleString() : 'Just now'}</p>
+                    </>
+                  )}
                 </div>
               </div>
             ) : (
@@ -1500,12 +2009,12 @@ function AssignEsimPage() {
                 {isProcessingPayment ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Creating Secure Checkout...</span>
+                    <span>Processing Payment...</span>
                   </>
                 ) : (
                   <>
                     <CreditCard className="h-4 w-4" />
-                    <span>Pay with Stripe (Secure Checkout)</span>
+                    <span>Purchase with Account Balance</span>
                   </>
                 )}
               </button>
@@ -1541,15 +2050,23 @@ function AssignEsimPage() {
               <span>Step 4: Provision eSIM</span>
             </h2>
 
-            {workflowData.paymentData && (
+            {(workflowData.paymentData || workflowData.balanceDeducted) && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-green-700">Payment completed successfully. Ready to provision eSIM via TraveRoam.</p>
+                <div className="space-y-2">
+                  <p className="text-green-700">Payment completed successfully. Ready to provision eSIM via TraveRoam.</p>
+                  {workflowData.balanceDeducted && (
+                    <div className="text-sm text-green-600">
+                      <p>💰 Balance Payment: <span className="font-semibold">${workflowData.balanceDeducted.toFixed(2)}</span> deducted from your account</p>
+                      <p>📅 Payment Date: {new Date(workflowData.purchaseDate).toLocaleString()}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
             <button
               onClick={provisionESIM}
-              disabled={isProvisioning || !workflowData.paymentData}
+              disabled={isProvisioning || (!workflowData.paymentData && !workflowData.balanceDeducted)}
               className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
               {isProvisioning ? (

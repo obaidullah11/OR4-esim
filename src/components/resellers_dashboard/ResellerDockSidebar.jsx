@@ -4,7 +4,8 @@ import {
   Users,
   Activity,
   Zap,
-  BarChart3
+  BarChart3,
+  LogOut
 } from 'lucide-react'
 import { EnhancedDock } from '../ui/dock-two'
 import { useAuth } from '../../context/AuthContext'
@@ -53,6 +54,14 @@ const resellerNavigationData = [
     gradient: 'from-indigo-500 to-blue-500',
     onClick: () => {}
   },
+  {
+    label: 'Logout',
+    icon: LogOut,
+    href: '#',
+    color: 'text-red-600 dark:text-red-400',
+    gradient: 'from-red-500 to-pink-500',
+    onClick: () => {}
+  },
 ]
 
 function ResellerDockSidebar({ className }) {
@@ -72,7 +81,7 @@ function ResellerDockSidebar({ className }) {
   // Add onClick handlers to navigation items
   const enhancedNavigationData = resellerNavigationData.map(item => ({
     ...item,
-    onClick: () => handleNavigation(item.href)
+    onClick: item.label === 'Logout' ? handleLogout : () => handleNavigation(item.href)
   }))
 
   return (

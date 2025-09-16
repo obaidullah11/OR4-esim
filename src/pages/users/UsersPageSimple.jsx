@@ -8,6 +8,7 @@ import ScrollableTable from '../../components/common/ScrollableTable'
 import PhoneInput from '../../components/common/PhoneInput'
 import { UsersEmptyState } from '../../components/common/EmptyState'
 import { UsersLoadingState } from '../../components/common/LoadingState'
+import ExportDropdown from '../../components/common/ExportDropdown'
 import { API_CONFIG, API_ENDPOINTS, buildApiUrl } from '../../config/api'
 import {
   Search,
@@ -30,7 +31,9 @@ import {
   DollarSign,
   X,
   ShoppingBag,
-  UserX
+  UserX,
+  FileText,
+  FileSpreadsheet
 } from 'lucide-react'
 
 // Enhanced sample data for Public Users (App SIM Buyers)
@@ -711,6 +714,71 @@ function UsersPageSimple() {
     console.log('Users list refreshed')
   }
 
+  // Export functions
+  const exportToPDF = () => {
+    const headers = ['Name', 'Email', 'Phone', 'Status', 'Total Orders', 'Total Spent', 'Join Date']
+    const rows = filteredUsers.map(user => [
+      user.name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'N/A',
+      user.email || 'N/A',
+      user.phone || 'N/A',
+      user.status || 'N/A',
+      user.totalOrders || user.total_orders || 0,
+      formatCurrency(user.totalSpent || user.total_spent || 0),
+      formatDate(user.joinDate || user.created_at)
+    ])
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n')
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `users-${new Date().toISOString().split('T')[0]}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(url)
+    
+    toast.success('Users data exported successfully')
+  }
+
+  const exportToExcel = () => {
+    const headers = ['Full Name', 'Email Address', 'Phone Number', 'City', 'Status', 'Package', 'Total Orders', 'Total Spent', 'Last Order', 'Join Date', 'Last Activity']
+    const rows = filteredUsers.map(user => [
+      user.name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'N/A',
+      user.email || 'N/A',
+      user.phone || 'N/A',
+      user.city || user.address || 'N/A',
+      user.status || 'N/A',
+      user.package || user.current_plan || 'N/A',
+      user.totalOrders || user.total_orders || 0,
+      user.totalSpent || user.total_spent || 0,
+      user.lastOrder || user.last_order || 'Never',
+      user.joinDate ? new Date(user.joinDate).toLocaleString() : (user.created_at ? new Date(user.created_at).toLocaleString() : 'N/A'),
+      user.last_activity ? new Date(user.last_activity).toLocaleString() : 'Never'
+    ])
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n')
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `users-detailed-${new Date().toISOString().split('T')[0]}.xlsx`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(url)
+    
+    toast.success('Excel file exported successfully')
+  }
+
   const handleViewOrders = async (user) => {
     setSelectedUser(user)
     setShowOrdersModal(true)
@@ -924,6 +992,11 @@ function UsersPageSimple() {
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </button>
+          <ExportDropdown
+            onExportPDF={exportToPDF}
+            onExportExcel={exportToExcel}
+            disabled={loading}
+          />
         </div>
       </div>
 

@@ -2,6 +2,7 @@
 export const API_CONFIG = {
   // Base URL for all API endpoints
   BASE_URL: 'https://or4esim.duckdns.org',
+  // BASE_URL: 'http://127.0.0.1:8000',
   
   // API version (if needed)
   API_VERSION: 'v1',
@@ -58,6 +59,15 @@ export const API_ENDPOINTS = {
     AVAILABLE_USERS: 'api/v1/resellers/resellers/available_users/',
     ACTIVATION_REQUESTS: 'api/v1/resellers/reseller-activation-requests/',
   },
+  BALANCE: {
+    HISTORY: 'api/v1/resellers/balance/history/',
+    TRANSACTIONS: 'api/v1/resellers/balance/',
+    REQUEST_TOPUP: 'api/v1/resellers/balance/request_topup/',
+    TOPUP_REQUESTS: 'api/v1/resellers/balance/topup_requests/',
+    ADMIN_PENDING: 'api/v1/resellers/admin/balance/pending_requests/',
+    ADMIN_PROCESS: 'api/v1/resellers/admin/balance/{id}/process_request/',
+    ADMIN_OVERVIEW: 'api/v1/resellers/admin/balance/balance_overview/',
+  },
   ORDERS: {
     LIST: 'api/v1/orders/orders/',
     DETAIL: 'api/v1/orders/orders/{id}/',
@@ -75,6 +85,11 @@ export const API_ENDPOINTS = {
     DELETE: 'api/v1/payments/payments/{id}/',
     GENERATE_INVOICE: 'api/v1/payments/payments/{id}/generate_invoice/',
     EXPORT: 'api/v1/payments/payments/export_pdf/',
+  },
+  STRIPE: {
+    CHECKOUT_BUNDLE: 'api/v1/stripe/checkout/bundle/',
+    PAYMENT_STATUS: 'api/v1/stripe/payment-status/',
+    PAYMENT_STATUS_BY_SESSION: 'api/v1/stripe/payment-status/?session_id={sessionId}',
   },
   REPORTS: {
     DASHBOARD: 'api/v1/reports/dashboard/',
@@ -106,6 +121,18 @@ export const API_ENDPOINTS = {
     MAIN: 'api/v1/reports/dashboard/',
     TEST: 'api/v1/reports/dashboard/test/',
   },
+  ADMIN: {
+    DASHBOARD: 'api/v1/reports/dashboard/test/',
+    ANALYTICS: 'api/v1/reports/dashboard/test/',
+    ORDERS_ANALYTICS: 'api/v1/orders/orders/analytics/',
+    REVENUE_ANALYTICS: 'api/v1/orders/orders/revenue_analytics/',
+    PAYMENT_ANALYTICS: 'api/v1/payments/payments/analytics/',
+    PAYMENT_DASHBOARD: 'api/v1/payments/payments/dashboard/',
+    RESELLER_ANALYTICS: 'api/v1/esim/reseller/dashboard/',
+    PERFORMANCE_METRICS: 'api/v1/reports/performance-metrics/',
+    EVENT_STATISTICS: 'api/v1/reports/analytics-events/event_statistics/',
+    TRAVEROAM_ANALYTICS: 'api/v1/traveroam/analytics/',
+  },
   CLIENTS: {
     LIST: 'api/v1/clients/',
     DETAIL: 'api/v1/clients/{id}/',
@@ -126,6 +153,7 @@ export const API_ENDPOINTS = {
     DELETE: 'api/v1/esim/esims/{id}/',
     ACTIVATE: 'api/v1/esim/esims/{id}/activate_esim/',
     DEACTIVATE: 'api/v1/esim/esims/{id}/deactivate_esim/',
+    REVOKE: 'api/v1/esim/esims/{id}/revoke/',
     PLANS: 'api/v1/esim/esim-plans/',
     PLAN_DETAIL: 'api/v1/esim/esim-plans/{id}/',
     AVAILABLE_PLANS: 'api/v1/esim/esim-plans/available_plans/',
@@ -145,15 +173,27 @@ export const API_ENDPOINTS = {
   },
   TRAVEROAM: {
     PLANS: 'api/v1/traveroam/plans/',
+    CATALOGUE: 'api/v1/traveroam/catalogue/',
+    BUNDLES: 'api/v1/traveroam/bundles/',
     NETWORKS: 'api/v1/traveroam/networks/',
     ESIM_ASSIGN: 'api/v1/traveroam/esim/assign/',
     ESIM_STATUS: 'api/v1/traveroam/esim/{esim_id}/status/',
     ESIM_USAGE: 'api/v1/traveroam/esim/{esim_id}/usage/',
+    ESIM_REFRESH: 'api/v1/traveroam/esim/{esim_id}/refresh/',
+    ESIM_REVOKE: 'api/v1/traveroam/esim/{esim_id}/revoke/',
+    ESIM_DETAILS: 'api/v1/traveroam/esim/{esim_id}/',
+    ESIM_UPDATE: 'api/v1/traveroam/esim/{esim_id}/update/',
+    ESIM_LOCATION: 'api/v1/traveroam/esim/{esim_id}/location/',
     ORDER_PROCESS: 'api/v1/traveroam/orders/process/',
+    ORDER_STATUS: 'api/v1/traveroam/orders/{order_id}/status/',
     CLIENT_VALIDATE: 'api/v1/traveroam/client/validate/',
     BUNDLE_VALIDATE: 'api/v1/traveroam/bundle/validate/',
+    BUNDLE_STATUS: 'api/v1/traveroam/bundles/{bundle_id}/status/',
+    SEND_SMS: 'api/v1/traveroam/esim/{esim_id}/sms/',
     ANALYTICS: 'api/v1/traveroam/analytics/',
     BULK_OPERATIONS: 'api/v1/traveroam/bulk/',
+    CALLBACK: 'api/v1/traveroam/callback/',
+    ONE_CLICK_INSTALL: 'api/v1/traveroam/esim/{esim_id}/install/',
   },
   UTILS: {
     DETECT_COUNTRY: 'api/v1/utils/detect-country/',
@@ -208,10 +248,32 @@ export const RESELLER_ACTIVATE_URL = buildApiUrl(API_ENDPOINTS.RESELLERS.ACTIVAT
 export const RESELLER_CHANGE_STATUS_URL = buildApiUrl(API_ENDPOINTS.RESELLERS.CHANGE_STATUS)
 export const RESELLER_AVAILABLE_USERS_URL = buildApiUrl(API_ENDPOINTS.RESELLERS.AVAILABLE_USERS)
 export const RESELLER_ACTIVATION_REQUESTS_URL = buildApiUrl(API_ENDPOINTS.RESELLERS.ACTIVATION_REQUESTS)
+
+// Balance Management URLs
+export const BALANCE_HISTORY_URL = buildApiUrl(API_ENDPOINTS.BALANCE.HISTORY)
+export const BALANCE_TRANSACTIONS_URL = buildApiUrl(API_ENDPOINTS.BALANCE.TRANSACTIONS)
+export const BALANCE_REQUEST_TOPUP_URL = buildApiUrl(API_ENDPOINTS.BALANCE.REQUEST_TOPUP)
+export const BALANCE_TOPUP_REQUESTS_URL = buildApiUrl(API_ENDPOINTS.BALANCE.TOPUP_REQUESTS)
+export const BALANCE_ADMIN_PENDING_URL = buildApiUrl(API_ENDPOINTS.BALANCE.ADMIN_PENDING)
+export const BALANCE_ADMIN_PROCESS_URL = buildApiUrl(API_ENDPOINTS.BALANCE.ADMIN_PROCESS)
+export const BALANCE_ADMIN_OVERVIEW_URL = buildApiUrl(API_ENDPOINTS.BALANCE.ADMIN_OVERVIEW)
+
 export const DASHBOARD_REPORTS_URL = buildApiUrl(API_ENDPOINTS.REPORTS.DASHBOARD)
 export const DASHBOARD_TEST_URL = buildApiUrl(API_ENDPOINTS.REPORTS.DASHBOARD_TEST)
 export const DASHBOARD_MAIN_URL = buildApiUrl(API_ENDPOINTS.DASHBOARD.MAIN)
 export const DASHBOARD_TEST_URL_ALT = buildApiUrl(API_ENDPOINTS.DASHBOARD.TEST)
+
+// Admin Analytics URLs
+export const ADMIN_DASHBOARD_URL = buildApiUrl(API_ENDPOINTS.ADMIN.DASHBOARD)
+export const ADMIN_ANALYTICS_URL = buildApiUrl(API_ENDPOINTS.ADMIN.ANALYTICS)
+export const ADMIN_ORDERS_ANALYTICS_URL = buildApiUrl(API_ENDPOINTS.ADMIN.ORDERS_ANALYTICS)
+export const ADMIN_REVENUE_ANALYTICS_URL = buildApiUrl(API_ENDPOINTS.ADMIN.REVENUE_ANALYTICS)
+export const ADMIN_PAYMENT_ANALYTICS_URL = buildApiUrl(API_ENDPOINTS.ADMIN.PAYMENT_ANALYTICS)
+export const ADMIN_PAYMENT_DASHBOARD_URL = buildApiUrl(API_ENDPOINTS.ADMIN.PAYMENT_DASHBOARD)
+export const ADMIN_RESELLER_ANALYTICS_URL = buildApiUrl(API_ENDPOINTS.ADMIN.RESELLER_ANALYTICS)
+export const ADMIN_PERFORMANCE_METRICS_URL = buildApiUrl(API_ENDPOINTS.ADMIN.PERFORMANCE_METRICS)
+export const ADMIN_EVENT_STATISTICS_URL = buildApiUrl(API_ENDPOINTS.ADMIN.EVENT_STATISTICS)
+export const ADMIN_TRAVEROAM_ANALYTICS_URL = buildApiUrl(API_ENDPOINTS.ADMIN.TRAVEROAM_ANALYTICS)
 
 // Client Management URLs
 export const CLIENTS_URL = buildApiUrl(API_ENDPOINTS.CLIENTS.LIST)
@@ -229,6 +291,7 @@ export const ESIM_DETAIL_URL = buildApiUrl(API_ENDPOINTS.ESIM.DETAIL)
 export const ESIM_CREATE_URL = buildApiUrl(API_ENDPOINTS.ESIM.CREATE)
 export const ESIM_ACTIVATE_URL = buildApiUrl(API_ENDPOINTS.ESIM.ACTIVATE)
 export const ESIM_DEACTIVATE_URL = buildApiUrl(API_ENDPOINTS.ESIM.DEACTIVATE)
+export const ESIM_REVOKE_URL = buildApiUrl(API_ENDPOINTS.ESIM.REVOKE)
 export const ESIM_PLANS_URL = buildApiUrl(API_ENDPOINTS.ESIM.PLANS)
 export const ESIM_AVAILABLE_PLANS_URL = buildApiUrl(API_ENDPOINTS.ESIM.AVAILABLE_PLANS)
 export const ESIM_USAGE_URL = buildApiUrl(API_ENDPOINTS.ESIM.USAGE)
@@ -241,7 +304,34 @@ export const ESIM_RESELLER_DASHBOARD_URL = buildApiUrl(API_ENDPOINTS.ESIM_RESELL
 
 // TraveRoam URLs
 export const TRAVEROAM_PLANS_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.PLANS)
+export const TRAVEROAM_CATALOGUE_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.CATALOGUE)
+export const TRAVEROAM_BUNDLES_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.BUNDLES)
 export const TRAVEROAM_NETWORKS_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.NETWORKS)
 export const TRAVEROAM_ESIM_ASSIGN_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.ESIM_ASSIGN)
+export const TRAVEROAM_ESIM_STATUS_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.ESIM_STATUS)
+export const TRAVEROAM_ESIM_USAGE_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.ESIM_USAGE)
+export const TRAVEROAM_ESIM_REFRESH_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.ESIM_REFRESH)
+export const TRAVEROAM_ESIM_REVOKE_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.ESIM_REVOKE)
+export const TRAVEROAM_ESIM_DETAILS_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.ESIM_DETAILS)
+export const TRAVEROAM_ESIM_UPDATE_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.ESIM_UPDATE)
+export const TRAVEROAM_ESIM_LOCATION_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.ESIM_LOCATION)
 export const TRAVEROAM_ORDER_PROCESS_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.ORDER_PROCESS)
+export const TRAVEROAM_ORDER_STATUS_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.ORDER_STATUS)
 export const TRAVEROAM_CLIENT_VALIDATE_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.CLIENT_VALIDATE)
+export const TRAVEROAM_BUNDLE_VALIDATE_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.BUNDLE_VALIDATE)
+export const TRAVEROAM_BUNDLE_STATUS_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.BUNDLE_STATUS)
+export const TRAVEROAM_SEND_SMS_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.SEND_SMS)
+export const TRAVEROAM_ANALYTICS_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.ANALYTICS)
+export const TRAVEROAM_BULK_OPERATIONS_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.BULK_OPERATIONS)
+export const TRAVEROAM_CALLBACK_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.CALLBACK)
+export const TRAVEROAM_ONE_CLICK_INSTALL_URL = buildApiUrl(API_ENDPOINTS.TRAVEROAM.ONE_CLICK_INSTALL)
+
+// Stripe URLs
+export const STRIPE_CHECKOUT_BUNDLE_URL = buildApiUrl(API_ENDPOINTS.STRIPE.CHECKOUT_BUNDLE)
+export const STRIPE_PAYMENT_STATUS_URL = buildApiUrl(API_ENDPOINTS.STRIPE.PAYMENT_STATUS)
+export const STRIPE_PAYMENT_STATUS_BY_SESSION_URL = buildApiUrl(API_ENDPOINTS.STRIPE.PAYMENT_STATUS_BY_SESSION)
+
+// Utils URLs
+export const DETECT_COUNTRY_URL = buildApiUrl(API_ENDPOINTS.UTILS.DETECT_COUNTRY)
+export const SEND_EMAIL_URL = buildApiUrl(API_ENDPOINTS.UTILS.SEND_EMAIL)
+export const ASSIGN_ESIM_TO_CLIENT_URL = buildApiUrl(API_ENDPOINTS.UTILS.ASSIGN_ESIM_TO_CLIENT)

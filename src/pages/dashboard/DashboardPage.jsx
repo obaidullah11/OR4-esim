@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTheme } from '../../context/ThemeContext'
 // BACKEND INTEGRATION ACTIVATED
-import { dashboardService } from '../../services/apiService'
+import { adminAnalyticsService } from '../../services/adminAnalyticsService'
 import {
   Users,
   UserCheck,
@@ -155,20 +155,21 @@ function DashboardPage() {
       setLoading(true)
       setError(null)
 
-      // Try to get authenticated dashboard first, fallback to test dashboard
-      let data
-      try {
-        data = await dashboardService.getDashboardData()
-      } catch (authError) {
-        console.log('Auth failed, using test dashboard:', authError.message)
-        data = await dashboardService.getTestAdminDashboard()
-      }
+      console.log('🔄 Fetching admin dashboard data...')
 
-      setDashboardData(data)
-      setLastUpdated(new Date())
+      // Get comprehensive admin dashboard data
+      const response = await adminAnalyticsService.getDashboard()
+      
+      if (response.success) {
+        console.log('✅ Admin dashboard data retrieved successfully')
+        setDashboardData(response.data)
+        setLastUpdated(new Date())
+      } else {
+        throw new Error(response.error || 'Failed to fetch dashboard data')
+      }
     } catch (error) {
-      console.error('Failed to fetch dashboard data:', error)
-      setError(error.message)
+      console.error('❌ Failed to fetch dashboard data:', error)
+      setError(error.message || 'Failed to load dashboard data')
     } finally {
       setLoading(false)
     }

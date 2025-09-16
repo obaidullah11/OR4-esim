@@ -4,6 +4,7 @@ import {
   ESIM_CREATE_URL,
   ESIM_ACTIVATE_URL,
   ESIM_DEACTIVATE_URL,
+  ESIM_REVOKE_URL,
   ESIM_PLANS_URL,
   ESIM_AVAILABLE_PLANS_URL,
   ESIM_USAGE_URL,
@@ -210,6 +211,28 @@ export const esimService = {
       return {
         success: false,
         error: error.message || 'Failed to deactivate eSIM'
+      }
+    }
+  },
+
+  // Revoke eSIM via TravelRoam API
+  async revokeEsim(id) {
+    try {
+      const url = replaceUrlParams(ESIM_REVOKE_URL, { id })
+      const response = await apiService.post(url, {}, { requiresAuth: true })
+      
+      const data = response.data || response
+      
+      return {
+        success: true,
+        data: data.data || data,
+        message: 'eSIM revoked successfully'
+      }
+    } catch (error) {
+      console.error(`Failed to revoke eSIM ${id}:`, error)
+      return {
+        success: false,
+        error: error.message || 'Failed to revoke eSIM'
       }
     }
   },

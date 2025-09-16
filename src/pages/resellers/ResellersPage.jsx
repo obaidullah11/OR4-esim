@@ -23,13 +23,17 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  RefreshCw
+  RefreshCw,
+  Loader2,
+  FileText,
+  FileSpreadsheet
 } from 'lucide-react'
 import AddEditResellerModal from '../../components/resellers/AddEditResellerModal'
 import ResellerDetailsModal from '../../components/resellers/ResellerDetailsModal'
 import SuspensionReasonModal from '../../components/resellers/SuspensionReasonModal'
 import ConfirmationModal from '../../components/common/ConfirmationModal'
 import Tooltip from '../../components/common/Tooltip'
+import ExportDropdown from '../../components/common/ExportDropdown'
 // BACKEND INTEGRATION ACTIVATED
 import { resellerService } from '../../services/resellerService'
 import toast from 'react-hot-toast'
@@ -114,6 +118,8 @@ function ResellersPage() {
   const [resellerRequests, setResellerRequests] = useState([])
   const [showRejectModal, setShowRejectModal] = useState(false)
   const [selectedRequestForRejection, setSelectedRequestForRejection] = useState(null)
+  const [approvingRequestId, setApprovingRequestId] = useState(null)
+  const [rejectingRequestId, setRejectingRequestId] = useState(null)
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -402,6 +408,104 @@ function ResellersPage() {
     }
   }
 
+  // Export functions
+  const exportToPDF = () => {
+    const dataToExport = activeTab === 'resellers' ? filteredResellers : resellerRequests
+    const headers = activeTab === 'resellers' 
+      ? ['Company Name', 'Email', 'Status', 'Balance', 'Clients', 'Created Date']
+      : ['Name', 'Email', 'Company', 'Status', 'Request Date']
+    
+    const rows = dataToExport.map(item => {
+      if (activeTab === 'resellers') {
+        return [
+          item.company_name || item.business_name || 'N/A',
+          item.user?.email || item.email || 'N/A',
+          item.is_active ? 'Active' : 'Inactive',
+          formatCurrency(item.current_balance),
+          item.total_clients || 0,
+          formatDate(item.created_at)
+        ]
+      } else {
+        return [
+          `${item.user?.first_name || ''} ${item.user?.last_name || ''}`.trim() || 'N/A',
+          item.user?.email || 'N/A',
+          item.company_name || 'N/A',
+          item.status || 'N/A',
+          formatDate(item.created_at)
+        ]
+      }
+    })
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n')
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${activeTab}-${new Date().toISOString().split('T')[0]}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(url)
+    
+    toast.success('Data exported successfully')
+  }
+
+  const exportToExcel = () => {
+    const dataToExport = activeTab === 'resellers' ? filteredResellers : resellerRequests
+    const headers = activeTab === 'resellers'
+      ? ['Company Name', 'Contact Email', 'Status', 'Current Balance', 'Total Clients', 'Credit Limit', 'Max SIMs', 'Created Date', 'Last Activity']
+      : ['Full Name', 'Email', 'Company Name', 'Status', 'Max Clients', 'Max SIMs', 'Credit Limit', 'Request Date', 'Admin Notes']
+    
+    const rows = dataToExport.map(item => {
+      if (activeTab === 'resellers') {
+        return [
+          item.company_name || item.business_name || 'N/A',
+          item.user?.email || item.email || 'N/A',
+          item.is_active ? 'Active' : 'Inactive',
+          item.current_balance || 0,
+          item.total_clients || 0,
+          item.credit_limit || 0,
+          item.max_sims || 0,
+          item.created_at ? new Date(item.created_at).toLocaleString() : 'N/A',
+          item.last_activity ? new Date(item.last_activity).toLocaleString() : 'Never'
+        ]
+      } else {
+        return [
+          `${item.user?.first_name || ''} ${item.user?.last_name || ''}`.trim() || 'N/A',
+          item.user?.email || 'N/A',
+          item.company_name || 'N/A',
+          item.status || 'N/A',
+          item.max_clients || 0,
+          item.max_sims || 0,
+          item.credit_limit || 0,
+          item.created_at ? new Date(item.created_at).toLocaleString() : 'N/A',
+          item.admin_notes || 'N/A'
+        ]
+      }
+    })
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n')
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${activeTab}-detailed-${new Date().toISOString().split('T')[0]}.xlsx`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(url)
+    
+    toast.success('Excel file exported successfully')
+  }
+
   // Handle search with debouncing
   const handleSearch = (value) => {
     setSearchTerm(value)
@@ -425,6 +529,8 @@ function ResellersPage() {
   // Request handlers
   const handleActivateRequest = async (requestId) => {
     try {
+      setApprovingRequestId(requestId)
+      
       const request = resellerRequests.find(r => r.id === requestId)
       if (!request) {
         toast.error('Request not found')
@@ -456,6 +562,8 @@ function ResellersPage() {
     } catch (error) {
       console.error('Failed to activate reseller:', error)
       toast.error('Failed to activate reseller')
+    } finally {
+      setApprovingRequestId(null)
     }
   }
 
@@ -473,6 +581,8 @@ function ResellersPage() {
     if (!selectedRequestForRejection) return
 
     try {
+      setRejectingRequestId(selectedRequestForRejection.id)
+      
       const response = await resellerService.rejectActivationRequest(selectedRequestForRejection.id, rejectionReason)
 
       if (response.success) {
@@ -489,6 +599,7 @@ function ResellersPage() {
       console.error('Failed to reject request:', error)
       toast.error('Failed to reject request')
     } finally {
+      setRejectingRequestId(null)
       setShowRejectModal(false)
       setSelectedRequestForRejection(null)
     }
@@ -519,6 +630,11 @@ function ResellersPage() {
             <Plus className="h-4 w-4" />
             <span>Add Reseller</span>
           </button>
+          <ExportDropdown
+            onExportPDF={exportToPDF}
+            onExportExcel={exportToExcel}
+            disabled={loading}
+          />
         </div>
       </div>
 
@@ -875,14 +991,33 @@ function ResellersPage() {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleActivateRequest(request.id)}
-                          className="flex items-center space-x-1 bg-green-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-600 transition-colors"
+                          disabled={approvingRequestId === request.id}
+                          className={`flex items-center space-x-1 px-3 py-1 rounded-lg text-sm transition-colors ${
+                            approvingRequestId === request.id
+                              ? 'bg-green-400 cursor-not-allowed'
+                              : 'bg-green-500 hover:bg-green-600'
+                          } text-white`}
                         >
-                          <CheckCircle className="h-4 w-4" />
-                          <span>Activate</span>
+                          {approvingRequestId === request.id ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <span>Approving...</span>
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="h-4 w-4" />
+                              <span>Activate</span>
+                            </>
+                          )}
                         </button>
                         <button
                           onClick={() => handleRejectRequest(request.id)}
-                          className="flex items-center space-x-1 bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition-colors"
+                          disabled={approvingRequestId === request.id}
+                          className={`flex items-center space-x-1 px-3 py-1 rounded-lg text-sm transition-colors ${
+                            approvingRequestId === request.id
+                              ? 'bg-red-400 cursor-not-allowed'
+                              : 'bg-red-500 hover:bg-red-600'
+                          } text-white`}
                         >
                           <XCircle className="h-4 w-4" />
                           <span>Reject</span>
@@ -961,6 +1096,7 @@ function ResellersPage() {
         inputPlaceholder="Please provide a reason for rejection..."
         inputType="textarea"
         inputRequired={true}
+        isLoading={rejectingRequestId !== null}
       />
     </div>
   )

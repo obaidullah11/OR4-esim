@@ -23,7 +23,8 @@ import {
   Wifi,
   BarChart3,
   X,
-  FileText
+  FileText,
+  Trash2
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { esimService } from '../../services/esimService'
@@ -41,6 +42,7 @@ function EsimDetailsModal({ isOpen, onClose, esim }) {
   const getStatusDisplay = (status) => {
     const statusConfig = {
       active: { color: 'text-green-500', bg: 'bg-green-500/10', label: 'Active', icon: CheckCircle },
+      assigned: { color: 'text-purple-500', bg: 'bg-purple-500/10', label: 'Assigned', icon: Clock },
       provisioned: { color: 'text-blue-500', bg: 'bg-blue-500/10', label: 'Provisioned', icon: Clock },
       expired: { color: 'text-red-500', bg: 'bg-red-500/10', label: 'Expired', icon: XCircle },
       cancelled: { color: 'text-gray-500', bg: 'bg-gray-500/10', label: 'Cancelled', icon: XCircle }
@@ -165,7 +167,7 @@ function EsimDetailsModal({ isOpen, onClose, esim }) {
                   <span>Copy Code</span>
                 </button>
                 <button
-                  onClick={() => toast.success('QR code download coming soon')}
+                  onClick={() => handleDownloadQR(esim)}
                   className="flex items-center space-x-2 px-3 py-1 border border-border rounded text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 >
                   <Download className="h-3 w-3" />
@@ -256,7 +258,7 @@ function EsimHistoryPage() {
           dataVolume: esim.plan?.data_allowance ? `${esim.plan.data_allowance}GB` : 'N/A',
           validity: esim.plan?.validity_days || 0,
           validityUnit: 'days',
-          price: esim.plan?.price || 0,
+          price: parseFloat(esim.plan?.base_price || esim.plan?.reseller_price || esim.plan?.price || 0),
           currency: esim.plan?.currency || 'USD',
           status: esim.status || 'unknown',
           assignedDate: esim.assigned_at || esim.created_at,
@@ -269,7 +271,9 @@ function EsimHistoryPage() {
           activationCode: esim.activation_code || '',
           traveroamEsimId: esim.traveroam_esim_id || '',
           iccid: esim.iccid || '',
-          msisdn: esim.msisdn || ''
+          msisdn: esim.msisdn || '',
+          smdp_address: esim.smdp_address || '',
+          matching_id: esim.matching_id || ''
         }))
 
         setEsimHistory(transformedHistory)
@@ -355,6 +359,7 @@ function EsimHistoryPage() {
   const getStatusDisplay = (status) => {
     const statusConfig = {
       active: { color: 'text-green-500', bg: 'bg-green-500/10', label: 'Active', icon: CheckCircle },
+      assigned: { color: 'text-purple-500', bg: 'bg-purple-500/10', label: 'Assigned', icon: Clock },
       provisioned: { color: 'text-blue-500', bg: 'bg-blue-500/10', label: 'Provisioned', icon: Clock },
       expired: { color: 'text-red-500', bg: 'bg-red-500/10', label: 'Expired', icon: XCircle },
       cancelled: { color: 'text-gray-500', bg: 'bg-gray-500/10', label: 'Cancelled', icon: XCircle }
@@ -366,6 +371,182 @@ function EsimHistoryPage() {
   const handleViewDetails = (esim) => {
     setSelectedEsim(esim)
     setShowDetailsModal(true)
+  }
+
+  // QR Code download function - generates and downloads QR code as PDF
+  const handleDownloadQR = async (esim) => {
+    try {
+      if (!esim.qrCode && !esim.activationCode) {
+        toast.error('No QR code or activation code available for this eSIM')
+        return
+      }
+
+      // Import QR code and PDF generation libraries dynamically
+      const QRCode = (await import('qrcode')).default
+      const jsPDF = (await import('jspdf')).default
+
+      // Get the LPA string for QR code generation
+      let lpaString = ''
+      
+      if (esim.qrCode && esim.qrCode.startsWith('data:text/plain;base64,')) {
+        // Decode base64 LPA string
+        const base64Content = esim.qrCode.split(',')[1]
+        lpaString = atob(base64Content)
+      } else if (esim.qrCode && esim.qrCode.startsWith('data:image/')) {
+        // Already an image, but we need the LPA string to regenerate
+        lpaString = esim.activationCode || 'Unknown LPA'
+      } else {
+        // Use activation code or fallback
+        lpaString = esim.activationCode || esim.qrCode || 'Unknown LPA'
+      }
+
+      if (!lpaString || lpaString === 'Unknown LPA') {
+        toast.error('No valid LPA string found for QR code generation')
+        return
+      }
+
+      // Generate QR code as base64 image
+      const qrCodeDataURL = await QRCode.toDataURL(lpaString, {
+        errorCorrectionLevel: 'M',
+        type: 'image/png',
+        quality: 0.92,
+        margin: 2,
+        width: 400,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      })
+
+      // Create PDF with QR code and details
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      })
+
+      // Add title
+      pdf.setFontSize(20)
+      pdf.setFont('helvetica', 'bold')
+      pdf.text('eSIM Activation QR Code', 105, 20, { align: 'center' })
+
+      // Add eSIM details
+      pdf.setFontSize(12)
+      pdf.setFont('helvetica', 'normal')
+      
+      const details = [
+        `Client: ${esim.clientName || 'Unknown'}`,
+        `Plan: ${esim.planName || 'Unknown'}`,
+        `eSIM ID: ${esim.id}`,
+        `Status: ${esim.status}`,
+        `Generated: ${new Date().toLocaleString()}`
+      ]
+
+      let yPos = 40
+      details.forEach(detail => {
+        pdf.text(detail, 20, yPos)
+        yPos += 8
+      })
+
+      // Add QR code image
+      pdf.addImage(qrCodeDataURL, 'PNG', 55, yPos + 10, 100, 100)
+
+      // Add LPA string below QR code
+      yPos += 120
+      pdf.setFontSize(10)
+      pdf.setFont('helvetica', 'bold')
+      pdf.text('LPA String (for manual entry):', 20, yPos)
+      
+      yPos += 8
+      pdf.setFont('helvetica', 'normal')
+      
+      // Split long LPA string into multiple lines if needed
+      const maxWidth = 170
+      const lpaLines = pdf.splitTextToSize(lpaString, maxWidth)
+      pdf.text(lpaLines, 20, yPos)
+      
+      yPos += lpaLines.length * 5 + 15
+
+      // Add activation instructions
+      pdf.setFontSize(11)
+      pdf.setFont('helvetica', 'bold')
+      pdf.text('Activation Instructions:', 20, yPos)
+      
+      yPos += 10
+      pdf.setFont('helvetica', 'normal')
+      pdf.setFontSize(10)
+      
+      const instructions = [
+        '1. Go to Settings > Cellular/Mobile Data on your device',
+        '2. Select "Add eSIM" or "Add Cellular Plan"',
+        '3. Scan the QR code above with your device camera',
+        '4. Alternatively, choose "Enter Details Manually" and enter the LPA string',
+        '5. Follow the on-screen prompts to complete setup',
+        '6. Your eSIM will be activated and ready to use'
+      ]
+
+      instructions.forEach(instruction => {
+        const instructionLines = pdf.splitTextToSize(instruction, maxWidth)
+        pdf.text(instructionLines, 20, yPos)
+        yPos += instructionLines.length * 5 + 2
+      })
+
+      // Add additional info if available
+      if (esim.activationCode || esim.smdp_address || esim.matching_id) {
+        yPos += 10
+        pdf.setFont('helvetica', 'bold')
+        pdf.text('Additional Details:', 20, yPos)
+        yPos += 8
+        pdf.setFont('helvetica', 'normal')
+        
+        if (esim.activationCode) {
+          pdf.text(`Activation Code: ${esim.activationCode}`, 20, yPos)
+          yPos += 5
+        }
+        if (esim.smdp_address) {
+          pdf.text(`SMDP Address: ${esim.smdp_address}`, 20, yPos)
+          yPos += 5
+        }
+        if (esim.matching_id) {
+          pdf.text(`Matching ID: ${esim.matching_id}`, 20, yPos)
+          yPos += 5
+        }
+      }
+
+      // Save the PDF
+      const fileName = `eSIM-${esim.id}-QR-${esim.clientName?.replace(/\s+/g, '_') || 'client'}.pdf`
+      pdf.save(fileName)
+      
+      toast.success('QR code PDF downloaded successfully!')
+    } catch (error) {
+      console.error('QR code generation error:', error)
+      toast.error('Failed to generate QR code PDF. Please try again.')
+    }
+  }
+
+  // Revoke eSIM function
+  const handleRevokeEsim = async (esim) => {
+    try {
+      const confirmed = window.confirm(
+        `Are you sure you want to revoke eSIM ${esim.id}?\n\nThis action will:\n• Deactivate the eSIM immediately\n• Stop all data services\n• Cannot be undone\n\nClient: ${esim.clientName}\nPlan: ${esim.planName}`
+      )
+      
+      if (!confirmed) return
+
+      // Call the revoke API
+      const response = await esimService.revokeEsim(esim.id)
+      
+      if (response.success) {
+        toast.success('eSIM revoked successfully')
+        // Refresh the history to show updated status
+        await fetchEsimHistory()
+      } else {
+        throw new Error(response.error || 'Failed to revoke eSIM')
+      }
+    } catch (error) {
+      console.error('Revoke error:', error)
+      toast.error(`Failed to revoke eSIM: ${error.message}`)
+    }
   }
 
   const handleRefresh = async () => {
@@ -724,13 +905,31 @@ function EsimHistoryPage() {
                         <p className="text-sm text-muted-foreground">{esim.currency}</p>
                       </td>
                       <td className="p-4">
-                        <button
-                          onClick={() => handleViewDetails(esim)}
-                          className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-                          title="View Details"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </button>
+                        <div className="flex items-center space-x-1">
+                          <button
+                            onClick={() => handleViewDetails(esim)}
+                            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                            title="View Details"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDownloadQR(esim)}
+                            className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                            title="Download QR Code"
+                          >
+                            <QrCode className="h-4 w-4" />
+                          </button>
+                          {(esim.status === 'active' || esim.status === 'provisioned') && (
+                            <button
+                              onClick={() => handleRevokeEsim(esim)}
+                              className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                              title="Revoke eSIM"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   )

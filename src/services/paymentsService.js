@@ -1,6 +1,9 @@
 import { 
   API_ENDPOINTS,
-  buildApiUrl
+  buildApiUrl,
+  STRIPE_CHECKOUT_BUNDLE_URL,
+  STRIPE_PAYMENT_STATUS_URL,
+  STRIPE_PAYMENT_STATUS_BY_SESSION_URL
 } from '../config/api'
 import { apiService } from './apiService'
 
@@ -122,7 +125,7 @@ export const paymentsService = {
   async createStripeCheckoutSession(checkoutData) {
     try {
       // Use the correct Stripe bundle checkout endpoint
-      const url = buildApiUrl('api/v1/stripe/checkout/bundle/')
+      const url = STRIPE_CHECKOUT_BUNDLE_URL
       const response = await apiService.post(url, checkoutData, { requiresAuth: true })
       
       const data = response.data || response
@@ -144,7 +147,7 @@ export const paymentsService = {
   // Verify Stripe checkout session
   async verifyStripeCheckoutSession(sessionId) {
     try {
-      const url = buildApiUrl(`api/v1/stripe/payment-status/?session_id=${sessionId}`)
+      const url = replaceUrlParams(STRIPE_PAYMENT_STATUS_BY_SESSION_URL, { sessionId })
       const response = await apiService.get(url, { requiresAuth: true })
       
       const data = response.data || response
@@ -167,7 +170,7 @@ export const paymentsService = {
   async testStripeService() {
     try {
       // Test endpoint to verify Stripe service is working
-      const url = buildApiUrl('api/v1/stripe/payment-status/')
+      const url = STRIPE_PAYMENT_STATUS_URL
       const response = await apiService.get(url, { requiresAuth: true })
       
       const data = response.data || response
