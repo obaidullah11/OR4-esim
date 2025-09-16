@@ -1,8 +1,8 @@
 // API Configuration
 export const API_CONFIG = {
   // Base URL for all API endpoints
-  // BASE_URL: 'https://or4esim.duckdns.org',
-  BASE_URL: 'http://127.0.0.1:8000',
+  BASE_URL: 'https://or4esim.duckdns.org',
+  // BASE_URL: 'http://127.0.0.1:8000',
   
   // API version (if needed)
   API_VERSION: 'v1',
